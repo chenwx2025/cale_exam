@@ -1,0 +1,30 @@
+{
+  "name": "cale_exam",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "nuxt": "^3.19.3",
+    "vue": "^3.5.22",
+    "vue-router": "^4.5.1",
+    "@prisma/client": "^6.4.0",
+    "@pinia/nuxt": "^0.7.0",
+    "pinia": "^2.3.0",
+    "exceljs": "^4.4.0",
+    "papaparse": "^5.4.1"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.12.2",
+    "prisma": "^6.4.0",
+    "tsx": "^4.19.2"
+  }
+}

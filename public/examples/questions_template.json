@@ -1,0 +1,46 @@
+[
+  {
+    "question": "中医理论中，阴阳的基本概念是什么？",
+    "categoryCode": "TCM_BASIC",
+    "correctAnswer": "A. 阴阳是对立统一的两个方面",
+    "options": [
+      "A. 阴阳是对立统一的两个方面",
+      "B. 阴阳是完全独立的概念",
+      "C. 阴阳只存在于自然界",
+      "D. 阴阳是西医概念"
+    ],
+    "explanation": "阴阳学说认为，阴阳是自然界一切事物中对立统一的两个方面，相互依存、相互制约、相互转化。",
+    "difficulty": "easy",
+    "type": "multiple_choice",
+    "tags": ["基础理论", "阴阳学说"],
+    "source": "中医基础理论教材"
+  },
+  {
+    "question": "五脏中，主藏血的是哪一脏？",
+    "categoryCode": "TCM_BASIC",
+    "correctAnswer": "B. 肝",
+    "options": [
+      "A. 心",
+      "B. 肝",
+      "C. 脾",
+      "D. 肺"
+    ],
+    "explanation": "中医理论认为"肝主藏血"，肝具有贮藏血液和调节血量的功能。",
+    "difficulty": "medium",
+    "type": "multiple_choice"
+  },
+  {
+    "question": "人参的主要功效是什么？",
+    "categoryCode": "HERB",
+    "correctAnswer": "B. 大补元气",
+    "options": [
+      "A. 清热解毒",
+      "B. 大补元气",
+      "C. 活血化瘀",
+      "D. 理气止痛"
+    ],
+    "explanation": "人参味甘、微苦，性微温，归脾、肺、心经，具有大补元气、补脾益肺、生津止渴、安神益智的功效。",
+    "difficulty": "easy",
+    "type": "multiple_choice"
+  }
+]

@@ -1,0 +1,149 @@
+// Prisma Schema for Cale Exam System
+// 数据库架构设计
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// 考试信息元数据
+model ExamInfo {
+  id                String   @id @default(cuid())
+  examType          String   @unique // 考试类型：cale 或 nccaom
+  name              String   // 考试名称（中文）
+  nameEn            String   // 考试名称（英文）
+  fullName          String   // 考试全称
+  description       String   // 考试简介
+  duration          Int      // 考试时长（分钟）
+  totalQuestions    Int      // 总题数
+  passingScore      Int      // 及格分数（百分比）
+  examFee           String?  // 考试费用
+  examFormat        String?  // 考试形式（机考/笔试）
+  retakePolicy      String?  // 重考政策
+  validityPeriod    String?  // 证书有效期
+  officialWebsite   String?  // 官方网站
+  contentOverview   String   // 考试内容概述
+  preparationTips   String?  // 备考建议
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// 考试大纲分类
+model Category {
+  id              String     @id @default(cuid())
+  name            String     // 分类名称（中文）
+  nameEn          String?    // 分类名称（英文）
+  code            String     // 分类代码（如：DOMAIN_1_ASSESSMENT、DOMAIN_2_DIAGNOSIS）
+  examType        String     @default("cale") // 考试类型：cale（加州）、nccaom（全国）
+  type            String     // 类型：organization（组织部分）、content（内容部分）、review（复习部分）
+  description     String?    // 分类描述
+  detailedInfo    String?    // 详细信息（考试占比、重点内容等）
+  questionCount   Int?       // 该分类预期题目数量
+  weight          Int?       // 考试权重（百分比）
+  keyPoints       String?    // 重点知识点（JSON格式）
+  studyTips       String?    // 学习建议
+  parentId        String?    // 父分类ID（支持多级分类）
+  parent          Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children        Category[] @relation("CategoryHierarchy")
+  questions       Question[] // 该分类下的题目
+  order           Int        @default(0) // 显示顺序
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([code, examType]) // 同一考试类型内分类代码唯一
+  @@index([type])
+  @@index([examType])
+  @@index([parentId])
+}
+
+// 题目
+model Question {
+  id            String           @id @default(cuid())
+  examType      String           @default("cale") // 考试类型：cale（加州）、nccaom（全国）
+  type          String           // 题型：multiple_choice（选择题）、true_false（判断题）、case_study（案例题）
+  question      String           // 题目内容
+  options       String?          // 选项（JSON格式，如：["A. 选项1", "B. 选项2"]）
+  correctAnswer String           // 正确答案
+  explanation   String?          // 答案解析
+  difficulty    String           @default("medium") // 难度：easy、medium、hard
+  categoryId    String           // 所属分类
+  category      Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags          String?          // 标签（JSON格式，用于额外分类）
+  source        String?          // 题目来源
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  userAnswers   UserAnswer[]     // 用户答题记录
+  studyPlans    StudyPlanItem[]  // 学习计划关联
+
+  @@index([categoryId])
+  @@index([difficulty])
+  @@index([examType])
+}
+
+// 用户（可选，如果需要多用户支持）
+model User {
+  id          String       @id @default(cuid())
+  name        String
+  email       String?      @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userAnswers UserAnswer[] // 用户答题记录
+  studyPlans  StudyPlan[]  // 学习计划
+}
+
+// 用户答题记录
+model UserAnswer {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userAnswer   String   // 用户的答案
+  isCorrect    Boolean  // 是否正确
+  timeSpent    Int?     // 答题时间（秒）
+  attemptCount Int      @default(1) // 尝试次数
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([userId, questionId])
+}
+
+// 学习计划
+model StudyPlan {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String          // 计划名称
+  description String?         // 计划描述
+  startDate   DateTime        // 开始日期
+  endDate     DateTime        // 结束日期
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  items       StudyPlanItem[] // 计划项目
+
+  @@index([userId])
+}
+
+// 学习计划项目
+model StudyPlanItem {
+  id           String     @id @default(cuid())
+  studyPlanId  String
+  studyPlan    StudyPlan  @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  scheduledFor DateTime   // 计划学习日期
+  completed    Boolean    @default(false)
+  completedAt  DateTime?
+  notes        String?    // 学习笔记
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([studyPlanId])
+  @@index([questionId])
+}
