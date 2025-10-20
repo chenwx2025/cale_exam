@@ -62,22 +62,24 @@ model Category {
 
 // 题目
 model Question {
-  id            String           @id @default(cuid())
-  examType      String           @default("cale") // 考试类型：cale（加州）、nccaom（全国）
-  type          String           // 题型：multiple_choice（选择题）、true_false（判断题）、case_study（案例题）
-  question      String           // 题目内容
-  options       String?          // 选项（JSON格式，如：["A. 选项1", "B. 选项2"]）
-  correctAnswer String           // 正确答案
-  explanation   String?          // 答案解析
-  difficulty    String           @default("medium") // 难度：easy、medium、hard
-  categoryId    String           // 所属分类
-  category      Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  tags          String?          // 标签（JSON格式，用于额外分类）
-  source        String?          // 题目来源
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  userAnswers   UserAnswer[]     // 用户答题记录
-  studyPlans    StudyPlanItem[]  // 学习计划关联
+  id             String           @id @default(cuid())
+  examType       String           @default("cale") // 考试类型：cale（加州）、nccaom（全国）
+  type           String           // 题型：multiple_choice（选择题）、true_false（判断题）、case_study（案例题）
+  question       String           // 题目内容
+  options        String?          // 选项（JSON格式，如：["A. 选项1", "B. 选项2"]）
+  correctAnswer  String           // 正确答案
+  explanation    String?          // 答案解析
+  difficulty     String           @default("medium") // 难度：easy、medium、hard
+  categoryId     String           // 所属分类
+  category       Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags           String?          // 标签（JSON格式，用于额外分类）
+  source         String?          // 题目来源
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  userAnswers    UserAnswer[]     // 用户答题记录
+  studyPlans     StudyPlanItem[]  // 学习计划关联
+  examAnswers    ExamAnswer[]     // 考试答题记录
+  wrongQuestions WrongQuestion[]  // 错题本记录
 
   @@index([categoryId])
   @@index([difficulty])
@@ -86,13 +88,17 @@ model Question {
 
 // 用户（可选，如果需要多用户支持）
 model User {
-  id          String       @id @default(cuid())
-  name        String
-  email       String?      @unique
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  userAnswers UserAnswer[] // 用户答题记录
-  studyPlans  StudyPlan[]  // 学习计划
+  id             String          @id @default(cuid())
+  name           String
+  email          String?         @unique
+  password       String?         // 密码（加密存储）
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  userAnswers    UserAnswer[]    // 用户答题记录
+  studyPlans     StudyPlan[]     // 学习计划
+  exams          Exam[]          // 模拟考试记录
+  wrongQuestions WrongQuestion[] // 错题本
+  studySessions  StudySession[]  // 学习会话
 }
 
 // 用户答题记录
@@ -120,6 +126,7 @@ model StudyPlan {
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String          // 计划名称
   description String?         // 计划描述
+  examType    String          @default("cale") // 考试类型: cale, nccaom
   startDate   DateTime        // 开始日期
   endDate     DateTime        // 结束日期
   isActive    Boolean         @default(true)
@@ -128,6 +135,7 @@ model StudyPlan {
   items       StudyPlanItem[] // 计划项目
 
   @@index([userId])
+  @@index([examType])
 }
 
 // 学习计划项目
@@ -146,4 +154,98 @@ model StudyPlanItem {
 
   @@index([studyPlanId])
   @@index([questionId])
+}
+
+// 模拟考试
+model Exam {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examType      String        @default("cale") // 考试类型: cale, nccaom
+  title         String        // 考试标题
+  categoryId    String?       // 选择的领域/分类（可选，null表示全领域）
+  questionCount Int           // 题目数量
+  duration      Int           // 考试时长（分钟）
+  difficulty    String?       // 难度: easy, medium, hard, mixed
+  mode          String        @default("exam") // 模式: exam（考试）, practice（练习）, ai_generated（AI生成题库）
+  generatedBy   String?       // 生成方式: domain（按领域）, proportion（按比例）, manual（手动配置）
+  status        String        @default("not_started") // 状态: not_started, in_progress, completed, abandoned
+  startedAt     DateTime?     // 开始时间
+  completedAt   DateTime?     // 完成时间
+  timeSpent     Int?          // 实际用时（秒）
+  score         Float?        // 得分
+  totalScore    Float?        // 总分
+  percentage    Float?        // 百分比得分
+  passed        Boolean?      // 是否通过
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  answers       ExamAnswer[]  // 答题记录
+
+  @@index([userId])
+  @@index([examType])
+  @@index([status])
+  @@index([mode])
+  @@index([generatedBy])
+}
+
+// 考试答题记录
+model ExamAnswer {
+  id         String   @id @default(cuid())
+  examId     String
+  exam       Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userAnswer String?  // 用户答案（可能未答）
+  isCorrect  Boolean? // 是否正确（提交后计算）
+  timeSpent  Int?     // 答题时间（秒）
+  isMarked   Boolean  @default(false) // 是否标记
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([examId])
+  @@index([questionId])
+}
+
+// 错题本
+model WrongQuestion {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  wrongCount   Int      @default(1) // 答错次数
+  correctCount Int      @default(0) // 答对次数（重新练习时）
+  lastWrong    DateTime @default(now()) // 最后一次答错时间
+  lastCorrect  DateTime? // 最后一次答对时间
+  mastered     Boolean  @default(false) // 是否已掌握
+  masteryLevel Int      @default(0) // 掌握度（0-100）
+  notes        String?  // 个人笔记
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@index([questionId])
+  @@index([mastered])
+  @@index([userId, mastered])
+}
+
+// 学习会话（用于追踪学习时长）
+model StudySession {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examType  String   @default("cale") // 考试类型
+  type      String   // 会话类型：practice（练习）、exam（考试）、review（复习）、wrong_questions（错题练习）
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  duration  Int?     // 持续时间（秒）
+  questionsCount Int @default(0) // 本次学习题目数
+  correctCount   Int @default(0) // 答对数
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([examType])
+  @@index([type])
+  @@index([startTime])
 }

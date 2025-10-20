@@ -18,23 +18,107 @@
             >
               考试大纲
             </NuxtLink>
+
+            <!-- 学习功能下拉菜单 -->
+            <div class="relative group">
+              <button class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1">
+                学习中心
+                <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              <div class="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <NuxtLink
+                  to="/wrong-questions"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-t-lg"
+                >
+                  📚 我的错题本
+                </NuxtLink>
+                <NuxtLink
+                  to="/study-plans"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors"
+                >
+                  📅 我的复习计划
+                </NuxtLink>
+                <NuxtLink
+                  to="/study-plan"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors"
+                >
+                  ✏️ 创建复习计划
+                </NuxtLink>
+                <NuxtLink
+                  to="/stats"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-b-lg"
+                >
+                  📊 学习统计
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- 模拟考试下拉菜单 -->
+            <div class="relative group">
+              <button class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1">
+                模拟考试
+                <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              <div class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <NuxtLink
+                  to="/exam/question-sets"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-t-lg"
+                >
+                  题目集列表
+                </NuxtLink>
+                <NuxtLink
+                  to="/exam/config"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-b-lg"
+                >
+                  配置新考试
+                </NuxtLink>
+              </div>
+            </div>
+            <!-- 用户菜单 -->
+            <div v-if="isLoggedIn" class="relative group">
+              <button class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                {{ userName }}
+              </button>
+              <div class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <NuxtLink
+                  to="/stats"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-t-lg"
+                >
+                  我的统计
+                </NuxtLink>
+                <NuxtLink
+                  to="/wrong-questions"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors"
+                >
+                  我的错题本
+                </NuxtLink>
+                <button
+                  @click="handleLogout"
+                  class="w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 transition-colors rounded-b-lg"
+                >
+                  退出登录
+                </button>
+              </div>
+            </div>
+
             <NuxtLink
-              to="/study-plan"
-              class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-              active-class="bg-blue-100 text-blue-700"
+              v-else
+              to="/auth/login"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              复习计划
+              登录/注册
             </NuxtLink>
-            <NuxtLink
-              to="/exam"
-              class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-              active-class="bg-blue-100 text-blue-700"
-            >
-              模拟考试
-            </NuxtLink>
+
             <NuxtLink
               to="/admin"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               管理后台
             </NuxtLink>
@@ -58,3 +142,41 @@
     </footer>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const user = ref<any>(null)
+
+const isLoggedIn = computed(() => !!user.value)
+const userName = computed(() => user.value?.name || '用户')
+
+const checkAuth = () => {
+  if (process.client) {
+    const userData = localStorage.getItem('cale_user')
+    if (userData) {
+      try {
+        user.value = JSON.parse(userData)
+      } catch (e) {
+        localStorage.removeItem('cale_user')
+        localStorage.removeItem('cale_token')
+      }
+    }
+  }
+}
+
+const handleLogout = () => {
+  if (process.client) {
+    localStorage.removeItem('cale_user')
+    localStorage.removeItem('cale_token')
+    user.value = null
+    router.push('/')
+  }
+}
+
+onMounted(() => {
+  checkAuth()
+})
+</script>

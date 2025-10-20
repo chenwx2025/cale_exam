@@ -17,7 +17,7 @@
           开始学习
         </NuxtLink>
         <NuxtLink
-          to="/exam"
+          to="/exam/config"
           class="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-400 transition-colors"
         >
           模拟考试
@@ -70,7 +70,7 @@
         <p class="text-gray-600 mb-4">
           真实的考试体验，即时反馈和详细解析
         </p>
-        <NuxtLink to="/exam" class="text-purple-600 font-semibold hover:text-purple-700">
+        <NuxtLink to="/exam/config" class="text-purple-600 font-semibold hover:text-purple-700">
           开始考试 →
         </NuxtLink>
       </div>

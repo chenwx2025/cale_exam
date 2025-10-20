@@ -802,6 +802,11 @@
       </div>
     </div>
 
+    <!-- 官方考试大纲详细分解 TABLE 27 (仅CALE考试显示) -->
+    <div v-if="currentExamType === 'cale' && officialOutline" class="mb-8">
+      <CompleteOutlineTable :all-domains="officialOutline" />
+    </div>
+
     <!-- Tab 切换 -->
     <div class="mb-6">
       <div class="flex border-b border-gray-200">
@@ -1009,10 +1014,19 @@ const { data: categories, pending, refresh: refreshCategories } = await useFetch
   query: computed(() => ({ examType: currentExamType.value }))
 })
 
+// 获取官方考试大纲详细数据
+const { data: officialOutline, refresh: refreshOfficialOutline } = await useFetch(
+  () => `/api/official-outline/${currentExamType.value}`,
+  {
+    key: () => `official-outline-${currentExamType.value}`
+  }
+)
+
 // 当考试类型改变时，重新获取数据
 watch(currentExamType, () => {
   refreshExamInfo()
   refreshCategories()
+  refreshOfficialOutline()
   expandedCategories.value.clear()
   showMoreInfo.value = false
 })

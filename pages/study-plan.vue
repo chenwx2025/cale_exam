@@ -192,28 +192,21 @@ const createPlan = async () => {
   creating.value = true
 
   try {
-    // 这里可以调用 API 创建学习计划
-    // const plan = await $fetch('/api/study-plans', {
-    //   method: 'POST',
-    //   body: {
-    //     userId: 'demo-user',
-    //     ...planForm.value
-    //   }
-    // })
+    const plan = await $fetch('/api/study-plans', {
+      method: 'POST',
+      body: {
+        userId: 'demo-user',
+        examType: currentExamType.value,
+        ...planForm.value
+      }
+    })
 
-    alert('学习计划创建成功！')
+    alert(`学习计划创建成功！\n\n计划名称：${plan.name}\n总题数：${plan.stats.totalQuestions}\n学习天数：${plan.stats.totalDays}\n每天题数：${plan.stats.questionsPerDay}`)
 
-    // 重置表单
-    planForm.value = {
-      name: '',
-      startDate: '',
-      endDate: '',
-      questionsPerDay: 20,
-      focusCategory: '',
-      description: ''
-    }
+    // 跳转到学习计划列表页面
+    navigateTo('/study-plans')
   } catch (error: any) {
-    alert('创建失败：' + (error.message || '未知错误'))
+    alert('创建失败：' + (error.data?.message || error.message || '未知错误'))
   } finally {
     creating.value = false
   }

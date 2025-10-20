@@ -16,6 +16,1644 @@
 // 📅 最后验证日期: 2025-10-19
 // 🔄 验证方式: 通过官方网站文档和多渠道搜索验证
 // ========================================
+
+// CALE 官方考试大纲详细任务分解 (Official Examination Outline - Table 27)
+// 来源: PSI CALE Examination Bulletin
+// 数据说明: 基于官方考试手册，包含所有5个Domain的完整任务分解
+export const caleOfficialOutline = {
+  domain1: {
+    code: 'DOMAIN_1_ASSESSMENT',
+    title: 'Patient assessment',
+    percentage: 27,
+    description: 'This area assesses the practitioner\'s knowledge of assessing patient\'s chief complaint and underlying health conditions using TCM and Western medicine assessment methods, referring the patient to another health care provider if indicated, and identifying and responding to patient emergency situations.',
+    subareas: [
+      {
+        id: 'D101',
+        name: 'Patient assessment using Traditional Chinese medicine methods',
+        percentage: 18,
+        tasks: [
+          {
+            id: 'T1',
+            description: 'Identify patient\'s chief complaint.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K3', text: 'Knowledge of listening and smelling techniques for obtaining information about patient health.' },
+              { id: 'K4', text: 'Knowledge of palpation examination methods and techniques.' }
+            ]
+          },
+          {
+            id: 'T2',
+            description: 'Collect information about family health history.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K5', text: 'Knowledge of effects of patient and family health history on current health status.' }
+            ]
+          },
+          {
+            id: 'T3',
+            description: 'Collect information about patient health history.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K5', text: 'Knowledge of effects of patient and family health history on current health status.' }
+            ]
+          },
+          {
+            id: 'T4',
+            description: 'Identify supplements and herbs that the patient is taking.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K6', text: 'Knowledge of signs and symptoms associated with use of supplements and herbs.' },
+              { id: 'K83', text: 'Knowledge of interactions between commonly used supplements, herbs, foods, and Western medications.' },
+              { id: 'K84', text: 'Knowledge of actions and side effects of commonly used supplements.' }
+            ]
+          },
+          {
+            id: 'T5',
+            description: 'Identify signs and symptoms associated with use of supplements and herbs.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K6', text: 'Knowledge of signs and symptoms associated with use of supplements and herbs.' },
+              { id: 'K83', text: 'Knowledge of interactions between commonly used supplements, herbs, foods, and Western medications.' },
+              { id: 'K84', text: 'Knowledge of actions and side effects of commonly used supplements.' }
+            ]
+          },
+          {
+            id: 'T6',
+            description: 'Assess emotional health to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K10', text: 'Knowledge of clinical manifestations of Shen.' },
+              { id: 'K13', text: 'Knowledge of signs and symptoms of psychosocial dysfunction associated with disharmony patterns.' },
+              { id: 'K14', text: 'Knowledge of emotions associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T7',
+            description: 'Evaluate level and quality of Qi to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K8', text: 'Knowledge of clinical indicators of the level and quality of Qi.' },
+              { id: 'K26', text: 'Knowledge of respiratory signs and symptoms associated with disharmony patterns.' },
+              { id: 'K29', text: 'Knowledge of cardiovascular signs and symptoms associated with disharmony patterns.' },
+              { id: 'K37', text: 'Knowledge of the relationship between quality and strength of voice and patterns of disharmony.' },
+              { id: 'K40', text: 'Knowledge of radial pulse characteristics associated with patterns of disharmony.' }
+            ]
+          },
+          {
+            id: 'T8',
+            description: 'Assess Shen to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K7', text: 'Knowledge of clinical indicators of the level and quality of Blood.' },
+              { id: 'K9', text: 'Knowledge of clinical indicators of Essence.' },
+              { id: 'K10', text: 'Knowledge of clinical manifestations of Shen.' },
+              { id: 'K12', text: 'Knowledge of the associations between patient physical characteristics and disharmony patterns.' },
+              { id: 'K13', text: 'Knowledge of signs and symptoms of psychosocial dysfunction associated with disharmony patterns.' },
+              { id: 'K14', text: 'Knowledge of emotions associated with disharmony patterns.' },
+              { id: 'K30', text: 'Knowledge of skin characteristics and conditions associated with disharmony patterns.' },
+              { id: 'K37', text: 'Knowledge of the relationship between quality and strength of voice and patterns of disharmony.' }
+            ]
+          },
+          {
+            id: 'T9',
+            description: 'Assess patient physical characteristics to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K3', text: 'Knowledge of listening and smelling techniques for obtaining information about patient health.' },
+              { id: 'K4', text: 'Knowledge of palpation examination methods and techniques.' },
+              { id: 'K7', text: 'Knowledge of clinical manifestations of Shen.' },
+              { id: 'K9', text: 'Knowledge of clinical indicators of the level and quality of Blood.' },
+              { id: 'K12', text: 'Knowledge of the associations between patient physical characteristics and disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T10',
+            description: 'Identify external factors (e.g., stress, pollutants, noise, climate) influencing health.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K15', text: 'Knowledge of external factors (e.g., stress, pollutants, noise, climate) that affect health.' }
+            ]
+          },
+          {
+            id: 'T11',
+            description: 'Identify lifestyle factors influencing health.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K16', text: 'Knowledge of effects of lifestyle factors on health.' }
+            ]
+          },
+          {
+            id: 'T12',
+            description: 'Identify patient sleep patterns to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K7', text: 'Knowledge of clinical indicators of the level and quality of Blood.' },
+              { id: 'K9', text: 'Knowledge of clinical indicators of Essence.' },
+              { id: 'K17', text: 'Knowledge of sleep patterns indicating health imbalance.' }
+            ]
+          },
+          {
+            id: 'T13',
+            description: 'Identify dietary habits to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K18', text: 'Knowledge of effects of dietary habits and nutrition on health and wellness.' }
+            ]
+          },
+          {
+            id: 'T14',
+            description: 'Identify food and drink flavor preferences, cravings, and aversions to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K19', text: 'Knowledge of food and drink flavor preferences, cravings, and aversions associated with disharmony patterns.' },
+              { id: 'K20', text: 'Knowledge of food and drink temperature preferences and aversions associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T15',
+            description: 'Identify preferences and aversions related to temperature of food and drinks to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K20', text: 'Knowledge of food and drink temperature preferences and aversions associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T16',
+            description: 'Assess thirst and fluid intake to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K21', text: 'Knowledge of thirst characteristics associated with patterns of disharmony.' },
+              { id: 'K22', text: 'Knowledge of relationship between fluid intake and disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T17',
+            description: 'Identify gastrointestinal signs and symptoms (e.g., characteristics of bowel movements, pain) indicating health imbalance.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K3', text: 'Knowledge of listening and smelling techniques for obtaining information about patient health.' },
+              { id: 'K4', text: 'Knowledge of palpation examination methods and techniques.' },
+              { id: 'K18', text: 'Knowledge of effects of dietary habits and nutrition on health and wellness.' },
+              { id: 'K23', text: 'Knowledge of gastrointestinal signs and symptoms associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T18',
+            description: 'Identify genitourinary signs and symptoms indicating health imbalance.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K24', text: 'Knowledge of genitourinary signs and symptoms associated with disharmony patterns.' },
+              { id: 'K27', text: 'Knowledge of mucus characteristics in relation to disharmony patterns.' },
+              { id: 'K28', text: 'Knowledge of phlegm characteristics in relation to disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T19',
+            description: 'Identify signs and symptoms of gynecological and reproductive systems indicating health imbalance.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K25', text: 'Knowledge of signs and symptoms of gynecological and reproductive functioning associated with disharmony patterns.' },
+              { id: 'K27', text: 'Knowledge of mucus characteristics in relation to disharmony patterns.' },
+              { id: 'K28', text: 'Knowledge of phlegm characteristics in relation to disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T20',
+            description: 'Identify respiratory signs and symptoms indicating health imbalance.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K3', text: 'Knowledge of listening and smelling techniques for obtaining information about patient health.' },
+              { id: 'K11', text: 'Knowledge of clinical manifestations of Body Fluids.' },
+              { id: 'K26', text: 'Knowledge of respiratory signs and symptoms associated with disharmony patterns.' },
+              { id: 'K27', text: 'Knowledge of mucus characteristics in relation to disharmony patterns.' },
+              { id: 'K28', text: 'Knowledge of phlegm characteristics in relation to disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T21',
+            description: 'Identify mucus characteristics to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K11', text: 'Knowledge of clinical manifestations of Body Fluids.' },
+              { id: 'K27', text: 'Knowledge of mucus characteristics in relation to disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T22',
+            description: 'Identify phlegm characteristics to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K11', text: 'Knowledge of clinical manifestations of Body Fluids.' },
+              { id: 'K28', text: 'Knowledge of phlegm characteristics in relation to disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T23',
+            description: 'Identify cardiovascular signs and symptoms indicating health imbalance.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K3', text: 'Knowledge of listening and smelling techniques for obtaining information about patient health.' },
+              { id: 'K29', text: 'Knowledge of cardiovascular signs and symptoms associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T24',
+            description: 'Identify skin conditions and characteristics indicating health imbalance.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K11', text: 'Knowledge of clinical manifestations of Body Fluids.' },
+              { id: 'K30', text: 'Knowledge of skin characteristics and conditions associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T25',
+            description: 'Assess fever and chills to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K30', text: 'Knowledge of skin characteristics and conditions associated with disharmony patterns.' },
+              { id: 'K31', text: 'Knowledge of fever and chills associated with disharmony patterns.' },
+              { id: 'K32', text: 'Knowledge of patient\'s sensations of heat and cold associated with health imbalance.' },
+              { id: 'K33', text: 'Knowledge of conditions associated with abnormal localized temperature upon palpation.' },
+              { id: 'K34', text: 'Knowledge of abnormal perspiration associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T26',
+            description: 'Identify patient perspiration patterns to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K11', text: 'Knowledge of clinical manifestations of Body Fluids.' },
+              { id: 'K34', text: 'Knowledge of abnormal perspiration associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T27',
+            description: 'Identify ocular and visual signs and symptoms indicating health imbalance.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K35', text: 'Knowledge of ocular signs and symptoms associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T28',
+            description: 'Identify auditory signs and symptoms indicating health imbalance.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K36', text: 'Knowledge of auditory signs and symptoms associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T29',
+            description: 'Assess patient sounds, voice quality, and vocal strength to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K3', text: 'Knowledge of listening and smelling techniques for obtaining information about patient health.' },
+              { id: 'K37', text: 'Knowledge of the relationship between quality and strength of voice and patterns of disharmony.' }
+            ]
+          },
+          {
+            id: 'T30',
+            description: 'Assess level, nature, locations, and frequency of pain to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K4', text: 'Knowledge of palpation examination methods and techniques.' },
+              { id: 'K38', text: 'Knowledge of methods and procedures for assessing pain.' }
+            ]
+          },
+          {
+            id: 'T31',
+            description: 'Assess patient tongue body and coating to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K2', text: 'Knowledge of observational techniques for obtaining information about patient health.' },
+              { id: 'K3', text: 'Knowledge of listening and smelling techniques for obtaining information about patient health.' },
+              { id: 'K39', text: 'Knowledge of tongue characteristics associated with disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T32',
+            description: 'Assess patient pulse to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K4', text: 'Knowledge of palpation examination methods and techniques.' }
+            ]
+          },
+          {
+            id: 'T33',
+            description: 'Palpate areas of body or channels to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K40', text: 'Knowledge of radial pulse characteristics associated with patterns of disharmony.' },
+              { id: 'K41', text: 'Knowledge of methods for obtaining pulse information from various locations on the body.' }
+            ]
+          },
+          {
+            id: 'T34',
+            description: 'Assess patient odors to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K3', text: 'Knowledge of listening and smelling techniques for obtaining information about patient health.' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'D102',
+        name: 'Patient assessment using Western medicine methods',
+        percentage: 7,
+        tasks: [
+          {
+            id: 'T57',
+            description: 'Identify pharmaceuticals that the patient is taking.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K82', text: 'Knowledge of the classification, clinical indications, contraindications, and side effects of commonly prescribed Western medications.' }
+            ]
+          },
+          {
+            id: 'T58',
+            description: 'Identify signs and symptoms associated with the use of pharmaceuticals.',
+            knowledgeStatements: [
+              { id: 'K1', text: 'Knowledge of interview techniques for obtaining information about patient health.' },
+              { id: 'K82', text: 'Knowledge of the classification, clinical indications, contraindications, and side effects of commonly prescribed Western medications.' },
+              { id: 'K83', text: 'Knowledge of interactions between commonly used supplements, herbs, foods, and Western medications.' },
+              { id: 'K84', text: 'Knowledge of actions and side effects of commonly used supplements.' }
+            ]
+          },
+          {
+            id: 'T59',
+            description: 'Perform biomedical physical examination (e.g. observation, auscultation, palpation, vital signs) on patients to determine present health condition.',
+            knowledgeStatements: [
+              { id: 'K71', text: 'Knowledge of biomedical physical examination methods and techniques (e.g. observation, auscultation, palpation, vital signs).' },
+              { id: 'K72', text: 'Knowledge of human anatomy, physiology, and pathology.' },
+              { id: 'K73', text: 'Knowledge of procedures for obtaining vital signs.' },
+              { id: 'K74', text: 'Knowledge of normal range of vital signs.' },
+              { id: 'K75', text: 'Knowledge of methods and procedures for assessing neuromusculoskeletal function and integrity.' },
+              { id: 'K76', text: 'Knowledge of pathways and functions of cranial nerves for determination of neurological pathology.' },
+              { id: 'K77', text: 'Knowledge of dermatome technique for assessment of neuromuscular pathology.' },
+              { id: 'K78', text: 'Knowledge of neuromusculoskeletal conditions.' },
+              { id: 'K79', text: 'Knowledge of patient genetics and heredity associated with symptom development.' }
+            ]
+          },
+          {
+            id: 'T60',
+            description: 'Perform neurological examination (e.g., sensation, strength) on patients to determine health condition.',
+            knowledgeStatements: [
+              { id: 'K71', text: 'Knowledge of biomedical physical examination methods and techniques (e.g. observation, auscultation, palpation, vital signs).' },
+              { id: 'K72', text: 'Knowledge of human anatomy, physiology, and pathology.' },
+              { id: 'K73', text: 'Knowledge of procedures for obtaining vital signs.' },
+              { id: 'K74', text: 'Knowledge of normal range of vital signs.' },
+              { id: 'K75', text: 'Knowledge of methods and procedures for assessing neuromusculoskeletal function and integrity.' },
+              { id: 'K76', text: 'Knowledge of pathways and functions of cranial nerves for determination of neurological pathology.' },
+              { id: 'K77', text: 'Knowledge of dermatome technique for assessment of neuromuscular pathology.' },
+              { id: 'K78', text: 'Knowledge of neuromusculoskeletal conditions.' },
+              { id: 'K79', text: 'Knowledge of patient genetics and heredity associated with symptom development.' }
+            ]
+          },
+          {
+            id: 'T61',
+            description: 'Perform orthopedic examination on patients to determine health condition.',
+            knowledgeStatements: [
+              { id: 'K71', text: 'Knowledge of biomedical physical examination methods and techniques (e.g. observation, auscultation, palpation, vital signs).' },
+              { id: 'K72', text: 'Knowledge of human anatomy, physiology, and pathology.' },
+              { id: 'K75', text: 'Knowledge of methods and procedures for assessing neuromusculoskeletal function and integrity.' },
+              { id: 'K77', text: 'Knowledge of dermatome technique for assessment of neuromuscular pathology.' },
+              { id: 'K78', text: 'Knowledge of neuromusculoskeletal conditions.' },
+              { id: 'K79', text: 'Knowledge of patient genetics and heredity associated with symptom development.' }
+            ]
+          },
+          {
+            id: 'T62',
+            description: 'Order diagnostic tests to determine health condition.',
+            knowledgeStatements: [
+              { id: 'K80', text: 'Knowledge of clinical significance of common diagnostic and laboratory tests used for diagnostic and treatment purposes.' },
+              { id: 'K81', text: 'Knowledge of common Western medical conditions, terminology, and definitions.' },
+              { id: 'K82', text: 'Knowledge of the classification, clinical indications, contraindications, and side effects of commonly prescribed Western medications.' }
+            ]
+          },
+          {
+            id: 'T63',
+            description: 'Review patient diagnostic reports to gather additional information regarding patient complaint.',
+            knowledgeStatements: [
+              { id: 'K72', text: 'Knowledge of human anatomy, physiology, and pathology.' },
+              { id: 'K74', text: 'Knowledge of normal range of vital signs.' },
+              { id: 'K78', text: 'Knowledge of neuromusculoskeletal conditions.' },
+              { id: 'K80', text: 'Knowledge of clinical significance of common diagnostic and laboratory tests used for diagnostic and treatment purposes.' },
+              { id: 'K81', text: 'Knowledge of common Western medical conditions, terminology, and definitions.' },
+              { id: 'K82', text: 'Knowledge of the classification, clinical indications, contraindications, and side effects of commonly prescribed Western medications.' },
+              { id: 'K83', text: 'Knowledge of interactions between commonly used supplements, herbs, foods, and Western medications.' },
+              { id: 'K84', text: 'Knowledge of actions and side effects of commonly used supplements.' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'D103',
+        name: 'Referrals and emergency management',
+        percentage: 2,
+        tasks: [
+          {
+            id: 'T55',
+            description: 'Refer client to other health care providers based on assessment findings.',
+            knowledgeStatements: [
+              { id: 'K67', text: 'Knowledge of clinical conditions that require patient referral to other health care providers.' },
+              { id: 'K68', text: 'Knowledge of signs and symptoms of emergency conditions.' }
+            ]
+          },
+          {
+            id: 'T56',
+            description: 'Identify signs and symptoms that require emergency management.',
+            knowledgeStatements: [
+              { id: 'K68', text: 'Knowledge of signs and symptoms of emergency conditions.' },
+              { id: 'K69', text: 'Knowledge of methods for administering cardiopulmonary resuscitation.' },
+              { id: 'K70', text: 'Knowledge of methods for providing first aid treatment.' }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  domain2: {
+    code: 'DOMAIN_2_DIAGNOSIS',
+    title: 'Diagnostic impression and treatment planning',
+    percentage: 17,
+    description: 'This area assesses the practitioner\'s knowledge of formulating a TCM diagnostic impression and developing an appropriate treatment plan based on patient assessment findings.',
+    subareas: [
+      {
+        id: 'D201',
+        name: 'Diagnosis',
+        percentage: 11,
+        tasks: [
+          {
+            id: 'T35',
+            description: 'Evaluate patient data to determine whether additional information is needed.',
+            knowledgeStatements: [
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K47', text: 'Knowledge of clinical indicators associated with disease of the channels.' }
+            ]
+          },
+          {
+            id: 'T36',
+            description: 'Interpret and integrate assessment findings (e.g., pulse, tongue, history, channel, diagnostic test results) to inform pattern differentiation.',
+            knowledgeStatements: [
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K45', text: 'Knowledge of the relationship between the Organs and channels in disease progression and transformation.' },
+              { id: 'K46', text: 'Knowledge of the relationship between the Zang Fu and vital substances (i.e., the Liver stores the Blood).' },
+              { id: 'K47', text: 'Knowledge of clinical indicators associated with disease of the channels.' },
+              { id: 'K48', text: 'Knowledge of the functions, distribution, and clinical significance of the channels.' }
+            ]
+          },
+          {
+            id: 'T37',
+            description: 'Identify primary disharmony patterns by prioritizing patient signs and symptoms.',
+            knowledgeStatements: [
+              { id: 'K50', text: 'Knowledge of methods for prioritizing indicators of disharmony to develop a differential diagnosis.' }
+            ]
+          },
+          {
+            id: 'T38',
+            description: 'Identify phase of pathogen progression.',
+            knowledgeStatements: [
+              { id: 'K42', text: 'Knowledge of disease progression from superficial to deep levels of the human body.' },
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K45', text: 'Knowledge of the relationship between the Organs and channels in disease progression and transformation.' }
+            ]
+          },
+          {
+            id: 'T39',
+            description: 'Identify affected channels.',
+            knowledgeStatements: [
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K45', text: 'Knowledge of the relationship between the Organs and channels in disease progression and transformation.' },
+              { id: 'K47', text: 'Knowledge of clinical indicators associated with disease of the channels.' },
+              { id: 'K48', text: 'Knowledge of the functions, distribution, and clinical significance of the channels.' },
+              { id: 'K53', text: 'Knowledge of the functions of and the relationship between the Zang Fu and the channels.' }
+            ]
+          },
+          {
+            id: 'T40',
+            description: 'Identify Root and Branch condition.',
+            knowledgeStatements: [
+              { id: 'K42', text: 'Knowledge of disease progression from superficial to deep levels of the human body.' },
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K45', text: 'Knowledge of the relationship between the Organs and channels in disease progression and transformation.' },
+              { id: 'K49', text: 'Knowledge of principles for treating root versus branch disharmony patterns.' }
+            ]
+          },
+          {
+            id: 'T41',
+            description: 'Identify Five Element disharmony patterns.',
+            knowledgeStatements: [
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K52', text: 'Knowledge of the interrelationships of the Five Elements and clinical indications of disharmony.' },
+              { id: 'K54', text: 'Knowledge of the Five Elements theory and pattern differentiation methods.' }
+            ]
+          },
+          {
+            id: 'T42',
+            description: 'Identify Zang Fu disharmony patterns.',
+            knowledgeStatements: [
+              { id: 'K42', text: 'Knowledge of disease progression from superficial to deep levels of the human body.' },
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K46', text: 'Knowledge of the relationship between the Zang Fu and vital substances (i.e., the Liver stores the Blood).' },
+              { id: 'K53', text: 'Knowledge of the functions of and the relationship between the Zang Fu and the channels.' },
+              { id: 'K59', text: 'Knowledge of the clinical indications associated with Zang Fu disharmonies.' },
+              { id: 'K60', text: 'Knowledge of methods for identifying simultaneous Zang Fu disharmonies.' }
+            ]
+          },
+          {
+            id: 'T43',
+            description: 'Identify Eight Principles categorization.',
+            knowledgeStatements: [
+              { id: 'K42', text: 'Knowledge of disease progression from superficial to deep levels of the human body.' },
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K55', text: 'Knowledge of the Eight Principles theory and pattern differentiation methods.' }
+            ]
+          },
+          {
+            id: 'T44',
+            description: 'Identify disharmony pattern using Six Stages (i.e., Shang Han Lun) of differentiation.',
+            knowledgeStatements: [
+              { id: 'K42', text: 'Knowledge of disease progression from superficial to deep levels of the human body.' },
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K57', text: 'Knowledge of the Six Stages (Shang Han Lun) theory and pattern differentiation methods.' }
+            ]
+          },
+          {
+            id: 'T45',
+            description: 'Identify disharmony pattern using Four Levels (i.e., Wei, Qi, Ying, and Xue) of differentiation.',
+            knowledgeStatements: [
+              { id: 'K42', text: 'Knowledge of disease progression from superficial to deep levels of the human body.' },
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K58', text: 'Knowledge of the Four Levels theory and pattern differentiation methods.' }
+            ]
+          },
+          {
+            id: 'T46',
+            description: 'Identify disharmony pattern using Triple Burner (i.e., San Jiao) differentiation.',
+            knowledgeStatements: [
+              { id: 'K42', text: 'Knowledge of disease progression from superficial to deep levels of the human body.' },
+              { id: 'K43', text: 'Knowledge of methods for integrating assessment information to develop a differential diagnosis.' },
+              { id: 'K44', text: 'Knowledge of methods for integrating tongue and pulse characteristics to identify disharmony patterns.' },
+              { id: 'K56', text: 'Knowledge of the Triple Burner theory and pattern differentiation methods.' }
+            ]
+          },
+          {
+            id: 'T47',
+            description: 'Develop a differential diagnosis list for identified disharmony patterns.',
+            knowledgeStatements: [
+              { id: 'K50', text: 'Knowledge of methods for prioritizing indicators of disharmony to develop a differential diagnosis.' },
+              { id: 'K52', text: 'Knowledge of the interrelationships of the Five Elements and clinical indications of disharmony.' },
+              { id: 'K53', text: 'Knowledge of the functions of and the relationship between the Zang Fu and the channels.' },
+              { id: 'K54', text: 'Knowledge of the Five Elements theory and pattern differentiation methods.' },
+              { id: 'K55', text: 'Knowledge of the Eight Principles theory and pattern differentiation methods.' },
+              { id: 'K56', text: 'Knowledge of the Triple Burner theory and pattern differentiation methods.' },
+              { id: 'K57', text: 'Knowledge of the Six Stages (Shang Han Lun) theory and pattern differentiation methods.' },
+              { id: 'K58', text: 'Knowledge of the Four Levels theory and pattern differentiation methods.' },
+              { id: 'K59', text: 'Knowledge of the clinical indications associated with Zang Fu disharmonies.' },
+              { id: 'K60', text: 'Knowledge of methods for identifying simultaneous Zang Fu disharmonies.' },
+              { id: 'K61', text: 'Knowledge of functions and disharmonies associated with Vital Substances.' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'D202',
+        name: 'Treatment planning',
+        percentage: 6,
+        tasks: [
+          {
+            id: 'T48',
+            description: 'Develop treatment principles (e.g., tonify, sedate, harmonize) for patients.',
+            knowledgeStatements: [
+              { id: 'K62', text: 'Knowledge of development of treatment principles based on different theories of pattern differentiation.' },
+              { id: 'K65', text: 'Knowledge of the association between stimulation techniques and treatment principles.' }
+            ]
+          },
+          {
+            id: 'T49',
+            description: 'Develop treatment plans by applying treatment principle (e.g., tonify, sedate, harmonize).',
+            knowledgeStatements: [
+              { id: 'K63', text: 'Knowledge of the effectiveness of combining treatment strategies in developing a treatment plan.' },
+              { id: 'K64', text: 'Knowledge of treatment strategies for using tonification and sedation points.' },
+              { id: 'K65', text: 'Knowledge of the association between stimulation techniques and treatment principles.' }
+            ]
+          },
+          {
+            id: 'T50',
+            description: 'Prioritize treatment principles and management of presenting problems.',
+            knowledgeStatements: [
+              { id: 'K65', text: 'Knowledge of the association between stimulation techniques and treatment principles.' }
+            ]
+          },
+          {
+            id: 'T51',
+            description: 'Evaluate patient progress during follow-up visit to determine adjustments to treatment plans.',
+            knowledgeStatements: [
+              { id: 'K66', text: 'Knowledge of methods for evaluating patient progress.' }
+            ]
+          },
+          {
+            id: 'T52',
+            description: 'Develop a differential diagnosis list for identified disharmony patterns.',
+            knowledgeStatements: [
+              { id: 'K62', text: 'Knowledge of development of treatment principles based on different theories of pattern differentiation.' }
+            ]
+          },
+          {
+            id: 'T53',
+            description: 'Identify a measurable metric for assessing treatment efficacy (e.g., outcome measures, questionnaires).',
+            knowledgeStatements: [
+              { id: 'K63', text: 'Knowledge of the effectiveness of combining treatment strategies in developing a treatment plan.' },
+              { id: 'K64', text: 'Knowledge of treatment strategies for using tonification and sedation points.' },
+              { id: 'K65', text: 'Knowledge of the association between stimulation techniques and treatment principles.' },
+              { id: 'K66', text: 'Knowledge of methods for evaluating patient progress.' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'D203',
+        name: 'Communication with patients and other health care providers',
+        percentage: 1,
+        tasks: [
+          {
+            id: 'T54',
+            description: 'Collaborate with primary physicians and other health care providers to identify the most effective treatment for patients.',
+            knowledgeStatements: [
+              { id: 'K85', text: 'Knowledge of the relationship between Western disease diagnoses and Traditional Chinese Medicine patterns.' }
+            ]
+          },
+          {
+            id: 'T64',
+            description: 'Translate Traditional Chinese Medicine diagnostic concepts into common Western terminology for patients and health care providers.',
+            knowledgeStatements: [
+              { id: 'K86', text: 'Knowledge of Western medical diagnoses and physiological processes involved with disease progression.' }
+            ]
+          },
+          {
+            id: 'T65',
+            description: 'Educate patients regarding differences between Traditional Chinese Medicine and Western medicine.',
+            knowledgeStatements: [
+              { id: 'K87', text: 'Knowledge of techniques to communicate assessment findings, diagnoses, and treatment plans to patients or other health care providers.' }
+            ]
+          },
+          {
+            id: 'T66',
+            description: 'Communicate assessment findings and diagnosis to patients.',
+            knowledgeStatements: [
+              { id: 'K87', text: 'Knowledge of techniques to communicate assessment findings, diagnoses, and treatment plans to patients or other health care providers.' }
+            ]
+          },
+          {
+            id: 'T67',
+            description: 'Communicate with patients about treatment plan and possible outcomes.',
+            knowledgeStatements: [
+              { id: 'K87', text: 'Knowledge of techniques to communicate assessment findings, diagnoses, and treatment plans to patients or other health care providers.' }
+            ]
+          },
+          {
+            id: 'T68',
+            description: 'Explain treatment procedures to patients before starting treatment.',
+            knowledgeStatements: [
+              { id: 'K87', text: 'Knowledge of techniques to communicate assessment findings, diagnoses, and treatment plans to patients or other health care providers.' }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  domain3: {
+    code: 'DOMAIN_3_ACUPUNCTURE',
+    title: 'Acupuncture treatment',
+    percentage: 32,
+    description: 'This area assesses the practitioner\'s knowledge of selecting appropriate acupuncture points and techniques, locating points accurately, and applying various acupuncture and adjunctive therapy methods.',
+    subareas: [
+      {
+        id: 'D301',
+        name: 'Acupuncture point selection',
+        percentage: 16,
+        tasks: [
+          {
+            id: 'T69',
+            description: 'Develop a point prescription based on treatment principles.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K90', text: 'Knowledge of principles for combining distal and proximal points.' },
+              { id: 'K91', text: 'Knowledge of principles for choosing local points.' },
+              { id: 'K92', text: 'Knowledge of principles for combining points from different channels.' },
+              { id: 'K93', text: 'Knowledge of principles for choosing points according to channel theory.' },
+              { id: 'K94', text: 'Knowledge of treatment modification based on patient response to treatment.' },
+              { id: 'K96', text: 'Knowledge of clinical significance of the sequence in which needles are inserted.' },
+              { id: 'K97', text: 'Knowledge of therapeutic effects of needling points on the opposite side of the body from the location of the condition.' },
+              { id: 'K98', text: 'Knowledge of the principles for balancing the points on the upper part of the body with those of the lower part.' },
+              { id: 'K99', text: 'Knowledge of principles for choosing points on the front and back to regulate internal Organs.' },
+              { id: 'K100', text: 'Knowledge of principles for choosing points in the center to treat conditions occurring on extremities.' },
+              { id: 'K101', text: 'Knowledge of principles for choosing points on the extremities to treat conditions occurring in the center.' },
+              { id: 'K201', text: 'Knowledge of principles for selecting sedation and tonification points.' }
+            ]
+          },
+          {
+            id: 'T70',
+            description: 'Select distal and/or proximal points.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K90', text: 'Knowledge of principles for combining distal and proximal points.' },
+              { id: 'K91', text: 'Knowledge of principles for choosing local points.' },
+              { id: 'K92', text: 'Knowledge of principles for combining points from different channels.' },
+              { id: 'K93', text: 'Knowledge of principles for choosing points according to channel theory.' },
+              { id: 'K97', text: 'Knowledge of therapeutic effects of needling points on the opposite side of the body from the location of the condition.' },
+              { id: 'K98', text: 'Knowledge of the principles for balancing the points on the upper part of the body with those of the lower part.' }
+            ]
+          },
+          {
+            id: 'T71',
+            description: 'Select local points along the affected Meridian.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K91', text: 'Knowledge of principles for choosing local points.' },
+              { id: 'K92', text: 'Knowledge of principles for combining points from different channels.' },
+              { id: 'K93', text: 'Knowledge of principles for choosing points according to channel theory.' },
+              { id: 'K102', text: 'Knowledge of the therapeutic use of Ashi points.' }
+            ]
+          },
+          {
+            id: 'T72',
+            description: 'Select points from different channels to treat Root and Branch.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K90', text: 'Knowledge of principles for combining distal and proximal points.' },
+              { id: 'K92', text: 'Knowledge of principles for combining points from different channels.' },
+              { id: 'K93', text: 'Knowledge of principles for choosing points according to channel theory.' },
+              { id: 'K98', text: 'Knowledge of the principles for balancing the points on the upper part of the body with those of the lower part.' }
+            ]
+          },
+          {
+            id: 'T73',
+            description: 'Select points on patient\'s body using mirroring methods (e.g., elbow-for-knee).',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K90', text: 'Knowledge of principles for combining distal and proximal points.' },
+              { id: 'K92', text: 'Knowledge of principles for combining points from different channels.' },
+              { id: 'K93', text: 'Knowledge of principles for choosing points according to channel theory.' },
+              { id: 'K96', text: 'Knowledge of clinical significance of the sequence in which needles are inserted.' },
+              { id: 'K97', text: 'Knowledge of therapeutic effects of needling points on the opposite side of the body from the location of the condition.' },
+              { id: 'K98', text: 'Knowledge of the principles for balancing the points on the upper part of the body with those of the lower part.' },
+              { id: 'K99', text: 'Knowledge of principles for choosing points on the front and back to regulate internal Organs.' },
+              { id: 'K100', text: 'Knowledge of principles for choosing points in the center to treat conditions occurring on extremities.' },
+              { id: 'K101', text: 'Knowledge of principles for choosing points on the extremities to treat conditions occurring in the center.' }
+            ]
+          },
+          {
+            id: 'T75',
+            description: 'Select points on patients to balance point distribution (e.g., right and left, above and below).',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K90', text: 'Knowledge of principles for combining distal and proximal points.' },
+              { id: 'K91', text: 'Knowledge of principles for choosing local points.' },
+              { id: 'K92', text: 'Knowledge of principles for combining points from different channels.' },
+              { id: 'K97', text: 'Knowledge of therapeutic effects of needling points on the opposite side of the body from the location of the condition.' },
+              { id: 'K98', text: 'Knowledge of the principles for balancing the points on the upper part of the body with those of the lower part.' },
+              { id: 'K99', text: 'Knowledge of principles for choosing points on the front and back to regulate internal Organs.' },
+              { id: 'K118', text: 'Knowledge of principles for choosing Mother and Son points (Four Needle Technique).' }
+            ]
+          },
+          {
+            id: 'T76',
+            description: 'Select points from Yin and Yang channels to balance treatment prescription for patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K92', text: 'Knowledge of principles for combining points from different channels.' },
+              { id: 'K93', text: 'Knowledge of principles for choosing points according to channel theory.' },
+              { id: 'K97', text: 'Knowledge of therapeutic effects of needling points on the opposite side of the body from the location of the condition.' },
+              { id: 'K98', text: 'Knowledge of the principles for balancing the points on the upper part of the body with those of the lower part.' },
+              { id: 'K99', text: 'Knowledge of principles for choosing points on the front and back to regulate internal Organs.' },
+              { id: 'K104', text: 'Knowledge of principles for choosing Front-Mu points in treatment.' },
+              { id: 'K105', text: 'Knowledge of principles for choosing Back-Shu points in treatment.' }
+            ]
+          },
+          {
+            id: 'T77',
+            description: 'Select points on patient extremities to treat conditions occurring in the center.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K90', text: 'Knowledge of principles for combining distal and proximal points.' },
+              { id: 'K101', text: 'Knowledge of principles for choosing points on the extremities to treat conditions occurring in the center.' }
+            ]
+          },
+          {
+            id: 'T78',
+            description: 'Select points on patient that are centrally located to treat conditions occurring in the extremities.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K100', text: 'Knowledge of principles for choosing points in the center to treat conditions occurring on extremities.' }
+            ]
+          },
+          {
+            id: 'T79',
+            description: 'Select Ashi points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K91', text: 'Knowledge of principles for choosing local points.' },
+              { id: 'K102', text: 'Knowledge of the therapeutic use of Ashi points.' },
+              { id: 'K103', text: 'Knowledge of the therapeutic use of points along the Muscle channels.' }
+            ]
+          },
+          {
+            id: 'T80',
+            description: 'Select points along the Muscle channels.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K103', text: 'Knowledge of the therapeutic use of points along the Muscle channels.' }
+            ]
+          },
+          {
+            id: 'T81',
+            description: 'Select Front-Mu points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K104', text: 'Knowledge of principles for choosing Front-Mu points in treatment.' },
+              { id: 'K106', text: 'Knowledge of principles for combining Front-Mu points and Back-Shu points to balance treatment.' }
+            ]
+          },
+          {
+            id: 'T82',
+            description: 'Select Back-Shu points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K93', text: 'Knowledge of principles for choosing points according to channel theory.' },
+              { id: 'K105', text: 'Knowledge of principles for choosing Back-Shu points in treatment.' },
+              { id: 'K106', text: 'Knowledge of principles for combining Front-Mu points and Back-Shu points to balance treatment.' }
+            ]
+          },
+          {
+            id: 'T83',
+            description: 'Select He-Sea points on patients to connect channels with respective Fu Organs.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K107', text: 'Knowledge of principles for choosing He-Sea points.' }
+            ]
+          },
+          {
+            id: 'T84',
+            description: 'Select Five Shu (Five-Transporting) points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K104', text: 'Knowledge of principles for choosing Front-Mu points in treatment.' },
+              { id: 'K105', text: 'Knowledge of principles for choosing Back-Shu points in treatment.' },
+              { id: 'K106', text: 'Knowledge of principles for combining Front-Mu points and Back-Shu points to balance treatment.' },
+              { id: 'K107', text: 'Knowledge of principles for choosing He-Sea points.' },
+              { id: 'K108', text: 'Knowledge of principles for choosing Five Shu (Five-Transporting) points.' }
+            ]
+          },
+          {
+            id: 'T85',
+            description: 'Select Confluent points of the Eight Extraordinary channels on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K109', text: 'Knowledge of principles for choosing Confluent points of the Eight Extraordinary channels.' }
+            ]
+          },
+          {
+            id: 'T86',
+            description: 'Select Extra points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K110', text: 'Knowledge of principles for choosing Extra points.' }
+            ]
+          },
+          {
+            id: 'T87',
+            description: 'Select Intersecting or Crossing points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K111', text: 'Knowledge of principles for choosing Intersecting or Crossing points of channels.' }
+            ]
+          },
+          {
+            id: 'T88',
+            description: 'Select Luo-Connecting points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K112', text: 'Knowledge of principles for choosing Luo-Connecting points.' }
+            ]
+          },
+          {
+            id: 'T89',
+            description: 'Select Yuan-Source points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K113', text: 'Knowledge of principles for choosing Yuan-Source points.' }
+            ]
+          },
+          {
+            id: 'T90',
+            description: 'Select Xi-Cleft points on patients to treat acute conditions of the related channel or corresponding Organs.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K114', text: 'Knowledge of principles for choosing Xi-Cleft points.' }
+            ]
+          },
+          {
+            id: 'T91',
+            description: 'Select Eight Influential points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K117', text: 'Knowledge of principles for choosing Eight Influential points.' }
+            ]
+          },
+          {
+            id: 'T92',
+            description: 'Select points to treat muscle or joint mechanism dysfunction.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K102', text: 'Knowledge of the therapeutic use of Ashi points.' },
+              { id: 'K103', text: 'Knowledge of the therapeutic use of points along the Muscle channels.' },
+              { id: 'K120', text: 'Knowledge of auricular point selection principles.' },
+              { id: 'K121', text: 'Knowledge of dermatome map for point selection.' },
+              { id: 'K123', text: 'Knowledge of principles and indications for selecting motor points.' },
+              { id: 'K124', text: 'Knowledge of principles and indications for selecting trigger points.' }
+            ]
+          },
+          {
+            id: 'T93',
+            description: 'Select points to treat a radiculopathy based on dermatome map.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K121', text: 'Knowledge of dermatome map for point selection.' }
+            ]
+          },
+          {
+            id: 'T94',
+            description: 'Select scalp points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K119', text: 'Knowledge of scalp point selection principles.' }
+            ]
+          },
+          {
+            id: 'T95',
+            description: 'Select auricular points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K120', text: 'Knowledge of auricular point selection principles.' }
+            ]
+          },
+          {
+            id: 'T96',
+            description: 'Select points according to the Five Elements theory.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K122', text: 'Knowledge of point selection using the Five Elements theory.' }
+            ]
+          },
+          {
+            id: 'T97',
+            description: 'Select trigger points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K124', text: 'Knowledge of principles and indications for selecting trigger points.' }
+            ]
+          },
+          {
+            id: 'T98',
+            description: 'Select motor points on patients.',
+            knowledgeStatements: [
+              { id: 'K88', text: 'Knowledge of the clinical actions and indications of points.' },
+              { id: 'K89', text: 'Knowledge of the interrelationships between points, channels, and internal Organs.' },
+              { id: 'K123', text: 'Knowledge of principles and indications for selecting motor points.' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'D302',
+        name: 'Acupuncture point location and needling techniques',
+        percentage: 8,
+        tasks: [
+          {
+            id: 'T99',
+            description: 'Locate points for needle insertion on patient by using anatomical landmarks and proportional measurements.',
+            knowledgeStatements: [
+              { id: 'K125', text: 'Knowledge of anatomical landmarks and proportional measurements used in point location.' },
+              { id: 'K129', text: 'Knowledge of patient positions for locating and needling acupuncture points.' }
+            ]
+          },
+          {
+            id: 'T100',
+            description: 'Select needle length and gauge according to treatment area, patient characteristics, and patient diagnosis.',
+            knowledgeStatements: [
+              { id: 'K126', text: 'Knowledge of needle manipulation techniques.' },
+              { id: 'K130', text: 'Knowledge of recommended needling depths and angles.' },
+              { id: 'K135', text: 'Knowledge of principles for selecting needles.' }
+            ]
+          },
+          {
+            id: 'T101',
+            description: 'Identify needle retention time for patients to achieve optimal treatment effects.',
+            knowledgeStatements: [
+              { id: 'K127', text: 'Knowledge of needle retention methods for patterns of disharmony.' },
+              { id: 'K128', text: 'Knowledge of the impact of patient constitution and condition on duration of needle retention.' },
+              { id: 'K134', text: 'Knowledge of potential side effects of acupuncture treatment.' }
+            ]
+          },
+          {
+            id: 'T102',
+            description: 'Select needle length and gauge according to treatment area, patient characteristics, and patient diagnosis.',
+            knowledgeStatements: [
+              { id: 'K126', text: 'Knowledge of needle manipulation techniques.' },
+              { id: 'K129', text: 'Knowledge of patient positions for locating and needling acupuncture points.' }
+            ]
+          },
+          {
+            id: 'T103',
+            description: 'Insert needle within standard depth range to stimulate point on patients.',
+            knowledgeStatements: [
+              { id: 'K115', text: 'Knowledge of the therapeutic use of tonification and sedation techniques.' },
+              { id: 'K130', text: 'Knowledge of recommended needling depths and angles.' },
+              { id: 'K133', text: 'Knowledge of points and patient conditions that require needling with caution.' },
+              { id: 'K135', text: 'Knowledge of principles for selecting needles.' }
+            ]
+          },
+          {
+            id: 'T104',
+            description: 'Insert needle using recommended insertion angle.',
+            knowledgeStatements: [
+              { id: 'K130', text: 'Knowledge of recommended needling depths and angles.' }
+            ]
+          },
+          {
+            id: 'T105',
+            description: 'Manipulate needle to produce therapeutic effect in patients.',
+            knowledgeStatements: [
+              { id: 'K115', text: 'Knowledge of the therapeutic use of tonification and sedation techniques.' },
+              { id: 'K126', text: 'Knowledge of needle manipulation techniques.' }
+            ]
+          },
+          {
+            id: 'T106',
+            description: 'Identify contraindications for needling by evaluating patient condition to avoid injury and complications.',
+            knowledgeStatements: [
+              { id: 'K126', text: 'Knowledge of needle manipulation techniques.' },
+              { id: 'K128', text: 'Knowledge of the impact of patient constitution and condition on duration of needle retention.' },
+              { id: 'K130', text: 'Knowledge of recommended needling depths and angles.' },
+              { id: 'K132', text: 'Knowledge of points and patient conditions that are contraindicated for needling.' },
+              { id: 'K134', text: 'Knowledge of potential side effects of acupuncture treatment.' }
+            ]
+          },
+          {
+            id: 'T107',
+            description: 'Identify points that require needling with caution (e.g., points located near arteries) to avoid complications.',
+            knowledgeStatements: [
+              { id: 'K130', text: 'Knowledge of recommended needling depths and angles.' },
+              { id: 'K133', text: 'Knowledge of points and patient conditions that require needling with caution.' },
+              { id: 'K134', text: 'Knowledge of potential side effects of acupuncture treatment.' }
+            ]
+          },
+          {
+            id: 'T108',
+            description: 'Monitor patients before, during, and after treatment for adverse reactions and comfort level.',
+            knowledgeStatements: [
+              { id: 'K130', text: 'Knowledge of recommended needling depths and angles.' },
+              { id: 'K131', text: 'Knowledge of signs and symptoms of patient distress.' },
+              { id: 'K132', text: 'Knowledge of points and patient conditions that are contraindicated for needling.' },
+              { id: 'K133', text: 'Knowledge of points and patient conditions that require needling with caution.' },
+              { id: 'K134', text: 'Knowledge of potential side effects of acupuncture treatment.' },
+              { id: 'K135', text: 'Knowledge of principles for selecting needles.' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'D303',
+        name: 'Adjunct treatment modalities',
+        percentage: 5,
+        tasks: [
+          {
+            id: 'T109',
+            description: 'Apply moxibustion techniques on patients to treat indicated conditions.',
+            knowledgeStatements: [
+              { id: 'K136', text: 'Knowledge of moxibustion (i.e., direct and indirect) techniques.' },
+              { id: 'K137', text: 'Knowledge of indications, contraindications, and side effects of moxibustion.' }
+            ]
+          },
+          {
+            id: 'T112',
+            description: 'Perform electrotherapy (e.g., electroacupuncture, electrostimulation, TENS) on patients to enhance effectiveness of treatment for select conditions.',
+            knowledgeStatements: [
+              { id: 'K142', text: 'Knowledge of electrotherapy techniques.' },
+              { id: 'K143', text: 'Knowledge of indications, contraindications, and side effects of electrotherapy.' }
+            ]
+          },
+          {
+            id: 'T113',
+            description: 'Perform cupping techniques on patients to treat indicated conditions.',
+            knowledgeStatements: [
+              { id: 'K144', text: 'Knowledge of cupping techniques.' },
+              { id: 'K145', text: 'Knowledge of indications, contraindications, and side effects of cupping.' }
+            ]
+          },
+          {
+            id: 'T114',
+            description: 'Perform Gua Sha techniques to treat indicated conditions.',
+            knowledgeStatements: [
+              { id: 'K146', text: 'Knowledge of Gua Sha techniques.' },
+              { id: 'K147', text: 'Knowledge of indications, contraindications, and side effects of Gua Sha.' }
+            ]
+          },
+          {
+            id: 'T115',
+            description: 'Perform manual therapy (e.g., Tui Na, acupressure) on patients to treat indicated conditions.',
+            knowledgeStatements: [
+              { id: 'K148', text: 'Knowledge of manual therapy techniques.' },
+              { id: 'K149', text: 'Knowledge of indications, contraindications, and side effects of manual therapy.' }
+            ]
+          },
+          {
+            id: 'T116',
+            description: 'Perform heat therapy (e.g., infrared light, heat pad) to treat indicated conditions.',
+            knowledgeStatements: [
+              { id: 'K150', text: 'Knowledge of heat therapy techniques.' },
+              { id: 'K151', text: 'Knowledge of indications, contraindications, and side effects of heat therapy.' }
+            ]
+          },
+          {
+            id: 'T117',
+            description: 'Apply ear seeds to treat indicated conditions.',
+            knowledgeStatements: [
+              { id: 'K152', text: 'Knowledge of the application of ear seeds.' },
+              { id: 'K153', text: 'Knowledge of indications, contraindications, and side effects of ear seeds application.' }
+            ]
+          },
+          {
+            id: 'T120',
+            description: 'Educate patients regarding therapeutic exercises to treat indicated conditions.',
+            knowledgeStatements: [
+              { id: 'K158', text: 'Knowledge of lifestyle changes and stress reduction techniques that improve health condition.' },
+              { id: 'K159', text: 'Knowledge of therapeutic exercises to support patient treatment goals.' }
+            ]
+          },
+          {
+            id: 'T121',
+            description: 'Educate patients regarding diet and nutrition to support treatment.',
+            knowledgeStatements: [
+              { id: 'K160', text: 'Knowledge of dietary modifications to support patient treatment goals.' }
+            ]
+          },
+          {
+            id: 'T122',
+            description: 'Educate patients regarding lifestyle changes (e.g., Qi Gong exercise, ergonomics, meditation) to improve health condition.',
+            knowledgeStatements: [
+              { id: 'K158', text: 'Knowledge of lifestyle changes and stress reduction techniques that improve health condition.' }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  domain4: {
+    code: 'DOMAIN_4_HERBAL',
+    title: 'Herbal therapy',
+    percentage: 15,
+    description: 'This area assesses the practitioner\'s knowledge of selecting and prescribing appropriate Chinese herbal formulas and individual herbs for patient conditions.',
+    subareas: [
+      {
+        id: 'D304',
+        name: 'Herbal therapy',
+        percentage: 15,
+        tasks: [
+          {
+            id: 'T123',
+            description: 'Select or develop herbal formulas for patients based on treatment principle (e.g., tonify, sedate, harmonize).',
+            knowledgeStatements: [
+              { id: 'K161', text: 'Knowledge of therapeutic uses, indications, contraindications, and side effects of herbs and herbal formulas.' },
+              { id: 'K162', text: 'Knowledge of categories of herbs and herbal formulas.' },
+              { id: 'K163', text: 'Knowledge of the effects of herbs and herbal formulas on channels and Organs.' },
+              { id: 'K164', text: 'Knowledge of modifications of herbal formulas.' },
+              { id: 'K165', text: 'Knowledge of the synergistic and antagonist relationships of ingredients in herbal formulas.' },
+              { id: 'K166', text: 'Knowledge of the hierarchical principles governing herbal formulas.' },
+              { id: 'K167', text: 'Knowledge of the association between therapeutic effects of points and herbal therapy.' },
+              { id: 'K168', text: 'Knowledge of interactions between herbal therapies, supplements, and Western medications.' },
+              { id: 'K169', text: 'Knowledge of cautions and contraindications related to herbs and herbal formulas.' },
+              { id: 'K170', text: 'Knowledge of interactions between diet and herbal therapies.' },
+              { id: 'K171', text: 'Knowledge of effective dosages of herbs and herbal supplements.' },
+              { id: 'K172', text: 'Knowledge of the principles and guidelines for herbal formula preparation.' },
+              { id: 'K173', text: 'Knowledge of the relationships between herbal formulas and treatment principles.' },
+              { id: 'K174', text: 'Knowledge of herbs and combinations of herbs that are toxic or produce undesired side effects.' }
+            ]
+          },
+          {
+            id: 'T124',
+            description: 'Select or develop herbal formula based on patient constitution.',
+            knowledgeStatements: [
+              { id: 'K161', text: 'Knowledge of therapeutic uses, indications, contraindications, and side effects of herbs and herbal formulas.' },
+              { id: 'K162', text: 'Knowledge of categories of herbs and herbal formulas.' },
+              { id: 'K163', text: 'Knowledge of the effects of herbs and herbal formulas on channels and Organs.' },
+              { id: 'K164', text: 'Knowledge of modifications of herbal formulas.' },
+              { id: 'K165', text: 'Knowledge of the synergistic and antagonist relationships of ingredients in herbal formulas.' },
+              { id: 'K166', text: 'Knowledge of the hierarchical principles governing herbal formulas.' },
+              { id: 'K167', text: 'Knowledge of the association between therapeutic effects of points and herbal therapy.' },
+              { id: 'K168', text: 'Knowledge of interactions between herbal therapies, supplements, and Western medications.' },
+              { id: 'K169', text: 'Knowledge of cautions and contraindications related to herbs and herbal formulas.' },
+              { id: 'K170', text: 'Knowledge of interactions between diet and herbal therapies.' },
+              { id: 'K171', text: 'Knowledge of effective dosages of herbs and herbal supplements.' },
+              { id: 'K172', text: 'Knowledge of the principles and guidelines for herbal formula preparation.' },
+              { id: 'K173', text: 'Knowledge of the relationships between herbal formulas and treatment principles.' },
+              { id: 'K174', text: 'Knowledge of herbs and combinations of herbs that are toxic or produce undesired side effects.' }
+            ]
+          },
+          {
+            id: 'T125',
+            description: 'Select or develop herbal therapies that complement patient acupuncture treatments.',
+            knowledgeStatements: [
+              { id: 'K161', text: 'Knowledge of therapeutic uses, indications, contraindications, and side effects of herbs and herbal formulas.' },
+              { id: 'K162', text: 'Knowledge of categories of herbs and herbal formulas.' },
+              { id: 'K163', text: 'Knowledge of the effects of herbs and herbal formulas on channels and Organs.' },
+              { id: 'K164', text: 'Knowledge of modifications of herbal formulas.' },
+              { id: 'K165', text: 'Knowledge of the synergistic and antagonist relationships of ingredients in herbal formulas.' },
+              { id: 'K166', text: 'Knowledge of the hierarchical principles governing herbal formulas.' },
+              { id: 'K167', text: 'Knowledge of the association between therapeutic effects of points and herbal therapy.' },
+              { id: 'K168', text: 'Knowledge of interactions between herbal therapies, supplements, and Western medications.' },
+              { id: 'K169', text: 'Knowledge of cautions and contraindications related to herbs and herbal formulas.' },
+              { id: 'K170', text: 'Knowledge of interactions between diet and herbal therapies.' },
+              { id: 'K171', text: 'Knowledge of effective dosages of herbs and herbal supplements.' },
+              { id: 'K172', text: 'Knowledge of the principles and guidelines for herbal formula preparation.' },
+              { id: 'K173', text: 'Knowledge of the relationships between herbal formulas and treatment principles.' },
+              { id: 'K174', text: 'Knowledge of herbs and combinations of herbs that are toxic or produce undesired side effects.' },
+              { id: 'K175', text: 'Knowledge of methods for modifying herbal formulas to treat changes in patient condition.' },
+              { id: 'K176', text: 'Knowledge of the effects of processing on efficacy and toxicity of herbs.' },
+              { id: 'K177', text: 'Knowledge of forms (e.g., raw, granules, pill) used for administering herbs.' },
+              { id: 'K178', text: 'Knowledge of herbal formula recommendations based upon patient constitution.' }
+            ]
+          },
+          {
+            id: 'T126',
+            description: 'Instruct patients on use of herbs (e.g., dosage, cooking, application) to produce intended therapeutic effect.',
+            knowledgeStatements: [
+              { id: 'K161', text: 'Knowledge of therapeutic uses, indications, contraindications, and side effects of herbs and herbal formulas.' },
+              { id: 'K167', text: 'Knowledge of the association between therapeutic effects of points and herbal therapy.' },
+              { id: 'K171', text: 'Knowledge of effective dosages of herbs and herbal supplements.' },
+              { id: 'K172', text: 'Knowledge of the principles and guidelines for herbal formula preparation.' },
+              { id: 'K173', text: 'Knowledge of the relationships between herbal formulas and treatment principles.' },
+              { id: 'K176', text: 'Knowledge of the effects of processing on efficacy and toxicity of herbs.' },
+              { id: 'K178', text: 'Knowledge of herbal formula recommendations based upon patient constitution.' }
+            ]
+          },
+          {
+            id: 'T127',
+            description: 'Identify herbal therapy with similar or complementary action to Western medications.',
+            knowledgeStatements: [
+              { id: 'K161', text: 'Knowledge of therapeutic uses, indications, contraindications, and side effects of herbs and herbal formulas.' },
+              { id: 'K162', text: 'Knowledge of categories of herbs and herbal formulas.' },
+              { id: 'K163', text: 'Knowledge of the effects of herbs and herbal formulas on channels and Organs.' },
+              { id: 'K168', text: 'Knowledge of interactions between herbal therapies, supplements, and Western medications.' }
+            ]
+          },
+          {
+            id: 'T128',
+            description: 'Identify herbal therapy contraindications for the patient.',
+            knowledgeStatements: [
+              { id: 'K161', text: 'Knowledge of therapeutic uses, indications, contraindications, and side effects of herbs and herbal formulas.' },
+              { id: 'K168', text: 'Knowledge of interactions between herbal therapies, supplements, and Western medications.' },
+              { id: 'K169', text: 'Knowledge of cautions and contraindications related to herbs and herbal formulas.' },
+              { id: 'K170', text: 'Knowledge of interactions between diet and herbal therapies.' },
+              { id: 'K171', text: 'Knowledge of effective dosages of herbs and herbal supplements.' },
+              { id: 'K173', text: 'Knowledge of the relationships between herbal formulas and treatment principles.' }
+            ]
+          },
+          {
+            id: 'T129',
+            description: 'Identify contraindications for herbs when combined with Western medications to avoid adverse interactions.',
+            knowledgeStatements: [
+              { id: 'K161', text: 'Knowledge of therapeutic uses, indications, contraindications, and side effects of herbs and herbal formulas.' },
+              { id: 'K168', text: 'Knowledge of interactions between herbal therapies, supplements, and Western medications.' },
+              { id: 'K169', text: 'Knowledge of cautions and contraindications related to herbs and herbal formulas.' }
+            ]
+          },
+          {
+            id: 'T130',
+            description: 'Monitor and evaluate patient response to herbal therapy.',
+            knowledgeStatements: [
+              { id: 'K169', text: 'Knowledge of cautions and contraindications related to herbs and herbal formulas.' },
+              { id: 'K174', text: 'Knowledge of herbs and combinations of herbs that are toxic or produce undesired side effects.' },
+              { id: 'K175', text: 'Knowledge of methods for modifying herbal formulas to treat changes in patient condition.' },
+              { id: 'K178', text: 'Knowledge of herbal formula recommendations based upon patient constitution.' }
+            ]
+          },
+          {
+            id: 'T131',
+            description: 'Monitor effects of herbs when combined with Western medications to determine interactions.',
+            knowledgeStatements: [
+              { id: 'K168', text: 'Knowledge of interactions between herbal therapies, supplements, and Western medications.' },
+              { id: 'K169', text: 'Knowledge of cautions and contraindications related to herbs and herbal formulas.' }
+            ]
+          },
+          {
+            id: 'T132',
+            description: 'Determine effective dosage of herbal therapy by evaluating patient condition.',
+            knowledgeStatements: [
+              { id: 'K171', text: 'Knowledge of effective dosages of herbs and herbal supplements.' },
+              { id: 'K175', text: 'Knowledge of methods for modifying herbal formulas to treat changes in patient condition.' },
+              { id: 'K176', text: 'Knowledge of the effects of processing on efficacy and toxicity of herbs.' },
+              { id: 'K178', text: 'Knowledge of herbal formula recommendations based upon patient constitution.' }
+            ]
+          },
+          {
+            id: 'T133',
+            description: 'Modify herbal prescription for patients based on patient response to herbal therapy.',
+            knowledgeStatements: [
+              { id: 'K162', text: 'Knowledge of categories of herbs and herbal formulas.' },
+              { id: 'K163', text: 'Knowledge of the effects of herbs and herbal formulas on channels and Organs.' },
+              { id: 'K164', text: 'Knowledge of modifications of herbal formulas.' },
+              { id: 'K165', text: 'Knowledge of the synergistic and antagonist relationships of ingredients in herbal formulas.' },
+              { id: 'K166', text: 'Knowledge of the hierarchical principles governing herbal formulas.' },
+              { id: 'K169', text: 'Knowledge of cautions and contraindications related to herbs and herbal formulas.' },
+              { id: 'K172', text: 'Knowledge of the principles and guidelines for herbal formula preparation.' },
+              { id: 'K173', text: 'Knowledge of the relationships between herbal formulas and treatment principles.' },
+              { id: 'K174', text: 'Knowledge of herbs and combinations of herbs that are toxic or produce undesired side effects.' },
+              { id: 'K175', text: 'Knowledge of methods for modifying herbal formulas to treat changes in patient condition.' },
+              { id: 'K177', text: 'Knowledge of forms (e.g., raw, granules, pill) used for administering herbs.' },
+              { id: 'K178', text: 'Knowledge of herbal formula recommendations based upon patient constitution.' }
+            ]
+          },
+          {
+            id: 'T134',
+            description: 'Identify type of herbal therapy indicated for the patient (e.g., powder, granular, raw herb, decoction, patent).',
+            knowledgeStatements: [
+              { id: 'K177', text: 'Knowledge of forms (e.g., raw, granules, pill) used for administering herbs.' },
+              { id: 'K178', text: 'Knowledge of herbal formula recommendations based upon patient constitution.' }
+            ]
+          },
+          {
+            id: 'T135',
+            description: 'Inspect raw herbs for authenticity and purity (e.g., appearance, taste, smell, texture).',
+            knowledgeStatements: [
+              { id: 'K179', text: 'Knowledge of methods for ensuring authenticity and purity of raw herbs.' }
+            ]
+          },
+          {
+            id: 'T136',
+            description: 'Obtain certificate of authenticity for herbs from the manufacturer.',
+            knowledgeStatements: []
+          },
+          {
+            id: 'T137',
+            description: 'Label packaging containing herbal prescriptions following legal guidelines for supplements.',
+            knowledgeStatements: [
+              { id: 'K179', text: 'Knowledge of methods for ensuring authenticity and purity of raw herbs.' },
+              { id: 'K180', text: 'Knowledge of requirements for labeling of containers used for storing or dispensing of herbal preparations.' }
+            ]
+          },
+          {
+            id: 'T138',
+            description: 'Provide information about the herbal therapy prescriptions to patients.',
+            knowledgeStatements: [
+              { id: 'K161', text: 'Knowledge of therapeutic uses, indications, contraindications, and side effects of herbs and herbal formulas.' },
+              { id: 'K172', text: 'Knowledge of the principles and guidelines for herbal formula preparation.' },
+              { id: 'K177', text: 'Knowledge of forms (e.g., raw, granules, pill) used for administering herbs.' },
+              { id: 'K178', text: 'Knowledge of herbal formula recommendations based upon patient constitution.' },
+              { id: 'K179', text: 'Knowledge of methods for ensuring authenticity and purity of raw herbs.' }
+            ]
+          },
+          {
+            id: 'T139',
+            description: 'Prepare raw herbs following safety guidelines.',
+            knowledgeStatements: [
+              { id: 'K161', text: 'Knowledge of therapeutic uses, indications, contraindications, and side effects of herbs and herbal formulas.' },
+              { id: 'K162', text: 'Knowledge of categories of herbs and herbal formulas.' },
+              { id: 'K176', text: 'Knowledge of the effects of processing on efficacy and toxicity of herbs.' },
+              { id: 'K179', text: 'Knowledge of methods for ensuring authenticity and purity of raw herbs.' },
+              { id: 'K180', text: 'Knowledge of requirements for labeling of containers used for storing or dispensing of herbal preparations.' }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  domain5: {
+    code: 'DOMAIN_5_PROFESSIONAL',
+    title: 'California regulations, public health, and professional development',
+    percentage: 11,
+    description: 'This area assesses the practitioner\'s knowledge of California laws and regulations governing acupuncture practice, public health and safety requirements, professional ethics, and scope of practice.',
+    subareas: [
+      {
+        id: 'D401',
+        name: 'Records, confidentiality, mandated reporting, and informed consent',
+        percentage: 3,
+        tasks: [
+          {
+            id: 'T140',
+            description: 'Document assessment, treatment, and patient response to treatment in accordance with legal and professional standards.',
+            knowledgeStatements: [
+              { id: 'K181', text: 'Knowledge of legal requirements and professional standards pertaining to documentation of assessment, treatment, and patient response.' },
+              { id: 'K182', text: 'Knowledge of professional standards for writing medical records and reports.' },
+              { id: 'K183', text: 'Knowledge of legal requirements pertaining to maintenance and retention of patient records.' }
+            ]
+          },
+          {
+            id: 'T141',
+            description: 'Maintain patient records in accordance with legal requirements.',
+            knowledgeStatements: [
+              { id: 'K182', text: 'Knowledge of professional standards for writing medical records and reports.' },
+              { id: 'K183', text: 'Knowledge of legal requirements pertaining to maintenance and retention of patient records.' }
+            ]
+          },
+          {
+            id: 'T142',
+            description: 'Maintain patient privacy and confidentiality in accordance with legal requirements.',
+            knowledgeStatements: [
+              { id: 'K184', text: 'Knowledge of legal requirements pertaining to confidentiality of patient information (i.e., HIPAA).' },
+              { id: 'K185', text: 'Knowledge of legal requirements pertaining to disclosure of patient information.' },
+              { id: 'K186', text: 'Knowledge of legal requirements pertaining to reporting of child, elder, and dependent adult abuse and neglect.' },
+              { id: 'K187', text: 'Knowledge of legal requirements pertaining to reporting of communicable disease.' }
+            ]
+          },
+          {
+            id: 'T143',
+            description: 'Identify and report cases of known or suspected abuse and neglect.',
+            knowledgeStatements: [
+              { id: 'K186', text: 'Knowledge of legal requirements pertaining to reporting of child, elder, and dependent adult abuse and neglect.' },
+              { id: 'K188', text: 'Knowledge of indicators of child, elder, and dependent adult abuse and neglect.' }
+            ]
+          },
+          {
+            id: 'T144',
+            description: 'Identify and report cases of communicable disease.',
+            knowledgeStatements: [
+              { id: 'K187', text: 'Knowledge of legal requirements pertaining to reporting of communicable disease.' }
+            ]
+          },
+          {
+            id: 'T145',
+            description: 'Obtain informed consent for treatment in accordance with legal and ethical guidelines.',
+            knowledgeStatements: [
+              { id: 'K189', text: 'Knowledge of legal and ethical requirements pertaining to informed consent.' }
+            ]
+          },
+          {
+            id: 'T146',
+            description: 'Assess patient capacity to make health care decisions.',
+            knowledgeStatements: [
+              { id: 'K190', text: 'Knowledge of methods to assess patient capacity to make health care decisions.' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'D402',
+        name: 'Infection control and environmental safety',
+        percentage: 4,
+        tasks: [
+          {
+            id: 'T147',
+            description: 'Implement standard procedures to prevent disease transmission and minimize risk of infection.',
+            knowledgeStatements: [
+              { id: 'K191', text: 'Knowledge of infection control guidelines.' },
+              { id: 'K192', text: 'Knowledge of the risks of infectious diseases in the practitioner and patient environment.' },
+              { id: 'K193', text: 'Knowledge of standards and procedures for the Clean Needle Technique.' },
+              { id: 'K194', text: 'Knowledge of legal requirements for maintaining clinical environments in accordance with OSHA requirements and clinical standards.' }
+            ]
+          },
+          {
+            id: 'T148',
+            description: 'Implement measures to safely perform acupuncture and adjunct treatments on patients.',
+            knowledgeStatements: [
+              { id: 'K191', text: 'Knowledge of infection control guidelines.' },
+              { id: 'K192', text: 'Knowledge of the risks of infectious diseases in the practitioner and patient environment.' },
+              { id: 'K193', text: 'Knowledge of standards and procedures for the Clean Needle Technique.' }
+            ]
+          },
+          {
+            id: 'T149',
+            description: 'Practice clean needle techniques.',
+            knowledgeStatements: [
+              { id: 'K193', text: 'Knowledge of standards and procedures for the Clean Needle Technique.' }
+            ]
+          },
+          {
+            id: 'T150',
+            description: 'Maintain a clinical environment that adheres to OSHA requirements and clinical standards.',
+            knowledgeStatements: [
+              { id: 'K194', text: 'Knowledge of legal requirements for maintaining clinical environments in accordance with OSHA requirements and clinical standards.' }
+            ]
+          },
+          {
+            id: 'T151',
+            description: 'Dispose of needles, contaminated material, and containers in accordance with Cal/OSHA guidelines.',
+            knowledgeStatements: [
+              { id: 'K195', text: 'Knowledge of methods for isolating used needles.' },
+              { id: 'K196', text: 'Knowledge of legal requirements for disposal of contaminated materials' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'D403',
+        name: 'Professional conduct and ethics',
+        percentage: 4,
+        tasks: [
+          {
+            id: 'T152',
+            description: 'Recognize situations and behaviors that may impair ability to practice safely and competently.',
+            knowledgeStatements: [
+              { id: 'K197', text: 'Knowledge of methods to assess patient capacity to make health care decisions.' }
+            ]
+          },
+          {
+            id: 'T153',
+            description: 'Comply with the acupuncturist legal scope of practice.',
+            knowledgeStatements: [
+              { id: 'K198', text: 'Knowledge of laws and regulations pertaining to unprofessional conduct for California-licensed acupuncturists.' }
+            ]
+          },
+          {
+            id: 'T154',
+            description: 'Develop advertisements regarding services provided in accordance with legal guidelines.',
+            knowledgeStatements: [
+              { id: 'K199', text: 'Knowledge of legal requirements pertaining to advertisement and dissemination of information about professional qualifications and services.' }
+            ]
+          },
+          {
+            id: 'T155',
+            description: 'Recognize situations and behaviors that constitute unprofessional conduct.',
+            knowledgeStatements: [
+              { id: 'K198', text: 'Knowledge of laws and regulations pertaining to unprofessional conduct for California-licensed acupuncturists.' }
+            ]
+          },
+          {
+            id: 'T156',
+            description: 'Recognize and evaluate potential conflict of interest situations for impact on patients or therapeutic process.',
+            knowledgeStatements: [
+              { id: 'K200', text: 'Knowledge of ethical and professional standards for licensed acupuncturists.' }
+            ]
+          },
+          {
+            id: 'T157',
+            description: 'Establish and maintain professional boundaries.',
+            knowledgeStatements: []
+          },
+          {
+            id: 'T158',
+            description: 'Safeguard patient rights to dignity.',
+            knowledgeStatements: []
+          }
+        ]
+      }
+    ]
+  }
+}
+
 export const examInfoData = {
   cale: {
     examType: 'cale',
