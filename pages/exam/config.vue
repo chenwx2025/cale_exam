@@ -15,6 +15,30 @@
       <!-- Exam Type Selector -->
       <ExamSelector :showDescription="true" class="mb-8" />
 
+      <!-- Quick Mock Exam Button (CALE Only) -->
+      <div v-if="examStore.currentExamType === 'cale'" class="mb-8">
+        <button
+          @click="createMockExam"
+          :disabled="creatingMock"
+          class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg v-if="!creatingMock" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          <svg v-else class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <div class="text-left">
+            <div class="text-lg">{{ creatingMock ? '生成中...' : '一键生成 CALE 全真模拟考试' }}</div>
+            <div class="text-xs text-green-100 font-normal">200题 · 300分钟 (5小时) · 按官方比例分配</div>
+          </div>
+        </button>
+        <p class="mt-2 text-sm text-gray-600 text-center">
+          完全按照CALE官方考试标准：200道题，300分钟 (5小时)，各Domain按官方占比自动分配
+        </p>
+      </div>
+
       <!-- Quick Action Button -->
       <div class="mb-8">
         <NuxtLink
@@ -218,6 +242,7 @@ const config = ref({
 })
 
 const creating = ref(false)
+const creatingMock = ref(false)
 
 const difficulties = [
   { value: 'easy', label: '简单' },
@@ -225,6 +250,33 @@ const difficulties = [
   { value: 'hard', label: '困难' },
   { value: 'mixed', label: '混合' }
 ]
+
+// Create CALE Mock Exam
+const createMockExam = async () => {
+  creatingMock.value = true
+
+  try {
+    const response = await $fetch('/api/exam/create-mock', {
+      method: 'POST',
+      body: {
+        userId: 'demo-user'  // TODO: 替换为实际用户ID
+      }
+    })
+
+    if (response.success) {
+      // 显示成功提示
+      alert(`模拟考试创建成功！\n\n总题数: ${response.config.totalQuestions} 题\n考试时长: ${response.config.duration} 分钟\n\n题目分配:\n${Object.entries(response.config.domainBreakdown).map(([domain, count]) => `- ${domain}: ${count}题`).join('\n')}`)
+
+      // 跳转到考试页面
+      router.push(`/exam/${response.examId}`)
+    }
+  } catch (error: any) {
+    console.error('Create mock exam error:', error)
+    alert(error.data?.message || '创建模拟考试失败，请稍后重试')
+  } finally {
+    creatingMock.value = false
+  }
+}
 
 // Fetch categories
 const { data: categories } = await useFetch('/api/categories', {

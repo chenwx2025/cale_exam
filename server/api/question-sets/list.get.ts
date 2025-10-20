@@ -8,18 +8,14 @@ export default defineEventHandler(async (event) => {
     const userId = query.userId as string || 'demo-user'
     const examType = query.examType as string || 'cale'
 
-    // 获取所有AI生成的题目集和手动配置的考试（未开始的）
+    // 获取所有题目集：AI生成、模拟考试
     const questionSets = await prisma.exam.findMany({
       where: {
         userId,
         examType,
-        OR: [
-          { mode: 'ai_generated' }, // AI生成的题库
-          {
-            mode: 'exam',
-            status: 'not_started' // 未开始的手动配置考试
-          }
-        ]
+        mode: {
+          in: ['ai_generated', 'mock']
+        }
       },
       include: {
         answers: {
@@ -48,6 +44,9 @@ export default defineEventHandler(async (event) => {
       }
 
       set.answers.forEach(answer => {
+        // 跳过question为null的记录（题目已被删除）
+        if (!answer.question) return
+
         const difficulty = answer.question.difficulty
         if (difficulty === 'easy') difficulties.easy++
         else if (difficulty === 'medium') difficulties.medium++

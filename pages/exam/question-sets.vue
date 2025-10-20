@@ -28,6 +28,34 @@
         </NuxtLink>
       </div>
 
+      <!-- Batch Actions Bar (shown when items selected) -->
+      <div v-if="selectedIds.length > 0" class="mb-6 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-xl p-4 flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-3">
+          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span class="font-semibold text-gray-900">已选择 {{ selectedIds.length }} 个题目集</span>
+        </div>
+        <div class="flex gap-3">
+          <button
+            @click="clearSelection"
+            class="px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 font-semibold rounded-lg border border-gray-300 transition-all duration-200"
+          >
+            取消选择
+          </button>
+          <button
+            @click="confirmBatchDelete"
+            :disabled="deleting"
+            class="px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            {{ deleting ? '删除中...' : '批量删除' }}
+          </button>
+        </div>
+      </div>
+
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -40,28 +68,46 @@
           v-for="set in questionSets"
           :key="set.id"
           class="bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 overflow-hidden"
+          :class="{ 'ring-2 ring-blue-500': selectedIds.includes(set.id) }"
         >
           <div class="p-6">
             <div class="flex items-start justify-between mb-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-3 mb-2">
-                  <h3 class="text-xl font-bold text-gray-900">{{ set.title }}</h3>
-                  <span
-                    v-if="set.mode === 'ai_generated'"
-                    class="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-full"
-                  >
-                    AI生成
-                  </span>
-                  <span
-                    v-else
-                    class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full"
-                  >
-                    手动配置
-                  </span>
+              <!-- Checkbox -->
+              <div class="flex items-start gap-4 flex-1">
+                <label class="flex items-center cursor-pointer mt-1">
+                  <input
+                    type="checkbox"
+                    :checked="selectedIds.includes(set.id)"
+                    @change="toggleSelection(set.id)"
+                    class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                  />
+                </label>
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-2">
+                    <h3 class="text-xl font-bold text-gray-900">{{ set.title }}</h3>
+                    <span
+                      v-if="set.mode === 'ai_generated'"
+                      class="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-full"
+                    >
+                      AI生成
+                    </span>
+                    <span
+                      v-else-if="set.mode === 'mock'"
+                      class="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-semibold rounded-full"
+                    >
+                      全真模拟
+                    </span>
+                    <span
+                      v-else
+                      class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full"
+                    >
+                      手动配置
+                    </span>
+                  </div>
+                  <p class="text-sm text-gray-500">
+                    创建时间: {{ formatDate(set.createdAt) }}
+                  </p>
                 </div>
-                <p class="text-sm text-gray-500">
-                  创建时间: {{ formatDate(set.createdAt) }}
-                </p>
               </div>
             </div>
 
@@ -187,6 +233,8 @@ interface QuestionSet {
 
 const questionSets = ref<QuestionSet[]>([])
 const loading = ref(true)
+const selectedIds = ref<string[]>([])
+const deleting = ref(false)
 
 const fetchQuestionSets = async () => {
   try {
@@ -222,6 +270,51 @@ const formatDate = (dateString: string) => {
   })
 }
 
+const toggleSelection = (id: string) => {
+  const index = selectedIds.value.indexOf(id)
+  if (index > -1) {
+    selectedIds.value.splice(index, 1)
+  } else {
+    selectedIds.value.push(id)
+  }
+}
+
+const clearSelection = () => {
+  selectedIds.value = []
+}
+
+const confirmBatchDelete = () => {
+  const count = selectedIds.value.length
+  if (confirm(`确定要删除选中的 ${count} 个题目集吗？\n\n此操作不可恢复，所有相关的答题记录也会被删除。`)) {
+    batchDelete()
+  }
+}
+
+const batchDelete = async () => {
+  try {
+    deleting.value = true
+    const response = await $fetch('/api/question-sets/delete', {
+      method: 'POST',
+      body: {
+        examIds: selectedIds.value
+      }
+    })
+
+    if (response.success) {
+      alert(response.message)
+      selectedIds.value = []
+      await fetchQuestionSets()
+    } else {
+      alert('删除失败: ' + response.message)
+    }
+  } catch (error: any) {
+    console.error('Delete error:', error)
+    alert('删除失败: ' + (error.data?.message || error.message))
+  } finally {
+    deleting.value = false
+  }
+}
+
 onMounted(() => {
   fetchQuestionSets()
 })
@@ -229,5 +322,6 @@ onMounted(() => {
 // 监听考试类型变化
 watch(() => examStore.currentExamType, () => {
   fetchQuestionSets()
+  selectedIds.value = [] // 切换考试类型时清空选择
 })
 </script>

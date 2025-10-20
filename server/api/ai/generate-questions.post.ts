@@ -14,95 +14,558 @@ const CALE_EXAM_PROPORTIONS = {
 }
 
 // 题目模板库 - 基于不同知识点的题目生成模板
-const questionTemplates = {
-  // Domain 1: Patient Assessment
+const questionTemplates: Record<string, any> = {
+  // Domain 1: Patient Assessment (基于 Table 27 - Tasks T1-T34)
   'DOMAIN_1_ASSESSMENT': [
     {
       patterns: [
-        '患者{age}岁{gender}，主诉{symptom1}伴{symptom2}{duration}。{tongue}，{pulse}。根据四诊合参，最可能的诊断是：',
-        '{gender}性患者，{age}岁，{symptom1}，{symptom2}，{duration}。舌诊见{tongue}，脉象{pulse}。应诊断为：',
-        '某患者{symptom1}，兼见{symptom2}，{duration}。查体：{tongue}，{pulse}。此证候属于：'
+        // T1-T3: Chief complaint & History
+        '患者{age}岁{gender}，主诉{chief_complaint}{duration}，伴{symptom2}。{tongue}，{pulse}。根据四诊合参，最可能的诊断是：',
+        '{gender}性患者，{age}岁，{chief_complaint}伴{symptom2}{duration}。舌诊见{tongue}，脉象{pulse}。应诊断为：',
+
+        // T12-T16: Sleep, Diet, Thirst
+        '患者主诉{chief_complaint}，伴{sleep_issue}，{diet_issue}，{thirst_pattern}。{tongue}，{pulse}。此证候属于：',
+
+        // T17-T26: System symptoms
+        '患者{age}岁，{system_symptom}。查体见{tongue}，{pulse}。应诊断为：',
+
+        // T30: Pain assessment
+        '患者{pain_location}{pain_nature}，{pain_feature}。{tongue}，{pulse}。此疼痛属于：',
+
+        // T31-T32: Tongue & Pulse
+        '患者{tongue_detail}，{pulse_detail}。此舌脉象最符合：'
       ],
       variables: {
-        age: ['25', '35', '45', '55', '65'],
+        age: ['25', '32', '38', '45', '52', '58', '65', '72'],
         gender: ['男', '女'],
-        symptom1: ['头痛', '眩晕', '失眠', '心悸', '胸闷', '腹痛', '腰痛', '咳嗽'],
-        symptom2: ['气短', '乏力', '口苦', '纳差', '便溏', '盗汗', '自汗', '耳鸣'],
-        duration: ['3天', '1周', '半月', '1月', '3月', '半年'],
-        tongue: ['舌红少苔', '舌淡胖有齿痕', '舌质暗红', '舌红苔黄', '舌淡苔白'],
-        pulse: ['脉弦细数', '脉沉细', '脉滑数', '脉弦数', '脉细弱']
+
+        // Chief complaints (expanded)
+        chief_complaint: [
+          '头痛', '眩晕', '失眠', '心悸', '胸闷', '胸痛', '咳嗽', '气喘',
+          '腹痛', '腹胀', '腰痛', '膝痛', '肩痛', '耳鸣', '盗汗', '自汗',
+          '月经不调', '痛经', '带下过多', '水肿', '便秘', '腹泻', '乏力'
+        ],
+
+        symptom2: [
+          '气短乏力', '口苦咽干', '纳差便溏', '五心烦热', '畏寒肢冷',
+          '胸胁胀满', '烦躁易怒', '神疲懒言', '面色萎黄', '腰膝酸软'
+        ],
+
+        duration: ['3天', '1周', '2周', '1月', '3月', '半年', '1年'],
+
+        // T12: Sleep patterns
+        sleep_issue: [
+          '入睡困难', '易醒多梦', '早醒难再眠', '睡眠浅易惊醒', '嗜睡倦怠'
+        ],
+
+        // T13-T15: Diet patterns
+        diet_issue: [
+          '纳呆食少', '厌食油腻', '口淡无味', '食后腹胀', '喜食辛辣'
+        ],
+
+        // T16: Thirst
+        thirst_pattern: [
+          '口渴喜冷饮', '口渴但不欲饮', '口干饮水不多', '不渴', '渴喜热饮'
+        ],
+
+        // T17-T26: Systemic symptoms
+        system_symptom: [
+          '咳嗽痰多色白清稀', '咳嗽痰黄粘稠难咯', '大便溏泄日行3-4次',
+          '大便干结3日一行', '小便短赤涩痛', '小便清长夜尿频多',
+          '自汗畏风易感冒', '盗汗五心烦热', '面色苍白神疲乏力',
+          '面红目赤烦躁易怒', '月经量多色淡质稀', '月经量少色暗有血块',
+          '带下色白清稀量多', '带下色黄粘稠有臭味', '肢体困重倦怠懒言'
+        ],
+
+        // T30: Pain characteristics
+        pain_location: ['头部', '胸部', '腹部', '腰部', '膝部', '胁肋部', '肩部'],
+        pain_nature: ['刺痛', '胀痛', '隐痛', '灼痛', '冷痛', '重痛', '绞痛'],
+        pain_feature: [
+          '痛有定处拒按', '痛无定处喜按', '夜间加重', '劳累后加重',
+          '遇寒加重得温痛减', '得热痛甚遇冷痛减', '按之痛减', '按之痛甚'
+        ],
+
+        // T31: Tongue diagnosis (detailed)
+        tongue: [
+          '舌红少苔', '舌淡胖有齿痕苔白滑', '舌质暗红有瘀斑', '舌红苔黄腻',
+          '舌淡苔白', '舌尖红绛', '舌体胖大', '舌质紫暗', '舌红少津',
+          '舌淡嫩', '舌红苔薄黄', '舌苔厚腻'
+        ],
+
+        tongue_detail: [
+          '舌淡胖嫩有齿痕，苔白滑', '舌红少苔或无苔', '舌质暗红有瘀斑，苔薄白',
+          '舌红苔黄腻', '舌尖红绛', '舌淡苔白润'
+        ],
+
+        // T32: Pulse diagnosis (detailed)
+        pulse: [
+          '脉弦细数', '脉沉细无力', '脉滑数有力', '脉弦数', '脉细弱',
+          '脉沉迟', '脉浮紧', '脉濡缓', '脉弦滑', '脉洪大', '脉涩',
+          '脉沉弦', '脉虚大无力', '脉数而无力'
+        ],
+
+        pulse_detail: [
+          '脉弦细数', '脉沉细无力', '脉滑数', '脉沉迟无力', '脉浮紧',
+          '脉细弱', '脉弦滑', '脉涩', '脉洪大'
+        ]
       },
       syndromes: [
-        { name: '肝阳上亢', symptoms: ['头痛', '眩晕'], tongue: '舌红', pulse: '脉弦' },
-        { name: '肝肾阴虚', symptoms: ['头痛', '眩晕', '耳鸣'], tongue: '舌红少苔', pulse: '脉弦细数' },
-        { name: '气血两虚', symptoms: ['心悸', '乏力', '失眠'], tongue: '舌淡', pulse: '脉细弱' },
-        { name: '脾胃湿热', symptoms: ['腹痛', '便溏', '纳差'], tongue: '舌红苔黄腻', pulse: '脉滑数' },
-        { name: '肺气虚', symptoms: ['咳嗽', '气短', '自汗'], tongue: '舌淡', pulse: '脉弱' }
+        // Liver patterns
+        { name: '肝阳上亢', symptoms: ['头痛', '眩晕', '烦躁易怒', '面红目赤'], tongue: '舌红', pulse: '脉弦' },
+        { name: '肝肾阴虚', symptoms: ['眩晕', '耳鸣', '腰膝酸软', '五心烦热'], tongue: '舌红少苔', pulse: '脉弦细数' },
+        { name: '肝气郁结', symptoms: ['胸胁胀满', '烦躁易怒', '月经不调'], tongue: '舌淡红', pulse: '脉弦' },
+        { name: '肝血虚', symptoms: ['眩晕', '失眠多梦', '月经量少', '面色萎黄'], tongue: '舌淡', pulse: '脉细' },
+
+        // Heart patterns
+        { name: '心气虚', symptoms: ['心悸', '气短', '自汗', '乏力'], tongue: '舌淡', pulse: '脉细弱' },
+        { name: '心血虚', symptoms: ['心悸', '失眠多梦', '面色无华'], tongue: '舌淡', pulse: '脉细' },
+        { name: '心阴虚', symptoms: ['心悸', '失眠', '五心烦热', '盗汗'], tongue: '舌红少苔', pulse: '脉细数' },
+        { name: '心火亢盛', symptoms: ['心悸', '失眠', '口舌生疮'], tongue: '舌尖红', pulse: '脉数' },
+
+        // Spleen patterns
+        { name: '脾气虚', symptoms: ['纳差', '乏力', '便溏', '面色萎黄'], tongue: '舌淡胖有齿痕', pulse: '脉缓弱' },
+        { name: '脾阳虚', symptoms: ['腹痛喜温', '便溏', '畏寒肢冷'], tongue: '舌淡胖', pulse: '脉沉迟' },
+        { name: '脾胃湿热', symptoms: ['腹痛', '便溏', '口苦'], tongue: '舌红苔黄腻', pulse: '脉滑数' },
+
+        // Lung patterns
+        { name: '肺气虚', symptoms: ['咳嗽', '气短', '自汗', '易感冒'], tongue: '舌淡', pulse: '脉弱' },
+        { name: '肺阴虚', symptoms: ['干咳少痰', '盗汗', '五心烦热'], tongue: '舌红少津', pulse: '脉细数' },
+        { name: '风寒束肺', symptoms: ['咳嗽', '痰白清稀'], tongue: '舌淡苔白', pulse: '脉浮紧' },
+
+        // Kidney patterns
+        { name: '肾阳虚', symptoms: ['腰膝酸软', '畏寒肢冷', '夜尿频'], tongue: '舌淡胖', pulse: '脉沉迟' },
+        { name: '肾阴虚', symptoms: ['腰膝酸软', '五心烦热', '盗汗', '耳鸣'], tongue: '舌红少苔', pulse: '脉细数' },
+
+        // Complex patterns
+        { name: '气血两虚', symptoms: ['心悸', '乏力', '失眠', '面色萎黄'], tongue: '舌淡', pulse: '脉细弱' },
+        { name: '气滞血瘀', symptoms: ['胸胁胀痛', '刺痛'], tongue: '舌紫暗有瘀斑', pulse: '脉涩' },
+        { name: '痰湿内阻', symptoms: ['胸闷', '痰多', '肢体困重'], tongue: '舌淡苔白腻', pulse: '脉滑' },
+        { name: '阴虚火旺', symptoms: ['五心烦热', '盗汗', '失眠'], tongue: '舌红少苔', pulse: '脉细数' }
       ]
     }
   ],
 
-  // Domain 2: Diagnosis and Treatment Planning
+  // Domain 2: Diagnosis and Treatment Planning (基于 Table 27 - Tasks T35-T68)
   'DOMAIN_2_DIAGNOSIS': [
     {
       patterns: [
-        '根据{theory}理论，{symptom}属于{organ}病变，治疗原则应为：',
-        '患者{syndrome}证，治疗时应首先考虑：',
-        '在制定治疗计划时，{condition}患者需要特别注意：'
+        // T36-T42: Pattern differentiation
+        '患者出现{clinical_presentation}。根据{differentiation_method}，应诊断为：',
+
+        // T43: Eight Principles
+        '患者{eight_principles_signs}。根据八纲辨证，此属：',
+
+        // T44: Six Stages
+        '患者{six_stage_signs}。根据六经辨证（伤寒论），此属：',
+
+        // T45: Four Levels
+        '患者{four_level_signs}。根据卫气营血辨证，此属：',
+
+        // T42: Zang Fu patterns
+        '患者{zangfu_signs}。根据脏腑辨证，应诊断为：',
+
+        // T48-T49: Treatment principles
+        '患者诊断为{pattern}，治疗原则应为：',
+
+        // T54: Communication with healthcare providers
+        '患者西医诊断为{western_diagnosis}，从中医角度应考虑的证型是：'
       ],
       variables: {
-        theory: ['脏腑辨证', '八纲辨证', '六经辨证', '卫气营血辨证'],
-        symptom: ['胸闷心悸', '头晕目眩', '腰膝酸软', '脘腹胀满'],
-        organ: ['心', '肝', '脾', '肺', '肾'],
-        syndrome: ['气虚', '血瘀', '痰湿', '阴虚', '阳虚'],
-        condition: ['孕妇', '儿童', '老年', '体弱']
+        // Differentiation methods
+        differentiation_method: [
+          '脏腑辨证', '八纲辨证', '六经辨证', '卫气营血辨证',
+          '三焦辨证', '五行辨证'
+        ],
+
+        // Clinical presentations
+        clinical_presentation: [
+          '头痛眩晕，面红目赤，急躁易怒，舌红苔黄，脉弦数',
+          '心悸失眠，健忘多梦，面色无华，舌淡脉细',
+          '咳嗽气喘，痰多色白，畏寒肢冷，舌淡苔白，脉沉迟',
+          '腹痛喜温，大便溏薄，神疲乏力，舌淡胖有齿痕，脉沉细',
+          '腰膝酸软，耳鸣健忘，五心烦热，盗汗，舌红少苔，脉细数',
+          '胸胁胀痛，善太息，情志抑郁，月经不调，脉弦'
+        ],
+
+        // T43: Eight Principles signs
+        eight_principles_signs: [
+          '恶寒发热，无汗，头痛，脉浮紧',  // 表寒实
+          '发热恶风，有汗，咽痛，脉浮数',  // 表热实
+          '但寒不热，四肢厥冷，下利清谷，脉沉迟',  // 里寒虚
+          '壮热口渴，便秘尿赤，舌红苔黄，脉洪数',  // 里热实
+          '低热盗汗，五心烦热，口干咽燥，脉细数',  // 里热虚（阴虚）
+          '畏寒肢冷，面色苍白，神疲乏力，脉沉细'   // 里寒虚（阳虚）
+        ],
+
+        // T44: Six Stages signs
+        six_stage_signs: [
+          '恶寒发热，头项强痛，无汗，脉浮紧',  // 太阳病
+          '往来寒热，胸胁苦满，口苦咽干，脉弦',  // 少阳病
+          '潮热，便秘，腹满痛，舌苔黄燥，脉沉实',  // 阳明病
+          '腹满时痛，下利，舌苔白滑，脉弦',  // 太阴病
+          '口燥咽干，心烦不眠，舌红少苔，脉细数',  // 少阴病（热化）
+          '恶寒蜷卧，四肢厥冷，下利清谷，脉微细'   // 厥阴病
+        ],
+
+        // T45: Four Levels signs
+        four_level_signs: [
+          '发热恶风寒，咽痛，舌边尖红，脉浮数',  // 卫分证
+          '壮热，汗出，口渴，舌红苔黄，脉洪数',  // 气分证
+          '身热夜甚，心烦不眠，斑疹隐隐，舌绛，脉细数',  // 营分证
+          '高热神昏，斑疹显露，舌绛少津，脉细数'   // 血分证
+        ],
+
+        // T42: Zang Fu signs
+        zangfu_signs: [
+          '心悸气短，自汗，神疲乏力，舌淡，脉虚',  // 心气虚
+          '失眠多梦，心悸健忘，面色不华，舌淡，脉细',  // 心血虚
+          '头晕目眩，急躁易怒，面红目赤，舌红，脉弦',  // 肝阳上亢
+          '胸胁胀痛，善太息，情志抑郁，脉弦',  // 肝气郁结
+          '纳呆食少，便溏，神疲乏力，舌淡胖，脉缓弱',  // 脾气虚
+          '咳嗽气喘，咳痰清稀，畏风易感，舌淡，脉弱',  // 肺气虚
+          '腰膝酸软，畏寒肢冷，夜尿频多，舌淡胖，脉沉迟'  // 肾阳虚
+        ],
+
+        // Common patterns for treatment
+        pattern: [
+          '肝阳上亢', '肝肾阴虚', '肝气郁结', '心气虚', '心血虚',
+          '脾气虚', '脾阳虚', '肺气虚', '肺阴虚', '肾阳虚', '肾阴虚',
+          '气血两虚', '气滞血瘀', '痰湿内阻', '阴虚火旺'
+        ],
+
+        // T54: Western diagnoses
+        western_diagnosis: [
+          '高血压', '失眠症', '胃炎', '慢性支气管炎', '月经不调',
+          '焦虑症', '慢性疲劳综合征', '骨关节炎', '偏头痛', '便秘'
+        ]
+      },
+
+      // Treatment principles mapping
+      treatmentPrinciples: {
+        '肝阳上亢': '平肝潜阳',
+        '肝肾阴虚': '滋补肝肾',
+        '肝气郁结': '疏肝理气',
+        '心气虚': '益气养心',
+        '心血虚': '养血安神',
+        '脾气虚': '健脾益气',
+        '脾阳虚': '温补脾阳',
+        '肺气虚': '补肺益气',
+        '肺阴虚': '养阴润肺',
+        '肾阳虚': '温补肾阳',
+        '肾阴虚': '滋补肾阴',
+        '气血两虚': '气血双补',
+        '气滞血瘀': '行气活血',
+        '痰湿内阻': '健脾化痰',
+        '阴虚火旺': '滋阴降火'
+      },
+
+      // Eight Principles patterns
+      eightPrinciplesPatterns: {
+        '恶寒发热，无汗，头痛，脉浮紧': '表寒实证',
+        '发热恶风，有汗，咽痛，脉浮数': '表热实证',
+        '但寒不热，四肢厥冷，下利清谷，脉沉迟': '里寒虚证',
+        '壮热口渴，便秘尿赤，舌红苔黄，脉洪数': '里热实证',
+        '低热盗汗，五心烦热，口干咽燥，脉细数': '阴虚证',
+        '畏寒肢冷，面色苍白，神疲乏力，脉沉细': '阳虚证'
+      },
+
+      // Six Stages patterns
+      sixStagesPatterns: {
+        '恶寒发热，头项强痛，无汗，脉浮紧': '太阳病',
+        '往来寒热，胸胁苦满，口苦咽干，脉弦': '少阳病',
+        '潮热，便秘，腹满痛，舌苔黄燥，脉沉实': '阳明病',
+        '腹满时痛，下利，舌苔白滑，脉弦': '太阴病',
+        '口燥咽干，心烦不眠，舌红少苔，脉细数': '少阴热化证',
+        '恶寒蜷卧，四肢厥冷，下利清谷，脉微细': '厥阴病'
+      },
+
+      // Four Levels patterns
+      fourLevelsPatterns: {
+        '发热恶风寒，咽痛，舌边尖红，脉浮数': '卫分证',
+        '壮热，汗出，口渴，舌红苔黄，脉洪数': '气分证',
+        '身热夜甚，心烦不眠，斑疹隐隐，舌绛，脉细数': '营分证',
+        '高热神昏，斑疹显露，舌绛少津，脉细数': '血分证'
       }
     }
   ],
 
-  // Domain 3A: Acupuncture Point Selection
+  // Domain 3A: Acupuncture Point Selection (基于 Table 27 - Tasks T69-T98)
   'DOMAIN_3A_ACU_SELECTION': [
     {
       patterns: [
-        '治疗{disease}，根据"{principle}"原则，应首选：',
-        '患者{symptom}，选穴时应取{meridian}经的腧穴，最合适的是：',
-        '{disease}的治疗，根据{location}循行，应选择：',
-        '根据特定穴的作用，治疗{organ}疾病应选{acupoint_type}：'
+        // T69: Develop point prescription
+        '治疗{condition}，根据"{selection_principle}"原则，应首选穴位组合：',
+
+        // T70: Distal/proximal points
+        '患者{symptom}，按照远近配穴法，最佳配穴是：',
+
+        // T71: Local points
+        '{meridian}经循行部位疼痛，选择局部穴位应为：',
+
+        // T85: Special points
+        '根据特定穴理论，治疗{organ_system}疾病应选{special_point_type}：',
+
+        // T88: Point actions
+        '以下哪个穴位主治{condition}？',
+
+        // T90-T92: Point combinations
+        '治疗{condition}，根据{combination_method}，正确的配穴是：'
       ],
       variables: {
-        disease: ['胃痛', '头痛', '失眠', '咳嗽', '腰痛', '膝痛', '眩晕'],
-        principle: ['腑会中脘', '背俞募穴配伍', '原络配穴', '上病下取', '左病右治'],
-        symptom: ['前额痛', '偏头痛', '后头痛', '巅顶痛'],
-        meridian: ['足阳明胃', '足太阳膀胱', '足少阳胆', '手阳明大肠'],
-        location: ['经络', '部位'],
-        organ: ['六腑', '五脏', '奇恒之府'],
-        acupoint_type: ['八会穴', '下合穴', '原穴', '络穴']
+        // Conditions to treat
+        condition: [
+          '胃痛', '头痛', '失眠', '咳嗽', '腰痛', '膝痛', '眩晕', '痛经',
+          '便秘', '腹泻', '心悸', '耳鸣', '肩痛', '落枕', '面瘫', '中风'
+        ],
+
+        // T69: Selection principles
+        selection_principle: [
+          '腑会中脘', '背俞募穴配伍', '原络配穴', '上病下取', '下病上取',
+          '左病右治', '前病后取', '同名经配穴', '表里经配穴'
+        ],
+
+        // Symptoms
+        symptom: [
+          '前额头痛', '偏头痛', '后头痛', '巅顶痛', '胃脘痛', '腰背痛',
+          '膝关节痛', '肩关节痛', '牙痛', '咽喉肿痛'
+        ],
+
+        // Meridians
+        meridian: [
+          '足阳明胃', '足太阳膀胱', '足少阳胆', '手阳明大肠',
+          '手太阳小肠', '足厥阴肝', '足太阴脾', '手少阴心'
+        ],
+
+        // T85: Organ systems
+        organ_system: [
+          '六腑', '五脏', '气血津液', '筋骨', '经络'
+        ],
+
+        // T85: Special point types
+        special_point_type: [
+          '八会穴', '下合穴', '原穴', '络穴', '郄穴', '背俞穴',
+          '募穴', '五输穴', '八脉交会穴'
+        ],
+
+        // T90-T92: Combination methods
+        combination_method: [
+          '远近配穴', '上下配穴', '前后配穴', '左右配穴',
+          '表里配穴', '同名经配穴', '本经配穴'
+        ]
       },
       acupoints: {
-        '胃痛': ['中脘', '足三里', '内关'],
-        '头痛前额': ['印堂', '阳白', '头维'],
-        '头痛偏侧': ['率谷', '太阳', '风池'],
-        '失眠': ['神门', '三阴交', '安眠'],
-        '咳嗽': ['肺俞', '列缺', '天突']
+        // Headache points
+        '前额头痛': ['印堂', '阳白', '头维', '合谷'],
+        '偏头痛': ['太阳', '率谷', '风池', '外关'],
+        '后头痛': ['天柱', '风池', '后溪', '昆仑'],
+        '巅顶痛': ['百会', '四神聪', '太冲', '涌泉'],
+
+        // Gastrointestinal
+        '胃痛': ['中脘', '足三里', '内关', '梁丘'],
+        '腹泻': ['天枢', '上巨虚', '阴陵泉', '足三里'],
+        '便秘': ['天枢', '支沟', '上巨虚', '大肠俞'],
+
+        // Musculoskeletal
+        '腰痛': ['肾俞', '大肠俞', '委中', '腰痛点'],
+        '膝痛': ['犊鼻', '阳陵泉', '阴陵泉', '足三里'],
+        '肩痛': ['肩髃', '肩髎', '臂臑', '条口'],
+        '落枕': ['悬钟', '后溪', '风池', '肩井'],
+
+        // Internal medicine
+        '失眠': ['神门', '三阴交', '安眠', '印堂'],
+        '心悸': ['内关', '神门', '心俞', '巨阙'],
+        '眩晕': ['百会', '风池', '太冲', '足三里'],
+        '咳嗽': ['肺俞', '列缺', '天突', '尺泽'],
+
+        // Gynecology
+        '痛经': ['三阴交', '地机', '次髎', '关元'],
+        '月经不调': ['三阴交', '血海', '关元', '足三里'],
+
+        // Special conditions
+        '面瘫': ['地仓', '颊车', '合谷', '太冲'],
+        '耳鸣': ['听宫', '翳风', '中渚', '太冲']
+      },
+
+      // Special points knowledge
+      specialPoints: {
+        // Eight Influential Points
+        '八会穴': {
+          '腑会': '中脘',
+          '脏会': '章门',
+          '气会': '膻中',
+          '血会': '膈俞',
+          '筋会': '阳陵泉',
+          '脉会': '太渊',
+          '骨会': '大杼',
+          '髓会': '悬钟'
+        },
+        // Lower He-Sea Points
+        '下合穴': {
+          '胃': '足三里',
+          '大肠': '上巨虚',
+          '小肠': '下巨虚',
+          '膀胱': '委中',
+          '胆': '阳陵泉',
+          '三焦': '委阳'
+        }
       }
     }
   ],
 
-  // Domain 3B: Point Location and Needling
+  // Domain 3B: Point Location and Needling (基于 Table 27 - Tasks T99-T116)
   'DOMAIN_3B_ACU_TECHNIQUE': [
     {
       patterns: [
+        // T99-T101: Point location
         '{acupoint}穴的标准定位是：',
+
+        // T102-T105: Needling techniques
         '针刺{acupoint}时，标准的进针深度应为：',
+
+        // T106: Patient positioning
         '针刺{acupoint}穴时，患者应采取的体位是：',
-        '{acupoint}的针刺方向是：'
+
+        // T107: Needle direction
+        '针刺{acupoint}穴，正确的进针方向是：',
+
+        // T108-T109: Manipulation techniques
+        '获得{sensation}针感，应采用的手法是：',
+
+        // T114: Contraindications
+        '以下哪个穴位针刺时需特别注意，禁止深刺？'
       ],
+      variables: {
+        acupoint: [
+          '内关', '足三里', '合谷', '百会', '风池', '肺俞', '膻中', '太冲',
+          '三阴交', '曲池', '列缺', '神门', '委中', '阳陵泉', '血海', '天枢',
+          '肾俞', '关元', '气海', '太溪'
+        ],
+
+        sensation: ['得气', '酸胀', '麻感', '沉重感', '传导感']
+      },
+
       acupoints: {
-        '内关': { location: '腕横纹上2寸，掌长肌腱与桡侧腕屈肌腱之间', depth: '0.5-1寸', position: '仰掌' },
-        '足三里': { location: '犊鼻下3寸，胫骨前嵴外一横指', depth: '1-1.5寸', position: '正坐屈膝' },
-        '合谷': { location: '第1、2掌骨之间，约第2掌骨中点桡侧', depth: '0.5-1寸', position: '仰掌' },
-        '百会': { location: '头顶正中线与两耳尖连线交点', depth: '0.3-0.5寸平刺', position: '正坐' },
-        '风池': { location: '颈后发际，胸锁乳突肌与斜方肌上端之间凹陷处', depth: '0.5-0.8寸', position: '正坐或俯卧' }
+        // Upper limb points
+        '内关': {
+          location: '腕横纹上2寸，掌长肌腱与桡侧腕屈肌腱之间',
+          depth: '0.5-1寸',
+          direction: '直刺',
+          position: '仰掌或仰卧',
+          caution: '不宜过深，避免刺伤正中神经'
+        },
+        '合谷': {
+          location: '第1、2掌骨之间，约第2掌骨中点桡侧',
+          depth: '0.5-1寸',
+          direction: '直刺或向第2掌骨方向斜刺',
+          position: '仰掌',
+          caution: '孕妇禁用或慎用'
+        },
+        '曲池': {
+          location: '肘横纹外侧端，屈肘时尺泽与肱骨外上髁连线中点',
+          depth: '1-1.5寸',
+          direction: '直刺',
+          position: '屈肘取穴',
+          caution: '避开肘部血管'
+        },
+        '列缺': {
+          location: '腕横纹上1.5寸，拇短伸肌腱与拇长展肌腱之间',
+          depth: '0.3-0.5寸',
+          direction: '向上斜刺',
+          position: '坐位',
+          caution: '不宜深刺'
+        },
+
+        // Lower limb points
+        '足三里': {
+          location: '犊鼻下3寸，胫骨前嵴外一横指',
+          depth: '1-1.5寸',
+          direction: '直刺',
+          position: '正坐屈膝或仰卧屈膝',
+          caution: '可深刺'
+        },
+        '三阴交': {
+          location: '内踝尖上3寸，胫骨内侧缘后方',
+          depth: '1-1.5寸',
+          direction: '直刺',
+          position: '正坐或仰卧',
+          caution: '孕妇禁用'
+        },
+        '太冲': {
+          location: '第1、2跖骨结合部之前凹陷处',
+          depth: '0.5-1寸',
+          direction: '向上斜刺',
+          position: '正坐或仰卧',
+          caution: '可用泻法'
+        },
+        '委中': {
+          location: '腘横纹中点，股二头肌腱与半腱肌腱之间',
+          depth: '1-1.5寸',
+          direction: '直刺',
+          position: '俯卧',
+          caution: '避开腘动脉，可点刺出血'
+        },
+        '阳陵泉': {
+          location: '腓骨小头前下方凹陷处',
+          depth: '1-2寸',
+          direction: '直刺',
+          position: '正坐屈膝或侧卧',
+          caution: '筋会穴'
+        },
+
+        // Head and neck points
+        '百会': {
+          location: '头顶正中线与两耳尖连线交点',
+          depth: '0.3-0.5寸',
+          direction: '平刺',
+          position: '正坐',
+          caution: '只能平刺，不可直刺'
+        },
+        '风池': {
+          location: '颈后发际，胸锁乳突肌与斜方肌上端之间凹陷处',
+          depth: '0.5-1寸',
+          direction: '向对侧眼窝方向刺',
+          position: '正坐或俯卧',
+          caution: '不宜过深，避免刺入延髓'
+        },
+
+        // Back points
+        '肺俞': {
+          location: '第3胸椎棘突下，旁开1.5寸',
+          depth: '0.5-0.8寸',
+          direction: '斜刺',
+          position: '俯卧或正坐',
+          caution: '不宜深刺，防止气胸'
+        },
+        '肾俞': {
+          location: '第2腰椎棘突下，旁开1.5寸',
+          depth: '0.5-1寸',
+          direction: '直刺或斜刺',
+          position: '俯卧',
+          caution: '可深刺至1寸'
+        },
+
+        // Chest and abdomen points
+        '膻中': {
+          location: '胸部正中线，平第4肋间，两乳头连线中点',
+          depth: '0.3-0.5寸',
+          direction: '平刺',
+          position: '仰卧',
+          caution: '禁止深刺，防止气胸'
+        },
+        '关元': {
+          location: '脐下3寸，腹部正中线上',
+          depth: '0.5-1寸',
+          direction: '直刺',
+          position: '仰卧',
+          caution: '孕妇慎用，膀胱充盈时不宜深刺'
+        },
+        '天枢': {
+          location: '脐旁开2寸',
+          depth: '1-1.5寸',
+          direction: '直刺',
+          position: '仰卧',
+          caution: '孕妇慎用'
+        }
       }
     }
   ],
@@ -125,45 +588,111 @@ const questionTemplates = {
     }
   ],
 
-  // Domain 4: Herbal Therapy
+  // Domain 3D: Herbal Therapy (中药治疗)
   'DOMAIN_3D_HERBAL': [
     {
       patterns: [
         '{formula}的组成药物是：',
         '{formula}的主要功效是：',
-        '{herb}的主要配伍禁忌药物是：',
+        '{herb}的主要功效是：',
         '{patient_type}禁用的中药包括：',
-        '煎药时，以下哪种药物应该{decoction_method}？'
+        '煎药时，以下哪种药物应该{decoction_method}？',
+        '治疗{pattern}，应首选方剂：',
+        '{herb1}与{herb2}配伍，属于：'
       ],
       variables: {
-        formula: ['麻黄汤', '桂枝汤', '小柴胡汤', '四君子汤', '四物汤', '六味地黄丸', '逍遥散'],
-        herb: ['附子', '甘草', '人参', '半夏'],
-        patient_type: ['孕妇', '儿童', '老年人', '高血压患者'],
-        decoction_method: ['先煎', '后下', '包煎', '另煎', '烊化']
+        formula: [
+          '麻黄汤', '桂枝汤', '小柴胡汤', '四君子汤', '四物汤', '六味地黄丸',
+          '逍遥散', '补中益气汤', '归脾汤', '温胆汤', '血府逐瘀汤', '半夏厚朴汤'
+        ],
+        herb: [
+          '麻黄', '桂枝', '附子', '甘草', '人参', '半夏', '大黄', '黄连',
+          '当归', '川芎', '白芍', '熟地', '柴胡', '枳实'
+        ],
+        herb1: ['附子', '半夏', '人参', '黄芪', '当归'],
+        herb2: ['干姜', '生姜', '茯苓', '白术', '川芎'],
+        patient_type: ['孕妇', '儿童', '老年人', '高血压患者', '糖尿病患者'],
+        decoction_method: ['先煎', '后下', '包煎', '另煎', '烊化', '冲服'],
+        pattern: [
+          '肝气郁结', '脾气虚', '肾阳虚', '气滞血瘀', '痰湿内阻',
+          '心脾两虚', '肝肾阴虚', '脾胃湿热'
+        ]
       },
       formulas: {
         '麻黄汤': { composition: '麻黄、桂枝、杏仁、甘草', function: '发汗解表，宣肺平喘' },
+        '桂枝汤': { composition: '桂枝、白芍、甘草、生姜、大枣', function: '解肌发表，调和营卫' },
+        '小柴胡汤': { composition: '柴胡、黄芩、人参、半夏、甘草、生姜、大枣', function: '和解少阳' },
+        '四君子汤': { composition: '人参、白术、茯苓、甘草', function: '益气健脾' },
+        '四物汤': { composition: '当归、川芎、白芍、熟地', function: '补血调血' },
         '六味地黄丸': { composition: '熟地黄、山萸肉、山药、泽泻、茯苓、丹皮', function: '滋补肝肾' },
-        '小柴胡汤': { composition: '柴胡、黄芩、人参、半夏、甘草、生姜、大枣', function: '和解少阳' }
+        '逍遥散': { composition: '柴胡、当归、白芍、白术、茯苓、甘草、薄荷、生姜', function: '疏肝健脾，养血调经' },
+        '补中益气汤': { composition: '黄芪、人参、白术、甘草、当归、陈皮、升麻、柴胡', function: '补中益气，升阳举陷' },
+        '归脾汤': { composition: '人参、黄芪、白术、茯神、酸枣仁、龙眼肉、木香、当归、远志、甘草', function: '益气补血，健脾养心' }
+      },
+      herbProperties: {
+        '麻黄': { nature: '辛、微苦，温', function: '发汗解表，宣肺平喘，利水消肿', caution: '高血压患者慎用' },
+        '附子': { nature: '辛、甘，大热', function: '回阳救逆，补火助阳', caution: '孕妇禁用，需先煎' },
+        '半夏': { nature: '辛，温', function: '燥湿化痰，降逆止呕', caution: '孕妇禁用' },
+        '大黄': { nature: '苦，寒', function: '泻下攻积，清热泻火', caution: '孕妇禁用' }
       }
     }
   ],
 
-  // Domain 5: Professional Responsibilities (注意数据库中是 DOMAIN_4_PROFESSIONAL)
+  // Domain 4: Professional Responsibilities (基于 Table 27 - 加州法规)
   'DOMAIN_4_PROFESSIONAL': [
     {
       patterns: [
         '根据加州法律，针灸师的执业范围{include_or_not}：',
         '针灸诊所必须保存患者病历的最短时间是：',
-        '发现患者可能患有{condition}时，针灸师应该：',
+        '发现患者可能患有{emergency_condition}时，针灸师应该：',
         '针灸师在治疗过程中必须遵守的{regulation}要求包括：',
-        '加州针灸师{certification_requirement}的要求是：'
+        '加州针灸师{certification_requirement}的要求是：',
+        '以下哪种情况下针灸师必须向相关部门报告？',
+        '针灸师进行{procedure}时，必须遵守的规定是：',
+        '根据清洁针法（CNT）标准，以下哪项是必须的？'
       ],
       variables: {
         include_or_not: ['包括', '不包括'],
-        condition: ['传染病', '急症', '肿瘤', '骨折'],
-        regulation: ['清洁针法（Clean Needle Technique）', 'HIPAA隐私保护', '知情同意', '标准预防措施'],
-        certification_requirement: ['继续教育（CEU）', '执照更新', '首次考试']
+        emergency_condition: [
+          '传染病', '急性心肌梗死', '骨折', '急性阑尾炎', '严重出血',
+          '中风症状', '糖尿病急症', '过敏性休克'
+        ],
+        regulation: [
+          '清洁针法（Clean Needle Technique）', 'HIPAA隐私保护',
+          '知情同意（Informed Consent）', '标准预防措施（Universal Precautions）',
+          '病历记录要求', '针具处理规范'
+        ],
+        certification_requirement: [
+          '继续教育（CEU）', '执照更新', '首次考试', 'NCCAOM认证维护'
+        ],
+        procedure: [
+          '针刺治疗', '拔罐', '艾灸', '电针', '放血疗法', '中药处方'
+        ]
+      },
+      professionalStandards: {
+        '病历保存': '至少7年',
+        'CEU要求': '每2年30学分',
+        '执照更新周期': '每2年',
+        '清洁针法要求': '必须完成认证课程',
+        '知情同意': '治疗前必须获得患者书面同意',
+        'HIPAA': '必须保护患者隐私信息'
+      },
+      scopeOfPractice: {
+        '包括': [
+          '针刺治疗', '艾灸', '拔罐', '推拿', '中药处方（需额外认证）',
+          '电针', '刮痧', '饮食建议', '运动指导'
+        ],
+        '不包括': [
+          '外科手术', 'X光检查', '开具西药处方', '诊断癌症',
+          '脊椎调整（需脊医执照）', '静脉注射'
+        ]
+      },
+      emergencyProtocol: {
+        '传染病': '必须报告当地卫生部门',
+        '急性心肌梗死': '立即拨打911，停止治疗',
+        '骨折': '转诊至急诊或骨科医生',
+        '中风症状': '立即拨打911',
+        '严重过敏反应': '立即拨打911，使用肾上腺素（如有）'
       }
     }
   ]
@@ -243,20 +772,35 @@ function generateOptionsAndAnswer(categoryCode: string, question: string, usedVa
 
     correctAnswer = 'A. ' + correctSyndrome.name
 
-    // 生成干扰项
+    // 生成干扰项（随机打乱）
     const distractors = syndromes
       .filter((s: any) => s.name !== correctSyndrome.name)
+      .sort(() => Math.random() - 0.5)
       .slice(0, 3)
       .map((s: any) => s.name)
 
-    options = [
-      'A. ' + correctSyndrome.name,
-      'B. ' + (distractors[0] || '气血两虚'),
-      'C. ' + (distractors[1] || '阴虚火旺'),
-      'D. ' + (distractors[2] || '痰湿内阻')
-    ]
+    // 随机选项顺序
+    const allOptions = [
+      correctSyndrome.name,
+      distractors[0] || '气血两虚',
+      distractors[1] || '阴虚火旺',
+      distractors[2] || '痰湿内阻'
+    ].sort(() => Math.random() - 0.5)
 
-    explanation = `根据症状${correctSyndrome.symptoms.join('、')}，舌脉特点，可诊断为${correctSyndrome.name}。`
+    options = allOptions.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+    correctAnswer = options.find(opt => opt.includes(correctSyndrome.name)) || options[0]
+
+    // 生成详细解析
+    const tongueInfo = correctSyndrome.tongue ? `舌象${correctSyndrome.tongue}，` : ''
+    const pulseInfo = correctSyndrome.pulse ? `脉象${correctSyndrome.pulse}，` : ''
+    explanation = `【答案解析】\n本题考查中医诊断学中的证候辨识。\n\n` +
+      `【正确答案】${correctAnswer}\n\n` +
+      `【分析】根据患者的临床表现：${correctSyndrome.symptoms.join('、')}等症状，` +
+      `结合${tongueInfo}${pulseInfo}符合${correctSyndrome.name}的典型表现。\n\n` +
+      `【证候特点】\n${correctSyndrome.name}的主要特征包括：\n` +
+      `- 主症：${correctSyndrome.symptoms.slice(0, 3).join('、')}\n` +
+      `- 舌脉：${tongueInfo}${pulseInfo}\n` +
+      `- 病机：结合四诊合参，综合判断得出此证候诊断。`
 
   } else if (categoryCode.includes('ACU_SELECTION')) {
     // 选穴类题目
@@ -264,56 +808,581 @@ function generateOptionsAndAnswer(categoryCode: string, question: string, usedVa
     const keys = Object.keys(acupoints)
     const key = keys.find(k => question.includes(k)) || keys[0]
     const correctAcupoints = acupoints[key] || []
+    const mainPoint = correctAcupoints[0] || '中脘'
 
-    correctAnswer = 'A. ' + (correctAcupoints[0] || '中脘')
-
-    const allAcupoints = ['足三里', '内关', '合谷', '百会', '风池', '三阴交', '太冲', '曲池']
+    const allAcupoints = ['足三里', '内关', '合谷', '百会', '风池', '三阴交', '太冲', '曲池', '神门', '血海']
     const distractors = allAcupoints
       .filter(ap => !correctAcupoints.includes(ap))
+      .sort(() => Math.random() - 0.5)
       .slice(0, 3)
 
-    options = [
-      correctAnswer,
-      'B. ' + distractors[0],
-      'C. ' + distractors[1],
-      'D. ' + distractors[2]
-    ]
+    // 随机选项顺序
+    const allOptions = [mainPoint, ...distractors].sort(() => Math.random() - 0.5)
+    options = allOptions.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+    correctAnswer = options.find(opt => opt.includes(mainPoint)) || options[0]
 
-    explanation = `根据${usedValues.principle || '经络理论'}，应选择${correctAnswer.substring(3)}穴。`
+    // 生成详细解析
+    const condition = usedValues.condition || key
+    const principle = usedValues.selection_principle || usedValues.combination_method || '经络理论'
+    explanation = `【答案解析】\n本题考查针灸选穴原则。\n\n` +
+      `【正确答案】${correctAnswer}\n\n` +
+      `【分析】治疗${condition}时，根据"${principle}"的配穴原则，应首选${mainPoint}穴。\n\n` +
+      `【选穴依据】\n` +
+      `- 主穴：${mainPoint}为治疗${condition}的常用主穴\n` +
+      `- 配穴方案：${correctAcupoints.slice(0, 3).join('、')}\n` +
+      `- 理论基础：${principle}是中医针灸配穴的重要原则，临床应用广泛。`
+
+  } else if (categoryCode.includes('DIAGNOSIS')) {
+    // Domain 2: 诊断类题目
+    let diagnosisAnswer = ''
+    let diagnosisCategory = ''
+
+    // 检查八纲辨证
+    if (template.eightPrinciplesPatterns && usedValues.eight_principles_signs) {
+      diagnosisAnswer = template.eightPrinciplesPatterns[usedValues.eight_principles_signs]
+      diagnosisCategory = 'eight_principles'
+    }
+    // 检查六经辨证
+    else if (template.sixStagesPatterns && usedValues.six_stage_signs) {
+      diagnosisAnswer = template.sixStagesPatterns[usedValues.six_stage_signs]
+      diagnosisCategory = 'six_stages'
+    }
+    // 检查卫气营血辨证
+    else if (template.fourLevelsPatterns && usedValues.four_level_signs) {
+      diagnosisAnswer = template.fourLevelsPatterns[usedValues.four_level_signs]
+      diagnosisCategory = 'four_levels'
+    }
+    // 治疗原则
+    else if (template.treatmentPrinciples && usedValues.pattern) {
+      diagnosisAnswer = template.treatmentPrinciples[usedValues.pattern]
+      diagnosisCategory = 'treatment'
+    }
+    // 临床表现辨证 - 根据症状推断证型
+    else if (usedValues.clinical_presentation) {
+      const clinicalMappings: Record<string, string> = {
+        '头痛眩晕，面红目赤，急躁易怒，舌红苔黄，脉弦数': '肝阳上亢',
+        '心悸失眠，健忘多梦，面色无华，舌淡脉细': '心血虚',
+        '咳嗽气喘，痰多色白，畏寒肢冷，舌淡苔白，脉沉迟': '肺肾阳虚',
+        '腹痛喜温，大便溏薄，神疲乏力，舌淡胖有齿痕，脉沉细': '脾肾阳虚',
+        '腰膝酸软，耳鸣健忘，五心烦热，盗汗，舌红少苔，脉细数': '肾阴虚',
+        '胸胁胀痛，善太息，情志抑郁，月经不调，脉弦': '肝气郁结'
+      }
+      diagnosisAnswer = clinicalMappings[usedValues.clinical_presentation] || '气血不足'
+      diagnosisCategory = 'clinical'
+    }
+    // 脏腑辨证
+    else if (usedValues.zangfu_signs) {
+      const zangfuMappings: Record<string, string> = {
+        '心悸气短，自汗，神疲乏力，舌淡，脉虚': '心气虚',
+        '失眠多梦，心悸健忘，面色不华，舌淡，脉细': '心血虚',
+        '头晕目眩，急躁易怒，面红目赤，舌红，脉弦': '肝阳上亢',
+        '胸胁胀痛，善太息，情志抑郁，脉弦': '肝气郁结',
+        '纳呆食少，便溏，神疲乏力，舌淡胖，脉缓弱': '脾气虚',
+        '咳嗽气喘，咳痰清稀，畏风易感，舌淡，脉弱': '肺气虚',
+        '腰膝酸软，畏寒肢冷，夜尿频多，舌淡胖，脉沉迟': '肾阳虚'
+      }
+      diagnosisAnswer = zangfuMappings[usedValues.zangfu_signs] || '脏腑失调'
+      diagnosisCategory = 'zangfu'
+    }
+    // 西医诊断对应中医证型
+    else if (usedValues.western_diagnosis) {
+      const westernMappings: Record<string, string> = {
+        '高血压': '肝阳上亢',
+        '失眠症': '心血虚',
+        '胃炎': '脾胃湿热',
+        '慢性支气管炎': '肺脾气虚',
+        '月经不调': '肝郁气滞',
+        '焦虑症': '心神不宁',
+        '慢性疲劳综合征': '气血两虚',
+        '骨关节炎': '肝肾不足',
+        '偏头痛': '肝阳上亢',
+        '便秘': '肠燥津亏'
+      }
+      diagnosisAnswer = westernMappings[usedValues.western_diagnosis] || '气血不足'
+      diagnosisCategory = 'western'
+    }
+
+    if (diagnosisAnswer) {
+      // 根据诊断类别选择合适的干扰项
+      let similarPatterns: string[] = []
+      if (diagnosisCategory === 'eight_principles') {
+        similarPatterns = ['表寒实证', '表热实证', '里寒虚证', '里热实证', '阴虚证', '阳虚证']
+      } else if (diagnosisCategory === 'six_stages') {
+        similarPatterns = ['太阳病', '少阳病', '阳明病', '太阴病', '少阴病', '厥阴病']
+      } else if (diagnosisCategory === 'four_levels') {
+        similarPatterns = ['卫分证', '气分证', '营分证', '血分证']
+      } else if (diagnosisCategory === 'treatment') {
+        similarPatterns = ['平肝潜阳', '滋补肝肾', '疏肝理气', '益气养心', '健脾益气', '温补肾阳']
+      } else {
+        similarPatterns = [
+          '肝阳上亢', '肝气郁结', '心气虚', '心血虚', '脾气虚', '肺气虚',
+          '肾阳虚', '肾阴虚', '气血两虚', '痰湿内阻', '阴虚火旺', '气滞血瘀'
+        ]
+      }
+
+      const distractors = similarPatterns
+        .filter((p: string) => p !== diagnosisAnswer)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3)
+
+      const allOptions = [diagnosisAnswer, ...distractors].sort(() => Math.random() - 0.5)
+      options = allOptions.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(diagnosisAnswer)) || options[0]
+
+      explanation = `【答案解析】\n本题考查中医辨证论治。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【分析】根据患者的临床表现，运用${usedValues.differentiation_method || '中医辨证'}方法，` +
+        `可以确定为${diagnosisAnswer}。\n\n` +
+        `【辨证要点】\n` +
+        `- 症状特点与${diagnosisAnswer}的典型表现相符\n` +
+        `- 需要掌握各种辨证方法的特点和应用\n` +
+        `- 临床中需结合舌脉等四诊资料综合判断`
+    } else {
+      // 如果还是没有匹配，使用通用证型
+      diagnosisAnswer = '气血不足'
+      const genericPatterns = ['肝阳上亢', '心血虚', '脾气虚', '肾阴虚']
+      const allOptions = [diagnosisAnswer, ...genericPatterns].sort(() => Math.random() - 0.5).slice(0, 4)
+      options = allOptions.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(diagnosisAnswer)) || options[0]
+      explanation = `【答案解析】\n本题考查中医辨证。根据临床表现综合分析，可诊断为${diagnosisAnswer}。`
+    }
 
   } else if (categoryCode.includes('ACU_TECHNIQUE')) {
     // 针刺技术类
     const acupointData = template.acupoints?.[usedValues.acupoint || '内关']
+    const acupointName = usedValues.acupoint || '该穴'
 
     if (question.includes('定位')) {
-      correctAnswer = 'A. ' + (acupointData?.location || '腕横纹上2寸')
+      const correctLoc = acupointData?.location || '腕横纹上2寸'
+      const wrongLocs = [
+        '腕横纹上3寸，两筋之间',
+        '腕横纹上1.5寸，桡侧',
+        '掌后横纹上2.5寸'
+      ]
+      const allLocs = [correctLoc, ...wrongLocs.slice(0, 3)].sort(() => Math.random() - 0.5)
+      options = allLocs.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find(opt => opt.includes(correctLoc)) || options[0]
+
+      explanation = `【答案解析】\n本题考查腧穴定位。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【穴位定位】${acupointName}穴的标准定位是：${correctLoc}\n\n` +
+        `【定位要点】\n` +
+        `- 准确的穴位定位是针灸治疗的基础\n` +
+        `- 需掌握骨度分寸法和体表标志定位法\n` +
+        `- ${acupointName}穴位于${acupointData?.location || '特定位置'}`
+
     } else if (question.includes('深度')) {
-      correctAnswer = 'B. ' + (acupointData?.depth || '1-1.5寸')
+      correctAnswer = 'B. ' + (acupointData?.depth || '0.5-1寸')
+      options = generateTechnicalOptions(question, correctAnswer)
+
+      explanation = `【答案解析】\n本题考查针刺深度。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【针刺深度】${acupointName}穴的标准进针深度为${acupointData?.depth || '0.5-1寸'}。\n\n` +
+        `【注意事项】\n` +
+        `- ${acupointData?.caution || '需遵循安全针刺规范'}\n` +
+        `- 针刺深度应根据患者体型和部位适当调整\n` +
+        `- 严格遵守针刺安全操作规程`
+
     } else if (question.includes('体位')) {
       correctAnswer = 'C. ' + (acupointData?.position || '正坐位')
-    }
+      options = generateTechnicalOptions(question, correctAnswer)
 
-    options = generateTechnicalOptions(question, correctAnswer)
-    explanation = `${usedValues.acupoint || '该穴'}的标准操作应遵循规范要求。`
+      explanation = `【答案解析】\n本题考查针刺体位。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【体位选择】针刺${acupointName}穴时，患者应采取${acupointData?.position || '正坐位'}。\n\n` +
+        `【体位意义】\n` +
+        `- 正确的体位有利于准确定位\n` +
+        `- 使患者感到舒适，便于进针操作\n` +
+        `- 预防晕针等不良反应的发生`
+    } else {
+      options = generateTechnicalOptions(question, correctAnswer)
+      explanation = `${acupointName}穴的标准操作应遵循规范要求。`
+    }
 
   } else if (categoryCode.includes('HERBAL')) {
-    // 中药类
+    // Domain 3D: 中药类
     const formulaData = template.formulas?.[usedValues.formula]
+    const formulaName = usedValues.formula || '该方'
+    const herbData = template.herbProperties?.[usedValues.herb]
+    const herb = usedValues.herb
 
+    // 方剂组成
     if (question.includes('组成')) {
-      correctAnswer = 'A. ' + (formulaData?.composition || '麻黄、桂枝、杏仁、甘草')
-    } else if (question.includes('功效')) {
-      correctAnswer = 'A. ' + (formulaData?.function || '滋补肝肾')
+      const correctComp = formulaData?.composition || '麻黄、桂枝、杏仁、甘草'
+      correctAnswer = 'A. ' + correctComp
+
+      const wrongCompositions = [
+        '人参、白术、茯苓、甘草',
+        '当归、川芎、白芍、熟地',
+        '柴胡、黄芩、人参、半夏'
+      ]
+      const allComps = [correctComp, ...wrongCompositions].sort(() => Math.random() - 0.5).slice(0, 4)
+      options = allComps.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(correctComp)) || options[0]
+
+      explanation = `【答案解析】\n本题考查方剂组成。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【方剂组成】${formulaName}由${correctComp}组成。\n\n` +
+        `【组方特点】\n` +
+        `- 功效：${formulaData?.function || '特定功效'}\n` +
+        `- 主治：与方剂功效相应的病症\n` +
+        `- 配伍意义：各药相辅相成，共奏其功`
+
+    // 方剂功效
+    } else if (question.includes('功效') && formulaName && formulaData) {
+      const correctFunc = formulaData.function
+      correctAnswer = 'A. ' + correctFunc
+
+      const wrongFunctions = [
+        '发汗解表，宣肺平喘',
+        '和解少阳',
+        '益气健脾',
+        '补血调血',
+        '滋补肝肾',
+        '疏肝健脾，养血调经'
+      ].filter((f: string) => f !== correctFunc)
+
+      const allFuncs = [correctFunc, ...wrongFunctions].sort(() => Math.random() - 0.5).slice(0, 4)
+      options = allFuncs.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(correctFunc)) || options[0]
+
+      explanation = `【答案解析】\n本题考查方剂功效。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【方剂功效】${formulaName}的主要功效是${correctFunc}。\n\n` +
+        `【临床应用】\n` +
+        `- 组成：${formulaData.composition}\n` +
+        `- 主治病症与功效密切相关\n` +
+        `- 临床应根据患者具体情况加减运用`
+
+    // 单味药功效
+    } else if (question.includes('功效') && herb && herbData) {
+      const correctFunc = herbData.function
+      correctAnswer = 'A. ' + correctFunc
+
+      const wrongFunctions = [
+        '发汗解表，宣肺平喘',
+        '回阳救逆，补火助阳',
+        '燥湿化痰，降逆止呕',
+        '泻下攻积，清热泻火',
+        '补气健脾，升阳举陷',
+        '养血活血，调经止痛'
+      ].filter((f: string) => f !== correctFunc)
+
+      const allFuncs = [correctFunc, ...wrongFunctions].sort(() => Math.random() - 0.5).slice(0, 4)
+      options = allFuncs.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(correctFunc)) || options[0]
+
+      explanation = `【答案解析】\n本题考查中药功效。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【药物功效】${herb}的主要功效是${correctFunc}。\n\n` +
+        `【药性】\n` +
+        `- 性味：${herbData.nature}\n` +
+        `- 注意事项：${herbData.caution || '遵医嘱使用'}`
+
+    // 禁忌症
+    } else if (question.includes('禁用')) {
+      const patientType = usedValues.patient_type || '孕妇'
+      const contraindicatedHerbs: Record<string, string[]> = {
+        '孕妇': ['附子', '半夏', '大黄', '麝香'],
+        '儿童': ['附子', '细辛', '朱砂', '雄黄'],
+        '老年人': ['麻黄', '附子', '细辛', '大黄'],
+        '高血压患者': ['麻黄', '附子', '肉桂', '细辛'],
+        '糖尿病患者': ['甘草', '饴糖', '蜂蜜', '大枣']
+      }
+      const correctHerbs = contraindicatedHerbs[patientType] || contraindicatedHerbs['孕妇']
+      correctAnswer = 'A. ' + correctHerbs[0]
+
+      options = correctHerbs.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options[0]
+
+      explanation = `【答案解析】\n本题考查中药禁忌症。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【禁忌说明】${patientType}禁用的中药包括：${correctHerbs.join('、')}。\n\n` +
+        `【用药安全】\n` +
+        `- 特殊人群用药需格外谨慎\n` +
+        `- 了解药物禁忌是安全用药的基础\n` +
+        `- 临床应用时应详询患者情况`
+
+    // 煎药方法
+    } else if (question.includes('煎药') || question.includes('先煎') || question.includes('后下')) {
+      const decoctionMethods: Record<string, string> = {
+        '附子': '先煎',
+        '生石膏': '先煎',
+        '龙骨': '先煎',
+        '薄荷': '后下',
+        '砂仁': '后下',
+        '钩藤': '后下',
+        '车前子': '包煎',
+        '旋覆花': '包煎'
+      }
+      const herb = usedValues.herb || '附子'
+      const correctMethod = decoctionMethods[herb] || '先煎'
+      correctAnswer = 'A. ' + herb
+
+      const herbs = Object.keys(decoctionMethods).filter((h: string) => decoctionMethods[h] === correctMethod)
+      const wrongHerbs = Object.keys(decoctionMethods).filter((h: string) => decoctionMethods[h] !== correctMethod)
+
+      const allHerbs = [herb, ...wrongHerbs].sort(() => Math.random() - 0.5).slice(0, 4)
+      options = allHerbs.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(herb)) || options[0]
+
+      explanation = `【答案解析】\n本题考查中药煎煮方法。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【煎药方法】${herb}应该${correctMethod}。\n\n` +
+        `【煎药原则】\n` +
+        `- 先煎：矿石、贝壳类及毒性药物\n` +
+        `- 后下：气味芳香及易挥发的药物\n` +
+        `- 包煎：有绒毛或粉末状药物`
+
+    // 证型选方
+    } else if (question.includes('治疗') && usedValues.pattern) {
+      const patternFormulas: Record<string, string> = {
+        '肝气郁结': '逍遥散',
+        '脾气虚': '四君子汤',
+        '肾阳虚': '金匮肾气丸',
+        '气滞血瘀': '血府逐瘀汤',
+        '痰湿内阻': '温胆汤',
+        '心脾两虚': '归脾汤',
+        '肝肾阴虚': '六味地黄丸',
+        '脾胃湿热': '葛根芩连汤'
+      }
+      const pattern = usedValues.pattern
+      const correctFormula = patternFormulas[pattern] || '四君子汤'
+      correctAnswer = 'A. ' + correctFormula
+
+      const wrongFormulas = Object.values(patternFormulas).filter((f: string) => f !== correctFormula)
+      const allFormulas = [correctFormula, ...wrongFormulas].sort(() => Math.random() - 0.5).slice(0, 4)
+      options = allFormulas.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(correctFormula)) || options[0]
+
+      explanation = `【答案解析】\n本题考查辨证选方。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【选方依据】治疗${pattern}，应首选${correctFormula}。\n\n` +
+        `【方证对应】\n` +
+        `- 辨证准确是选方的前提\n` +
+        `- 方剂选用应与证型相符\n` +
+        `- 临床可根据具体情况加减化裁`
+
+    // 药物配伍
+    } else if (question.includes('配伍')) {
+      const herb1 = usedValues.herb1 || '附子'
+      const herb2 = usedValues.herb2 || '干姜'
+
+      const compatibilityTypes = ['相须', '相使', '相畏', '相杀']
+      const correctType = '相须'
+      correctAnswer = 'A. ' + correctType
+
+      options = compatibilityTypes.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options[0]
+
+      explanation = `【答案解析】\n本题考查中药配伍。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【配伍关系】${herb1}与${herb2}配伍，属于${correctType}配伍。\n\n` +
+        `【配伍意义】\n` +
+        `- 相须：两药功效相似，合用增强疗效\n` +
+        `- 相使：一药辅助另一药增强疗效\n` +
+        `- 相畏、相杀：减轻或消除毒副作用`
+
+    // 其他中药问题
+    } else {
+      const genericFormulas = ['四君子汤', '四物汤', '六味地黄丸', '逍遥散']
+      correctAnswer = 'A. ' + genericFormulas[0]
+      options = genericFormulas.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      explanation = `【答案解析】\n本题考查中药方剂知识。根据题干信息综合分析得出答案。`
     }
 
-    options = generateHerbalOptions(question, correctAnswer)
-    explanation = `${usedValues.formula || '该方'}具有${formulaData?.function || '特定功效'}。`
+  } else if (categoryCode.includes('ADJUNCTIVE')) {
+    // Domain 3C: 辅助疗法
+    const therapy = usedValues.therapy || '艾灸'
+
+    if (question.includes('禁忌')) {
+      const contraindicationOptions: Record<string, string[]> = {
+        '艾灸': ['孕妇腹部和腰骶部', '高热患者', '极度疲劳、过饥过饱者', '皮肤过敏者'],
+        '拔罐': ['皮肤过敏、溃疡、水肿部位', '孕妇腹部、腰骶部', '高热抽搐者', '出血倾向者'],
+        '电针': ['装有心脏起搏器患者', '孕妇腹部、腰骶部', '癫痫患者', '心脏病患者'],
+        '刮痧': ['有出血倾向者', '皮肤溃疡处', '孕妇腹部、腰骶部', '极度虚弱者'],
+        '推拿': ['骨折、脱位未复位者', '急性传染病', '严重心脏病', '孕妇腹部']
+      }
+      const correctOpts = contraindicationOptions[therapy] || contraindicationOptions['艾灸']
+      correctAnswer = 'A. ' + correctOpts[0]
+      options = correctOpts.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+
+      explanation = `【答案解析】\n本题考查${therapy}的禁忌症。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【禁忌症说明】${therapy}的主要禁忌症包括：\n` +
+        `${correctOpts.map((o: string) => '- ' + o).join('\n')}\n\n` +
+        `【注意事项】\n临床应用时必须严格遵守禁忌症，确保患者安全。`
+
+    } else if (question.includes('处理措施') || question.includes('出现')) {
+      const complication = usedValues.complication || '晕针'
+      const treatmentOptions: Record<string, string[]> = {
+        '晕针': ['立即停止针刺，让患者平卧', '保持室内空气流通', '轻者饮温开水或糖水', '重者掐人中、合谷、内关'],
+        '滞针': ['停止行针，延长留针时间', '在滞针腧穴周围轻柔按摩', '缓慢捻转提插', '必要时在附近再刺一针'],
+        '烫伤水泡': ['小水泡不需处理，自行吸收', '大水泡用消毒针刺破放水', '涂烫伤膏', '注意防止感染'],
+        '皮下出血': ['立即停止操作', '24小时内冷敷', '24小时后热敷或按揉', '一般5-7天自行吸收']
+      }
+      const correctOpts = treatmentOptions[complication] || treatmentOptions['晕针']
+      correctAnswer = 'A. ' + correctOpts[0]
+
+      const wrongOpts = [
+        '继续加强刺激',
+        '立即拔除所有针具',
+        '使用抗生素治疗'
+      ]
+      const allOpts = [correctOpts[0], ...wrongOpts.slice(0, 3)].sort(() => Math.random() - 0.5)
+      options = allOpts.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(correctOpts[0])) || options[0]
+
+      explanation = `【答案解析】\n本题考查${complication}的处理。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【处理方法】${complication}的正确处理措施：\n` +
+        `${correctOpts.map((o: string, i: number) => `${i + 1}. ${o}`).join('\n')}\n\n` +
+        `【临床意义】\n掌握常见不良反应的处理方法是针灸医师的基本技能。`
+
+    } else if (question.includes('波') || question.includes('电针')) {
+      const waveTypes: Record<string, string> = {
+        '连续波（密波）': '用于镇痛、缓解肌肉痉挛',
+        '断续波（疏波）': '用于兴奋肌肉、促进血液循环',
+        '疏密波': '综合两者优点，临床应用最广泛'
+      }
+      const wave = usedValues.wave_type || '疏密波'
+      correctAnswer = 'A. ' + (waveTypes[wave] || waveTypes['疏密波'])
+
+      const allWaveOpts = Object.values(waveTypes).sort(() => Math.random() - 0.5).slice(0, 4)
+      options = allWaveOpts.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(waveTypes[wave])) || options[0]
+
+      explanation = `【答案解析】\n本题考查电针波型的应用。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【波型特点】${wave}${waveTypes[wave]}。\n\n` +
+        `【临床应用】\n不同波型适用于不同病症，需根据患者情况选择。`
+    } else {
+      correctAnswer = 'A. 遵守操作规范'
+      options = ['A. 遵守操作规范', 'B. 注意禁忌症', 'C. 严格消毒', 'D. 观察患者反应']
+      explanation = '【答案解析】\n辅助疗法需遵守相关操作规范和禁忌症。'
+    }
+
+  } else if (categoryCode.includes('PROFESSIONAL')) {
+    // Domain 4: 职业规范
+    const emergencyCondition = usedValues.emergency_condition
+    const regulation = usedValues.regulation
+    const procedure = usedValues.procedure
+
+    if (question.includes('病历') && question.includes('时间')) {
+      correctAnswer = 'B. 至少7年'
+      options = ['A. 至少3年', 'B. 至少7年', 'C. 至少5年', 'D. 至少10年']
+      explanation = `【答案解析】\n本题考查加州针灸法规。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【法规要求】根据加州法律，针灸诊所必须保存患者病历至少7年。\n\n` +
+        `【重要性】\n` +
+        `- 病历是医疗活动的法律凭证\n` +
+        `- 妥善保存病历是执业者的法定义务\n` +
+        `- 违反规定可能导致执照吊销`
+
+    } else if (question.includes('发现患者') || emergencyCondition) {
+      const emergencyActions: Record<string, string> = {
+        '传染病': '必须向当地卫生部门报告',
+        '急性心肌梗死': '立即拨打911，停止治疗',
+        '骨折': '停止治疗，转诊至急诊或骨科',
+        '急性阑尾炎': '立即转诊至急诊',
+        '严重出血': '立即止血并拨打911',
+        '中风症状': '立即拨打911',
+        '糖尿病急症': '立即拨打911，必要时给予糖分',
+        '过敏性休克': '立即拨打911，使用肾上腺素（如有）'
+      }
+      const condition = emergencyCondition || '传染病'
+      correctAnswer = 'A. ' + (emergencyActions[condition] || '立即停止治疗并转诊')
+
+      const wrongActions = [
+        '继续针灸治疗',
+        '给患者开中药',
+        '建议患者休息观察'
+      ]
+      const allActions = [emergencyActions[condition], ...wrongActions].sort(() => Math.random() - 0.5)
+      options = allActions.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(emergencyActions[condition])) || options[0]
+
+      explanation = `【答案解析】\n本题考查紧急情况处理。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【处理原则】发现患者可能患有${condition}时，针灸师应${emergencyActions[condition]}。\n\n` +
+        `【法律责任】\n` +
+        `- 针灸师必须识别需要紧急医疗处理的情况\n` +
+        `- 超出执业范围的情况应及时转诊\n` +
+        `- 延误治疗可能承担法律责任`
+
+    } else if (question.includes('CEU') || question.includes('继续教育')) {
+      correctAnswer = 'B. 每2年30学分'
+      options = ['A. 每年15学分', 'B. 每2年30学分', 'C. 每3年45学分', 'D. 每年20学分']
+      explanation = `【答案解析】\n本题考查继续教育要求。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【CEU要求】加州针灸师需要每2年完成30个继续教育学分。\n\n` +
+        `【重要性】\n` +
+        `- 继续教育是维持执照的必要条件\n` +
+        `- 确保执业者知识和技能的更新\n` +
+        `- 未完成CEU将影响执照更新`
+
+    } else if (question.includes('执照更新')) {
+      correctAnswer = 'A. 每2年'
+      options = ['A. 每2年', 'B. 每年', 'C. 每3年', 'D. 每4年']
+      explanation = `【答案解析】\n本题考查执照更新周期。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【更新要求】加州针灸执照需要每2年更新一次。\n\n` +
+        `【注意事项】\n` +
+        `- 更新前需完成30个CEU学分\n` +
+        `- 按时更新避免执照过期\n` +
+        `- 过期执照需要重新申请`
+
+    } else if (question.includes('清洁针法') || question.includes('CNT')) {
+      correctAnswer = 'A. 使用一次性针具或完成严格消毒'
+      options = [
+        'A. 使用一次性针具或完成严格消毒',
+        'B. 针具可以重复使用',
+        'C. 仅需用酒精擦拭针具',
+        'D. 针具可以与他人共用'
+      ]
+      explanation = `【答案解析】\n本题考查清洁针法标准。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【CNT要求】清洁针法（Clean Needle Technique）的核心要求包括：\n` +
+        `- 使用一次性针具或经过严格高压消毒的针具\n` +
+        `- 针刺前对皮肤进行消毒\n` +
+        `- 医师必须洗手并保持手部清洁\n` +
+        `- 针具废弃物必须放入专用利器盒\n\n` +
+        `【法律要求】\n加州法律要求所有针灸师必须完成CNT认证课程。`
+
+    } else if (regulation) {
+      const regulationReqs: Record<string, string> = {
+        '清洁针法（Clean Needle Technique）': '使用一次性针具或严格消毒，针刺前皮肤消毒',
+        'HIPAA隐私保护': '保护患者医疗信息隐私，未经许可不得泄露',
+        '知情同意（Informed Consent）': '治疗前必须向患者说明治疗方法、风险和预期效果',
+        '标准预防措施（Universal Precautions）': '将所有患者视为潜在传染源，采取防护措施'
+      }
+      correctAnswer = 'A. ' + (regulationReqs[regulation] || '遵守相关法规要求')
+
+      const allRegs = Object.values(regulationReqs).sort(() => Math.random() - 0.5).slice(0, 4)
+      options = allRegs.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find((opt: string) => opt.includes(regulationReqs[regulation])) || options[0]
+
+      explanation = `【答案解析】\n本题考查${regulation}。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【法规要求】${regulation}要求：${regulationReqs[regulation]}。\n\n` +
+        `【执业意义】\n遵守职业规范是针灸师的基本职责，违反可能导致执照吊销。`
+
+    } else {
+      correctAnswer = 'A. 遵守加州针灸法规'
+      options = [
+        'A. 遵守加州针灸法规',
+        'B. 完成继续教育要求',
+        'C. 保护患者隐私',
+        'D. 确保针具清洁'
+      ]
+      explanation = '【答案解析】\n本题考查加州针灸职业规范。针灸师必须遵守相关法律法规。'
+    }
 
   } else {
     // 默认选项
     correctAnswer = 'A. 正确答案'
     options = ['A. 正确答案', 'B. 选项B', 'C. 选项C', 'D. 选项D']
-    explanation = '详细解析。'
+    explanation = '【答案解析】\n详细解析。'
   }
 
   return { options, correctAnswer, explanation }
@@ -341,9 +1410,7 @@ function generateTechnicalOptions(question: string, correctAnswer: string): stri
   return options
 }
 
-function generateHerbalOptions(question: string, correctAnswer: string): string[] {
-  return [correctAnswer, 'B. 选项B', 'C. 选项C', 'D. 选项D']
-}
+// generateHerbalOptions function removed - now handled inline in Domain 3D logic
 
 export default defineEventHandler(async (event) => {
   try {
