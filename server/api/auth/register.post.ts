@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { hashPassword, validateEmail, validatePasswordStrength } from '../../utils/password'
 import { signAccessToken, signRefreshToken } from '../../utils/jwt'
+import { sendVerificationEmail, sendWelcomeEmail } from '../../utils/email-service'
 import crypto from 'crypto'
 
 const prisma = new PrismaClient()
@@ -50,21 +51,31 @@ export default defineEventHandler(async (event) => {
     // 加密密码
     const hashedPassword = await hashPassword(password)
 
-    // 生成邮箱验证 token（可选，暂时直接验证）
+    // 生成邮箱验证 token
     const emailVerifyToken = crypto.randomBytes(32).toString('hex')
 
-    // 创建用户
+    // 创建用户（默认未验证邮箱）
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
         role: 'user',
-        emailVerified: true, // 暂时自动验证，后续可以改为 false 并发送验证邮件
+        emailVerified: false, // 需要验证邮箱
         emailVerifyToken,
         emailVerifyExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24小时后过期
         status: 'active'
       }
+    })
+
+    // 发送验证邮件（异步，不阻塞注册流程）
+    sendVerificationEmail(email, emailVerifyToken).catch(error => {
+      console.error('[Register] Failed to send verification email:', error)
+    })
+
+    // 发送欢迎邮件（异步）
+    sendWelcomeEmail(email, name).catch(error => {
+      console.error('[Register] Failed to send welcome email:', error)
     })
 
     // 创建考试订阅

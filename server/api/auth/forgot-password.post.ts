@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { validateEmail } from '../../utils/password'
+import { sendPasswordResetEmail } from '../../utils/email-service'
 import crypto from 'crypto'
 
 const prisma = new PrismaClient()
@@ -51,13 +52,19 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    // TODO: 发送重置密码邮件
-    // 暂时在控制台打印重置链接（生产环境应该发送邮件）
+    // 发送重置密码邮件（异步）
     const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`
-    console.log('\n========================================')
-    console.log('🔐 密码重置链接（1小时内有效）:')
-    console.log(resetUrl)
-    console.log('========================================\n')
+    sendPasswordResetEmail(user.email, resetToken).catch(error => {
+      console.error('[ForgotPassword] Failed to send reset email:', error)
+    })
+
+    // 开发环境在控制台打印重置链接
+    if (process.env.NODE_ENV === 'development') {
+      console.log('\n========================================')
+      console.log('🔐 密码重置链接（1小时内有效）:')
+      console.log(resetUrl)
+      console.log('========================================\n')
+    }
 
     // 记录操作日志
     console.log(`[${new Date().toISOString()}] 用户 ${email} 请求重置密码`)

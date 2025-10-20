@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { sendStudyReminderEmail } from './email-service'
 
 const prisma = new PrismaClient()
 
@@ -70,42 +71,70 @@ export async function checkUserStudyProgress(userId: string) {
  */
 export async function sendStudyReminder(userId: string, settings: any) {
   try {
+    // 获取用户信息
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true }
+    })
+
+    if (!user) {
+      console.error('[StudyReminder] User not found:', userId)
+      return
+    }
+
     // 检查是否已学习
     const progress = await checkUserStudyProgress(userId)
+
+    let notificationData
+    let emailMessage = ''
 
     // 如果已达到目标，发送祝贺通知
     if (progress.studiedMinutes >= settings.dailyGoalMinutes &&
         progress.answeredQuestions >= settings.dailyGoalQuestions) {
-      await createNotification({
+      const message = `太棒了！您今天已经学习了 ${progress.studiedMinutes} 分钟，完成了 ${progress.answeredQuestions} 道题目。继续保持！`
+      notificationData = {
         userId,
         type: 'achievement',
         title: '🎉 今日目标达成！',
-        message: `太棒了！您今天已经学习了 ${progress.studiedMinutes} 分钟，完成了 ${progress.answeredQuestions} 道题目。继续保持！`,
+        message,
         link: '/stats'
-      })
-      return
+      }
+      emailMessage = message
     }
-
     // 如果还没学习，发送提醒
-    if (!progress.hasStudied) {
-      await createNotification({
+    else if (!progress.hasStudied) {
+      const message = `该学习啦！今天的目标是学习 ${settings.dailyGoalMinutes} 分钟，完成 ${settings.dailyGoalQuestions} 道题目。`
+      notificationData = {
         userId,
         type: 'study_reminder',
         title: '📚 学习提醒',
-        message: `该学习啦！今天的目标是学习 ${settings.dailyGoalMinutes} 分钟，完成 ${settings.dailyGoalQuestions} 道题目。`,
+        message,
         link: '/practice'
-      })
-    } else {
-      // 已经学习但未达目标
+      }
+      emailMessage = message
+    }
+    // 已经学习但未达目标
+    else {
       const remainingMinutes = settings.dailyGoalMinutes - progress.studiedMinutes
       const remainingQuestions = settings.dailyGoalQuestions - progress.answeredQuestions
-
-      await createNotification({
+      const message = `您今天已经学习了 ${progress.studiedMinutes} 分钟，完成了 ${progress.answeredQuestions} 道题。距离目标还差 ${remainingMinutes} 分钟和 ${remainingQuestions} 道题。`
+      notificationData = {
         userId,
         type: 'study_reminder',
         title: '💪 继续加油！',
-        message: `您今天已经学习了 ${progress.studiedMinutes} 分钟，完成了 ${progress.answeredQuestions} 道题。距离目标还差 ${remainingMinutes} 分钟和 ${remainingQuestions} 道题。`,
+        message,
         link: '/practice'
+      }
+      emailMessage = message
+    }
+
+    // 创建站内通知
+    await createNotification(notificationData)
+
+    // 发送邮件通知（如果用户开启了邮件通知）
+    if (settings.emailEnabled) {
+      sendStudyReminderEmail(user.email, user.name, emailMessage).catch(error => {
+        console.error('[StudyReminder] Failed to send email:', error)
       })
     }
   } catch (error) {
