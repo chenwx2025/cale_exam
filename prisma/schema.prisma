@@ -388,3 +388,25 @@ model PushSubscription {
   @@index([userId])
   @@index([endpoint])
 }
+
+// 分享记录（Phase 5 Sprint 3）
+model Share {
+  id          String   @id @default(cuid())
+  userId      String
+  shareType   String   // achievement（成就）、exam（考试成绩）、milestone（里程碑）
+  title       String   // 分享标题
+  description String?  // 分享描述
+  imageUrl    String?  // 分享卡片图片URL
+  content     String   // 分享内容（JSON格式）
+  isPublic    Boolean  @default(true) // 是否公开
+  viewCount   Int      @default(0) // 浏览次数
+  likeCount   Int      @default(0) // 点赞次数
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  expiresAt   DateTime? // 分享过期时间（可选）
+
+  @@index([userId])
+  @@index([shareType])
+  @@index([isPublic])
+  @@index([createdAt])
+}

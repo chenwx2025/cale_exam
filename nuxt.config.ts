@@ -16,7 +16,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      appName: 'Cale 加州中医考试系统'
+      appName: 'Cale 加州中医考试系统',
+      appUrl: process.env.APP_URL || 'http://localhost:3000'
     }
   }
 })

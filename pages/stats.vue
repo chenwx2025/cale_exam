@@ -2,9 +2,19 @@
   <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
     <div class="max-w-7xl mx-auto">
       <!-- 页面标题 -->
-      <div class="mb-8">
-        <h1 class="text-4xl font-bold text-gray-900 mb-2">📊 学习统计</h1>
-        <p class="text-gray-600">查看您的学习进度和掌握情况</p>
+      <div class="mb-8 flex items-center justify-between">
+        <div>
+          <h1 class="text-4xl font-bold text-gray-900 mb-2">📊 学习统计</h1>
+          <p class="text-gray-600">查看您的学习进度和掌握情况</p>
+        </div>
+        <button
+          v-if="!loading && stats.practice.totalQuestions > 0"
+          @click="shareAchievement"
+          class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+        >
+          <span>📤</span>
+          <span>分享成就</span>
+        </button>
       </div>
 
       <!-- 考试选择器 -->
@@ -276,6 +286,52 @@ const getMasteryLevelText = (accuracy: string) => {
   if (acc >= 70) return '良好'
   if (acc >= 60) return '及格'
   return '需加强'
+}
+
+// 分享成就功能
+const isSharing = ref(false)
+const showShareModal = ref(false)
+const shareUrl = ref('')
+
+const shareAchievement = async () => {
+  if (isSharing.value) return
+
+  isSharing.value = true
+
+  try {
+    // 创建成就分享
+    const response = await $fetch('/api/share/achievement', {
+      method: 'POST',
+      headers: authStore.getAuthHeader(),
+      body: {
+        achievementType: 'total_questions',
+        title: `累计答题 ${stats.value.practice.totalQuestions} 题！`,
+        description: `正确率达到 ${stats.value.practice.accuracy}%，继续加油！`,
+        stats: [
+          { label: '累计答题', value: stats.value.practice.totalQuestions },
+          { label: '答对题数', value: stats.value.practice.correctAnswers },
+          { label: '正确率', value: `${stats.value.practice.accuracy}%` }
+        ],
+        examType: examStore.currentExam,
+        isPublic: true
+      }
+    })
+
+    if (response.success) {
+      const fullUrl = `${window.location.origin}${response.shareUrl}`
+      shareUrl.value = fullUrl
+      showShareModal.value = true
+
+      // 复制到剪贴板
+      await navigator.clipboard.writeText(fullUrl)
+      alert('分享链接已复制到剪贴板！\n' + fullUrl)
+    }
+  } catch (error) {
+    console.error('分享失败:', error)
+    alert('分享失败，请稍后重试')
+  } finally {
+    isSharing.value = false
+  }
 }
 
 onMounted(() => {
