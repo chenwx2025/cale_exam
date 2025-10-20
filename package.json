@@ -13,6 +13,7 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@nuxt/image": "^1.11.0",
     "@nuxtjs/i18n": "^10.1.1",
     "@pinia/nuxt": "^0.7.0",
     "@prisma/client": "^6.4.0",
