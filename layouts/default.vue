@@ -19,13 +19,13 @@
               class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
               active-class="bg-blue-100 text-blue-700"
             >
-              考试大纲
+              {{ $t('nav.outline') }}
             </NuxtLink>
 
             <!-- 学习功能下拉菜单 -->
             <div class="relative group">
               <button class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1">
-                学习中心
+                {{ $t('nav.learningCenter') }}
                 <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
@@ -35,31 +35,31 @@
                   to="/wrong-questions"
                   class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-t-lg"
                 >
-                  📚 我的错题本
+                  📚 {{ $t('nav.wrongQuestions') }}
                 </NuxtLink>
                 <NuxtLink
                   to="/study-plans"
                   class="block px-4 py-3 hover:bg-blue-50 transition-colors"
                 >
-                  📅 我的复习计划
+                  📅 {{ $t('nav.studyPlans') }}
                 </NuxtLink>
                 <NuxtLink
                   to="/study-plan"
                   class="block px-4 py-3 hover:bg-blue-50 transition-colors"
                 >
-                  ✏️ 创建复习计划
+                  ✏️ {{ $t('nav.createStudyPlan') }}
                 </NuxtLink>
                 <NuxtLink
                   to="/stats"
                   class="block px-4 py-3 hover:bg-blue-50 transition-colors"
                 >
-                  📊 学习统计
+                  📊 {{ $t('nav.stats') }}
                 </NuxtLink>
                 <NuxtLink
                   to="/ai/learning-path"
                   class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-b-lg"
                 >
-                  🤖 AI 学习助手
+                  🤖 {{ $t('nav.aiAssistant') }}
                 </NuxtLink>
               </div>
             </div>
@@ -67,7 +67,7 @@
             <!-- 模拟考试下拉菜单 -->
             <div class="relative group">
               <button class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1">
-                模拟考试
+                {{ $t('nav.mockExam') }}
                 <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
@@ -77,16 +77,20 @@
                   to="/exam/question-sets"
                   class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-t-lg"
                 >
-                  题目集列表
+                  {{ $t('nav.questionSets') }}
                 </NuxtLink>
                 <NuxtLink
                   to="/exam/config"
                   class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-b-lg"
                 >
-                  配置新考试
+                  {{ $t('nav.configExam') }}
                 </NuxtLink>
               </div>
             </div>
+
+            <!-- 语言切换 -->
+            <LanguageSwitcher />
+
             <!-- 通知铃铛 -->
             <NotificationBell v-if="authStore.isAuthenticated" />
 
@@ -113,7 +117,7 @@
                   <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                   </svg>
-                  <span>个人中心</span>
+                  <span>{{ $t('nav.profile') }}</span>
                 </NuxtLink>
                 <NuxtLink
                   to="/stats"
@@ -122,7 +126,7 @@
                   <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                   </svg>
-                  <span>学习统计</span>
+                  <span>{{ $t('nav.stats') }}</span>
                 </NuxtLink>
                 <NuxtLink
                   to="/wrong-questions"
@@ -131,7 +135,7 @@
                   <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                   </svg>
-                  <span>我的错题本</span>
+                  <span>{{ $t('nav.wrongQuestions') }}</span>
                 </NuxtLink>
                 <div class="border-t border-gray-100">
                   <button
@@ -141,7 +145,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                     </svg>
-                    <span>退出登录</span>
+                    <span>{{ $t('nav.logout') }}</span>
                   </button>
                 </div>
               </div>
@@ -152,14 +156,14 @@
               to="/login"
               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              登录/注册
+              {{ $t('nav.login') }}/{{ $t('nav.register') }}
             </NuxtLink>
 
             <NuxtLink
               to="/admin"
               class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
-              管理后台
+              {{ $t('nav.admin') }}
             </NuxtLink>
           </div>
         </div>
@@ -175,7 +179,7 @@
     <footer class="bg-white border-t mt-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <p class="text-center text-gray-600">
-          © 2025 Cale 加州中医考试系统 - 祝您考试顺利！
+          © 2025 Cale 加州中医考试系统 - {{ $t('messages.goodLuck') }}
         </p>
       </div>
     </footer>
@@ -186,10 +190,11 @@
 </template>
 
 <script setup lang="ts">
+const { t } = useI18n()
 const authStore = useAuthStore()
 const router = useRouter()
 
-const userName = computed(() => authStore.user?.name || authStore.user?.email?.split('@')[0] || '用户')
+const userName = computed(() => authStore.user?.name || authStore.user?.email?.split('@')[0] || t('auth.name'))
 const userInitial = computed(() => {
   const name = authStore.user?.name || authStore.user?.email || 'U'
   return name.charAt(0).toUpperCase()

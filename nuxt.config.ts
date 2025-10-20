@@ -5,8 +5,35 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxtjs/tailwindcss',
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    '@nuxtjs/i18n'
   ],
+
+  // i18n Configuration (Phase 6 Sprint 2)
+  i18n: {
+    locales: [
+      {
+        code: 'zh-CN',
+        name: '简体中文',
+        file: 'zh-CN.json'
+      },
+      {
+        code: 'en',
+        name: 'English',
+        file: 'en.json'
+      }
+    ],
+    lazy: true,
+    langDir: 'locales/',
+    defaultLocale: 'zh-CN',
+    strategy: 'no_prefix',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_locale',
+      redirectOn: 'root',
+      alwaysRedirect: false
+    }
+  },
 
   nitro: {
     experimental: {
