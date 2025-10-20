@@ -48,9 +48,15 @@
                 </NuxtLink>
                 <NuxtLink
                   to="/stats"
-                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-b-lg"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors"
                 >
                   📊 学习统计
+                </NuxtLink>
+                <NuxtLink
+                  to="/ai/learning-path"
+                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-b-lg"
+                >
+                  🤖 AI 学习助手
                 </NuxtLink>
               </div>
             </div>

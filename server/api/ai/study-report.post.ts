@@ -1,0 +1,56 @@
+/**
+ * AI 学习报告 API
+ * 生成个性化学习报告（周报/月报）
+ */
+
+import { getUserFromToken } from '../../utils/auth-helpers'
+import { generateStudyReport } from '../../utils/ai-learning-assistant'
+
+export default defineEventHandler(async (event) => {
+  try {
+    // 验证用户身份
+    const user = await getUserFromToken(event)
+    if (!user) {
+      throw createError({
+        statusCode: 401,
+        message: 'Unauthorized'
+      })
+    }
+
+    // 获取请求参数
+    const body = await readBody(event)
+    const {
+      examType = 'cale',
+      period = 'week'
+    } = body
+
+    // 验证参数
+    if (!['week', 'month'].includes(period)) {
+      throw createError({
+        statusCode: 400,
+        message: 'Period must be "week" or "month"'
+      })
+    }
+
+    console.log(`[AI-StudyReport] Generating ${period} report for user ${user.id}`)
+
+    // 生成报告
+    const report = await generateStudyReport(user.id, examType, period as 'week' | 'month')
+
+    return {
+      success: true,
+      data: report
+    }
+  } catch (error: any) {
+    console.error('[AI-StudyReport] Error:', error)
+
+    if (error.statusCode) {
+      throw error
+    }
+
+    throw createError({
+      statusCode: 500,
+      message: 'Failed to generate study report'
+    })
+  }
+})
