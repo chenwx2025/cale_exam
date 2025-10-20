@@ -146,6 +146,7 @@
 </template>
 
 <script setup lang="ts">
+const authStore = useAuthStore()
 const examStore = useExamStore()
 
 // 创建响应式引用来避免 Pinia store 序列化问题
@@ -194,8 +195,8 @@ const createPlan = async () => {
   try {
     const plan = await $fetch('/api/study-plans', {
       method: 'POST',
+      headers: authStore.getAuthHeader(),
       body: {
-        userId: 'demo-user',
         examType: currentExamType.value,
         ...planForm.value
       }

@@ -186,9 +186,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useExamStore } from '~/stores/exam'
+import { useAuthStore } from '~/stores/auth'
 
 const examStore = useExamStore()
-const userId = 'demo-user'
+const authStore = useAuthStore()
 
 const stats = ref({
   studyTime: {
@@ -231,8 +232,8 @@ const loadStats = async () => {
   try {
     const response = await $fetch('/api/stats/overview', {
       method: 'GET',
+      headers: authStore.getAuthHeader(),
       params: {
-        userId,
         examType: examStore.currentExam
       }
     })

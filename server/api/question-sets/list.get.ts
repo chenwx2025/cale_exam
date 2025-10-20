@@ -1,17 +1,20 @@
 import { PrismaClient } from '@prisma/client'
+import { requireAuth } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
   try {
+    // 从认证中间件获取当前用户
+    const currentUser = requireAuth(event)
+
     const query = getQuery(event)
-    const userId = query.userId as string || 'demo-user'
     const examType = query.examType as string || 'cale'
 
-    // 获取所有题目集：AI生成、模拟考试
+    // 获取所有题目集：AI生成、模拟考试 - 只返回当前用户的数据
     const questionSets = await prisma.exam.findMany({
       where: {
-        userId,
+        userId: currentUser.userId,
         examType,
         mode: {
           in: ['ai_generated', 'mock']

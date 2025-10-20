@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { requireAuth } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
@@ -21,15 +22,8 @@ const CALE_MOCK_EXAM_CONFIG = {
 
 export default defineEventHandler(async (event) => {
   try {
-    const body = await readBody(event)
-    const { userId } = body
-
-    if (!userId) {
-      throw createError({
-        statusCode: 400,
-        message: '缺少用户ID'
-      })
-    }
+    // 从认证中间件获取当前用户
+    const currentUser = requireAuth(event)
 
     const config = CALE_MOCK_EXAM_CONFIG
     const selectedQuestionIds: string[] = []
@@ -90,10 +84,10 @@ export default defineEventHandler(async (event) => {
       day: '2-digit'
     })
 
-    // 创建模拟考试
+    // 创建模拟考试 - 使用认证用户的 ID
     const exam = await prisma.exam.create({
       data: {
-        userId,
+        userId: currentUser.userId,
         examType: 'cale',
         title: `CALE 全真模拟考试 - ${dateStr}`,
         mode: 'mock',  // 标记为模拟考试

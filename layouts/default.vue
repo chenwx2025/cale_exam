@@ -78,39 +78,69 @@
                 </NuxtLink>
               </div>
             </div>
+            <!-- 通知铃铛 -->
+            <NotificationBell v-if="authStore.isAuthenticated" />
+
             <!-- 用户菜单 -->
-            <div v-if="isLoggedIn" class="relative group">
+            <div v-if="authStore.isAuthenticated" class="relative group">
               <button class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                  {{ userInitial }}
+                </div>
+                <span class="font-medium">{{ userName }}</span>
+                <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
-                {{ userName }}
               </button>
-              <div class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              <div class="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 border border-gray-100">
+                <div class="px-4 py-3 border-b border-gray-100">
+                  <p class="text-sm font-semibold text-gray-900">{{ userName }}</p>
+                  <p class="text-xs text-gray-500 truncate">{{ authStore.user?.email }}</p>
+                </div>
+                <NuxtLink
+                  to="/user/profile"
+                  class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors"
+                >
+                  <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                  <span>个人中心</span>
+                </NuxtLink>
                 <NuxtLink
                   to="/stats"
-                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-t-lg"
+                  class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors"
                 >
-                  我的统计
+                  <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  </svg>
+                  <span>学习统计</span>
                 </NuxtLink>
                 <NuxtLink
                   to="/wrong-questions"
-                  class="block px-4 py-3 hover:bg-blue-50 transition-colors"
+                  class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors"
                 >
-                  我的错题本
+                  <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                  </svg>
+                  <span>我的错题本</span>
                 </NuxtLink>
-                <button
-                  @click="handleLogout"
-                  class="w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 transition-colors rounded-b-lg"
-                >
-                  退出登录
-                </button>
+                <div class="border-t border-gray-100">
+                  <button
+                    @click="handleLogout"
+                    class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-600 transition-colors rounded-b-lg"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    <span>退出登录</span>
+                  </button>
+                </div>
               </div>
             </div>
 
             <NuxtLink
               v-else
-              to="/auth/login"
+              to="/login"
               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               登录/注册
@@ -144,39 +174,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-
+const authStore = useAuthStore()
 const router = useRouter()
-const user = ref<any>(null)
 
-const isLoggedIn = computed(() => !!user.value)
-const userName = computed(() => user.value?.name || '用户')
-
-const checkAuth = () => {
-  if (process.client) {
-    const userData = localStorage.getItem('cale_user')
-    if (userData) {
-      try {
-        user.value = JSON.parse(userData)
-      } catch (e) {
-        localStorage.removeItem('cale_user')
-        localStorage.removeItem('cale_token')
-      }
-    }
-  }
-}
-
-const handleLogout = () => {
-  if (process.client) {
-    localStorage.removeItem('cale_user')
-    localStorage.removeItem('cale_token')
-    user.value = null
-    router.push('/')
-  }
-}
-
-onMounted(() => {
-  checkAuth()
+const userName = computed(() => authStore.user?.name || authStore.user?.email?.split('@')[0] || '用户')
+const userInitial = computed(() => {
+  const name = authStore.user?.name || authStore.user?.email || 'U'
+  return name.charAt(0).toUpperCase()
 })
+
+const handleLogout = async () => {
+  try {
+    await authStore.logout()
+    router.push('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+  }
+}
 </script>

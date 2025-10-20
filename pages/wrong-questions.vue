@@ -207,12 +207,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useExamStore } from '~/stores/exam'
+import { useAuthStore } from '~/stores/auth'
 import { useRouter } from 'vue-router'
 
 const examStore = useExamStore()
+const authStore = useAuthStore()
 const router = useRouter()
-
-const userId = 'demo-user' // 临时使用演示用户
 const wrongQuestions = ref<any[]>([])
 const loading = ref(false)
 const expandedIds = ref(new Set<string>())
@@ -237,7 +237,6 @@ const loadWrongQuestions = async () => {
   loading.value = true
   try {
     const params: any = {
-      userId,
       examType: examStore.currentExam,
       page: pagination.value.page,
       pageSize: pagination.value.pageSize
@@ -249,6 +248,7 @@ const loadWrongQuestions = async () => {
 
     const response = await $fetch('/api/wrong-questions/list', {
       method: 'GET',
+      headers: authStore.getAuthHeader(),
       params
     })
 
@@ -275,8 +275,8 @@ const markAsMastered = async (wrongQ: any) => {
   try {
     const response = await $fetch('/api/wrong-questions/update-mastery', {
       method: 'POST',
+      headers: authStore.getAuthHeader(),
       body: {
-        userId,
         questionId: wrongQ.questionId,
         mastered: true,
         masteryLevel: 100
@@ -296,8 +296,8 @@ const markAsNotMastered = async (wrongQ: any) => {
   try {
     const response = await $fetch('/api/wrong-questions/update-mastery', {
       method: 'POST',
+      headers: authStore.getAuthHeader(),
       body: {
-        userId,
         questionId: wrongQ.questionId,
         mastered: false,
         masteryLevel: 0
@@ -319,8 +319,8 @@ const deleteWrongQuestion = async (wrongQ: any) => {
   try {
     const response = await $fetch('/api/wrong-questions/delete', {
       method: 'DELETE',
+      headers: authStore.getAuthHeader(),
       params: {
-        userId,
         questionId: wrongQ.questionId
       }
     })

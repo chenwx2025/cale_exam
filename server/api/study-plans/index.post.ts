@@ -1,12 +1,15 @@
 import { PrismaClient } from '@prisma/client'
+import { requireAuth } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
+  // 要求用户认证
+  const currentUser = requireAuth(event)
+
   const body = await readBody(event)
 
   const {
-    userId,
     name,
     description,
     startDate,
@@ -17,25 +20,10 @@ export default defineEventHandler(async (event) => {
   } = body
 
   // 验证必填字段
-  if (!userId || !name || !startDate || !endDate || !questionsPerDay) {
+  if (!name || !startDate || !endDate || !questionsPerDay) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Missing required fields: userId, name, startDate, endDate, questionsPerDay'
-    })
-  }
-
-  // 确保用户存在（如果不存在则创建demo用户）
-  let user = await prisma.user.findUnique({
-    where: { id: userId }
-  })
-
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        id: userId,
-        name: 'Demo User',
-        email: `${userId}@demo.com`
-      }
+      statusMessage: 'Missing required fields: name, startDate, endDate, questionsPerDay'
     })
   }
 
@@ -87,7 +75,8 @@ export default defineEventHandler(async (event) => {
   // 创建学习计划
   const studyPlan = await prisma.studyPlan.create({
     data: {
-      userId,
+      userId: currentUser.userId,
+      examType,
       name,
       description: description || '',
       startDate: new Date(startDate),

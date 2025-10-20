@@ -210,9 +210,11 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useExamStore } from '~/stores/exam'
+import { useAuthStore } from '~/stores/auth'
 
 const router = useRouter()
 const examStore = useExamStore()
+const authStore = useAuthStore()
 
 interface QuestionSet {
   id: string
@@ -241,8 +243,8 @@ const fetchQuestionSets = async () => {
     loading.value = true
     const response = await $fetch('/api/question-sets/list', {
       method: 'GET',
+      headers: authStore.getAuthHeader(),
       query: {
-        userId: 'demo-user',
         examType: examStore.currentExamType
       }
     })
@@ -295,6 +297,7 @@ const batchDelete = async () => {
     deleting.value = true
     const response = await $fetch('/api/question-sets/delete', {
       method: 'POST',
+      headers: authStore.getAuthHeader(),
       body: {
         examIds: selectedIds.value
       }

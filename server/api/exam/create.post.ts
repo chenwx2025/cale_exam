@@ -1,14 +1,18 @@
 import { PrismaClient } from '@prisma/client'
+import { requireAuth } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
   try {
+    // 从认证中间件获取当前用户
+    const currentUser = requireAuth(event)
+
     const body = await readBody(event)
-    const { userId, examType, title, categoryId, questionCount, duration, difficulty } = body
+    const { examType, title, categoryId, questionCount, duration, difficulty } = body
 
     // Validate input
-    if (!userId || !examType || !title || !questionCount || !duration) {
+    if (!examType || !title || !questionCount || !duration) {
       throw createError({
         statusCode: 400,
         message: '缺少必填参数'
@@ -50,10 +54,10 @@ export default defineEventHandler(async (event) => {
     const shuffled = availableQuestions.sort(() => 0.5 - Math.random())
     const selectedQuestions = shuffled.slice(0, questionCount)
 
-    // Create exam
+    // Create exam - 使用认证用户的 ID
     const exam = await prisma.exam.create({
       data: {
-        userId,
+        userId: currentUser.userId,
         examType,
         title,
         categoryId: categoryId || null,

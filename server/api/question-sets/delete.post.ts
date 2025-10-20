@@ -1,9 +1,13 @@
 import { PrismaClient } from '@prisma/client'
+import { requireAuth } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
   try {
+    // 从认证中间件获取当前用户
+    const currentUser = requireAuth(event)
+
     const body = await readBody(event)
     const { examIds } = body
 
@@ -14,11 +18,29 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    // 验证所有考试都属于当前用户（安全检查）
+    const examsToDelete = await prisma.exam.findMany({
+      where: {
+        id: { in: examIds },
+        userId: currentUser.userId  // 确保只能删除自己的考试
+      },
+      select: { id: true }
+    })
+
+    if (examsToDelete.length !== examIds.length) {
+      throw createError({
+        statusCode: 403,
+        message: '您无权删除这些题目集'
+      })
+    }
+
+    const validExamIds = examsToDelete.map(e => e.id)
+
     // 删除相关的 ExamAnswer 记录
     await prisma.examAnswer.deleteMany({
       where: {
         examId: {
-          in: examIds
+          in: validExamIds
         }
       }
     })
@@ -27,8 +49,9 @@ export default defineEventHandler(async (event) => {
     const result = await prisma.exam.deleteMany({
       where: {
         id: {
-          in: examIds
-        }
+          in: validExamIds
+        },
+        userId: currentUser.userId  // 双重保护
       }
     })
 

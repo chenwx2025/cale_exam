@@ -86,19 +86,40 @@ model Question {
   @@index([examType])
 }
 
-// 用户（可选，如果需要多用户支持）
+// 用户
 model User {
-  id             String          @id @default(cuid())
-  name           String
-  email          String?         @unique
-  password       String?         // 密码（加密存储）
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  userAnswers    UserAnswer[]    // 用户答题记录
-  studyPlans     StudyPlan[]     // 学习计划
-  exams          Exam[]          // 模拟考试记录
-  wrongQuestions WrongQuestion[] // 错题本
-  studySessions  StudySession[]  // 学习会话
+  id                    String                  @id @default(cuid())
+  email                 String                  @unique
+  password              String                  // bcrypt 加密密码
+  name                  String
+  nickname              String?                 // 昵称
+  avatar                String?                 // 头像URL
+  role                  String                  @default("user") // user | admin
+  emailVerified         Boolean                 @default(false)
+  emailVerifyToken      String?                 // 邮箱验证 token
+  emailVerifyExpires    DateTime?               // 邮箱验证过期时间
+  resetPasswordToken    String?                 // 重置密码 token
+  resetPasswordExpires  DateTime?               // 重置密码过期时间
+  status                String                  @default("active") // active | suspended | deleted
+  lastLoginAt           DateTime?               // 最后登录时间
+  loginCount            Int                     @default(0) // 登录次数
+  tokenVersion          Int                     @default(0) // Token 版本（用于撤销所有 token）
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  // 关联数据
+  subscribedExams       UserExamSubscription[]  // 订阅的考试类型
+  userAnswers           UserAnswer[]            // 用户答题记录
+  studyPlans            StudyPlan[]             // 学习计划
+  exams                 Exam[]                  // 模拟考试记录
+  wrongQuestions        WrongQuestion[]         // 错题本
+  studySessions         StudySession[]          // 学习会话
+  notifications         Notification[]          // 通知消息
+  notificationSettings  NotificationSettings?   // 通知设置
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
 }
 
 // 用户答题记录
@@ -248,4 +269,106 @@ model StudySession {
   @@index([examType])
   @@index([type])
   @@index([startTime])
+}
+
+// 用户考试订阅
+model UserExamSubscription {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examType     String    // cale | nccaom
+  isActive     Boolean   @default(true)
+  subscribedAt DateTime  @default(now())
+  expiresAt    DateTime? // 订阅过期时间（如果是付费订阅）
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([userId, examType])
+  @@index([userId])
+  @@index([examType])
+  @@index([isActive])
+}
+
+// 管理员操作日志
+model AdminLog {
+  id         String   @id @default(cuid())
+  adminId    String   // 管理员用户ID
+  action     String   // 操作类型: create_question, update_question, delete_question, etc.
+  targetType String   // 操作对象类型: question, user, category, etc.
+  targetId   String?  // 操作对象ID
+  details    String?  // 操作详情 JSON
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+// 通知消息
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // study_reminder（学习提醒）、exam_reminder（考试提醒）、achievement（成就）、system（系统消息）
+  title     String   // 通知标题
+  message   String   // 通知内容
+  link      String?  // 相关链接（可选）
+  isRead    Boolean  @default(false) // 是否已读
+  createdAt DateTime @default(now())
+  readAt    DateTime? // 阅读时间
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@index([createdAt])
+  @@index([userId, isRead])
+}
+
+// 通知设置
+model NotificationSettings {
+  id                String  @id @default(cuid())
+  userId            String  @unique
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 通知渠道开关
+  emailEnabled      Boolean @default(true)   // 邮件通知
+  siteEnabled       Boolean @default(true)   // 站内信通知
+
+  // 通知类型开关
+  studyReminder     Boolean @default(true)   // 学习提醒
+  examReminder      Boolean @default(true)   // 考试提醒
+  achievementAlert  Boolean @default(true)   // 成就通知
+  systemAlert       Boolean @default(true)   // 系统通知
+
+  // 学习提醒设置
+  reminderTime      String  @default("19:00") // 提醒时间 HH:mm
+  reminderDays      String  @default("[1,2,3,4,5]") // 提醒日期（JSON数组，0=周日,1=周一...6=周六）
+  reminderFrequency String  @default("daily") // 提醒频率: daily（每天）、weekly（每周）、custom（自定义）
+
+  // 学习目标
+  dailyGoalMinutes  Int     @default(30)     // 每日学习目标（分钟）
+  dailyGoalQuestions Int    @default(20)     // 每日题目目标
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// 系统设置
+model SystemSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   // JSON 格式
+  description String?
+  category    String   // auth, exam, notification, etc.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?  // 更新者用户ID
+
+  @@index([category])
+  @@index([key])
 }

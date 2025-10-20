@@ -1,59 +1,142 @@
-// API: 用户注册
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import { hashPassword, validateEmail, validatePasswordStrength } from '../../utils/password'
+import { signAccessToken, signRefreshToken } from '../../utils/jwt'
+import crypto from 'crypto'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
-    const { name, email, password } = body
+    const { email, password, name, examTypes } = body
 
-    if (!name || !email || !password) {
-      return {
-        success: false,
-        error: '请填写所有必填字段'
-      }
+    // 验证必填字段
+    if (!email || !password || !name) {
+      throw createError({
+        statusCode: 400,
+        message: '请填写所有必填字段'
+      })
     }
 
-    // Check if user already exists
+    // 验证邮箱格式
+    if (!validateEmail(email)) {
+      throw createError({
+        statusCode: 400,
+        message: '邮箱格式不正确'
+      })
+    }
+
+    // 验证密码强度
+    const passwordValidation = validatePasswordStrength(password)
+    if (!passwordValidation.valid) {
+      throw createError({
+        statusCode: 400,
+        message: passwordValidation.message
+      })
+    }
+
+    // 检查邮箱是否已存在
     const existingUser = await prisma.user.findUnique({
       where: { email }
     })
 
     if (existingUser) {
-      return {
-        success: false,
-        error: '该邮箱已被注册'
-      }
+      throw createError({
+        statusCode: 409,
+        message: '该邮箱已被注册'
+      })
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    // 加密密码
+    const hashedPassword = await hashPassword(password)
 
-    // Create user
+    // 生成邮箱验证 token（可选，暂时直接验证）
+    const emailVerifyToken = crypto.randomBytes(32).toString('hex')
+
+    // 创建用户
     const user = await prisma.user.create({
       data: {
-        name,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        name,
+        role: 'user',
+        emailVerified: true, // 暂时自动验证，后续可以改为 false 并发送验证邮件
+        emailVerifyToken,
+        emailVerifyExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24小时后过期
+        status: 'active'
+      }
+    })
+
+    // 创建考试订阅
+    const examTypesToSubscribe = Array.isArray(examTypes) && examTypes.length > 0
+      ? examTypes
+      : ['cale'] // 默认订阅 CALE
+
+    await Promise.all(
+      examTypesToSubscribe.map(examType =>
+        prisma.userExamSubscription.create({
+          data: {
+            userId: user.id,
+            examType,
+            isActive: true
+          }
+        })
+      )
+    )
+
+    // 获取订阅信息
+    const subscriptions = await prisma.userExamSubscription.findMany({
+      where: { userId: user.id, isActive: true }
+    })
+
+    const subscribedExams = subscriptions.map(s => s.examType)
+
+    // 生成 tokens
+    const accessToken = signAccessToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      subscribedExams
+    })
+
+    const refreshToken = signRefreshToken({
+      userId: user.id,
+      tokenVersion: user.tokenVersion
+    })
+
+    // 更新登录信息
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLoginAt: new Date(),
+        loginCount: 1
       }
     })
 
     return {
       success: true,
       message: '注册成功',
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
+        email: user.email,
         name: user.name,
-        email: user.email
+        role: user.role,
+        subscribedExams
       }
     }
   } catch (error: any) {
-    console.error('注册失败:', error)
-    return {
-      success: false,
-      error: error.message || '注册失败'
+    // 如果是已知错误，直接抛出
+    if (error.statusCode) {
+      throw error
     }
+
+    // 其他错误
+    console.error('Registration error:', error)
+    throw createError({
+      statusCode: 500,
+      message: '注册失败，请稍后重试'
+    })
   }
 })

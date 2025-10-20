@@ -134,6 +134,7 @@
 
 <script setup lang="ts">
 const examStore = useExamStore()
+const authStore = useAuthStore()
 
 // 获取当前考试类型
 const currentExamType = computed(() => examStore.currentExamType)
@@ -141,9 +142,9 @@ const currentExamType = computed(() => examStore.currentExamType)
 // 获取学习计划列表
 const { data: studyPlans, pending, refresh } = await useFetch('/api/study-plans', {
   query: {
-    userId: 'demo-user',
     examType: currentExamType
   },
+  headers: authStore.getAuthHeader(),
   watch: [currentExamType]
 })
 

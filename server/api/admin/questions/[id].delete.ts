@@ -1,45 +1,63 @@
 import { PrismaClient } from '@prisma/client'
+import { requireAdmin } from '../../../utils/admin-helpers'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
-  try {
-    const id = getRouterParam(event, 'id')
+  const admin = requireAdmin(event)
 
-    if (!id) {
+  try {
+    const questionId = event.context.params?.id
+
+    if (!questionId) {
       throw createError({
         statusCode: 400,
-        message: '缺少题目ID'
+        message: 'Question ID is required'
       })
     }
 
-    // 检查题目是否存在
-    const question = await prisma.question.findUnique({
-      where: { id }
+    const existingQuestion = await prisma.question.findUnique({
+      where: { id: questionId }
     })
 
-    if (!question) {
+    if (!existingQuestion) {
       throw createError({
         statusCode: 404,
-        message: '题目不存在'
+        message: 'Question not found'
       })
     }
 
-    // 删除题目（会级联删除相关的ExamAnswer记录）
     await prisma.question.delete({
-      where: { id }
+      where: { id: questionId }
+    })
+
+    await prisma.adminLog.create({
+      data: {
+        adminId: admin.userId,
+        action: 'delete_question',
+        targetType: 'question',
+        targetId: questionId,
+        details: JSON.stringify({
+          question: existingQuestion.question.substring(0, 100),
+          examType: existingQuestion.examType
+        })
+      }
     })
 
     return {
       success: true,
-      message: '题目删除成功'
+      message: 'Question deleted successfully'
     }
   } catch (error: any) {
-    console.error('Delete question error:', error)
+    console.error('Admin delete question error:', error)
+
+    if (error.statusCode) {
+      throw error
+    }
 
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || '删除题目失败'
+      statusCode: 500,
+      message: 'Failed to delete question'
     })
   }
 })

@@ -231,6 +231,7 @@
 
 <script setup lang="ts">
 const examStore = useExamStore()
+const authStore = useAuthStore()
 const router = useRouter()
 
 const config = ref({
@@ -258,9 +259,7 @@ const createMockExam = async () => {
   try {
     const response = await $fetch('/api/exam/create-mock', {
       method: 'POST',
-      body: {
-        userId: 'demo-user'  // TODO: 替换为实际用户ID
-      }
+      headers: authStore.getAuthHeader()
     })
 
     if (response.success) {
@@ -316,8 +315,8 @@ const createExam = async () => {
   try {
     const response = await $fetch('/api/exam/create', {
       method: 'POST',
+      headers: authStore.getAuthHeader(),
       body: {
-        userId: 'demo-user', // TODO: Replace with actual user ID when auth is implemented
         examType: examStore.currentExamType,
         title: config.value.title,
         categoryId: config.value.categoryId,

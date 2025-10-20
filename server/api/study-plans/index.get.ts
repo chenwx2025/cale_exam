@@ -1,21 +1,17 @@
 import { PrismaClient } from '@prisma/client'
+import { requireAuth } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
+  // 从认证中间件获取当前用户
+  const currentUser = requireAuth(event)
+
   const query = getQuery(event)
-  const userId = query.userId as string
   const examType = query.examType as string
 
-  if (!userId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'userId is required'
-    })
-  }
-
-  // 构建查询条件
-  const where: any = { userId }
+  // 构建查询条件 - 使用认证用户的 ID
+  const where: any = { userId: currentUser.userId }
   if (examType) {
     where.examType = examType
   }
