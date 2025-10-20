@@ -1,15 +1,37 @@
 /**
- * Service Worker for Push Notifications
+ * Service Worker for PWA with Offline Support
  * CALE/NCCAOM 考试系统
+ * Version: 2.0 (Phase 6 - Enhanced PWA)
  */
 
-const CACHE_NAME = 'cale-exam-v1'
+const CACHE_VERSION = 'v2'
+const CACHE_NAME = `cale-exam-${CACHE_VERSION}`
+const CACHE_STATIC = `cale-exam-static-${CACHE_VERSION}`
+const CACHE_DYNAMIC = `cale-exam-dynamic-${CACHE_VERSION}`
+const CACHE_API = `cale-exam-api-${CACHE_VERSION}`
+
+// 静态资源缓存列表
 const urlsToCache = [
   '/',
+  '/offline.html',
+  '/manifest.json',
   '/login',
+  '/register',
   '/practice',
-  '/notifications'
+  '/notifications',
+  '/ai/learning-path',
+  '/stats'
 ]
+
+// API 缓存白名单（GET 请求）
+const apiCacheWhitelist = [
+  '/api/stats/overview',
+  '/api/question-sets/list',
+  '/api/categories/'
+]
+
+// 缓存大小限制
+const CACHE_SIZE_LIMIT = 50
 
 // 安装 Service Worker
 self.addEventListener('install', (event) => {
@@ -44,23 +66,116 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim()
 })
 
-// 拦截网络请求（可选的缓存策略）
-self.addEventListener('fetch', (event) => {
-  // 只缓存 GET 请求
-  if (event.request.method !== 'GET') return
+// 缓存大小限制函数
+const limitCacheSize = (cacheName, maxItems) => {
+  caches.open(cacheName).then(cache => {
+    cache.keys().then(keys => {
+      if (keys.length > maxItems) {
+        // 删除最旧的缓存
+        cache.delete(keys[0]).then(() => limitCacheSize(cacheName, maxItems))
+      }
+    })
+  })
+}
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // 缓存命中，返回缓存
-        if (response) {
-          return response
-        }
-        // 缓存未命中，发起网络请求
-        return fetch(event.request)
-      })
-  )
+// 拦截网络请求 - 增强缓存策略
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+  const url = new URL(request.url)
+
+  // 只处理同源请求
+  if (url.origin !== location.origin) return
+
+  // 只缓存 GET 请求
+  if (request.method !== 'GET') return
+
+  // 策略1: 网络优先，失败时使用缓存（用于 API 请求）
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(networkFirstStrategy(request))
+    return
+  }
+
+  // 策略2: 缓存优先，失败时使用网络（用于静态资源）
+  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|gif|webp|woff|woff2)$/)) {
+    event.respondWith(cacheFirstStrategy(request))
+    return
+  }
+
+  // 策略3: Stale-While-Revalidate（用于HTML页面）
+  event.respondWith(staleWhileRevalidateStrategy(request))
 })
+
+// 缓存优先策略
+async function cacheFirstStrategy(request) {
+  const cache = await caches.open(CACHE_STATIC)
+  const cached = await cache.match(request)
+
+  if (cached) {
+    return cached
+  }
+
+  try {
+    const response = await fetch(request)
+    if (response.status === 200) {
+      cache.put(request, response.clone())
+    }
+    return response
+  } catch (error) {
+    return caches.match('/offline.html')
+  }
+}
+
+// 网络优先策略
+async function networkFirstStrategy(request) {
+  try {
+    const response = await fetch(request)
+
+    // 缓存成功的 API 响应
+    if (response.status === 200 && shouldCacheAPI(request.url)) {
+      const cache = await caches.open(CACHE_API)
+      cache.put(request, response.clone())
+      limitCacheSize(CACHE_API, CACHE_SIZE_LIMIT)
+    }
+
+    return response
+  } catch (error) {
+    const cached = await caches.match(request)
+    if (cached) {
+      return cached
+    }
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Network unavailable',
+      offline: true
+    }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+}
+
+// Stale-While-Revalidate 策略
+async function staleWhileRevalidateStrategy(request) {
+  const cache = await caches.open(CACHE_DYNAMIC)
+  const cached = await cache.match(request)
+
+  const fetchPromise = fetch(request).then(response => {
+    if (response.status === 200) {
+      cache.put(request, response.clone())
+      limitCacheSize(CACHE_DYNAMIC, CACHE_SIZE_LIMIT)
+    }
+    return response
+  }).catch(() => {
+    return caches.match('/offline.html')
+  })
+
+  return cached || fetchPromise
+}
+
+// 判断是否应该缓存 API 响应
+function shouldCacheAPI(url) {
+  return apiCacheWhitelist.some(pattern => url.includes(pattern))
+}
 
 // 接收 Push 消息
 self.addEventListener('push', (event) => {

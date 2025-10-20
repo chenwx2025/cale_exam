@@ -1,5 +1,8 @@
 <template>
   <div class="min-h-screen bg-gray-50">
+    <!-- 离线指示器 -->
+    <OfflineIndicator />
+
     <!-- 导航栏 -->
     <nav class="bg-white shadow-md">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -176,6 +179,9 @@
         </p>
       </div>
     </footer>
+
+    <!-- PWA 安装提示 -->
+    <InstallPrompt />
   </div>
 </template>
 

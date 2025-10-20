@@ -1,0 +1,142 @@
+{
+  "name": "CALE考试系统 - 加州中医针灸考试学习平台",
+  "short_name": "CALE考试系统",
+  "description": "专业的CALE/NCCAOM中医针灸考试学习平台，提供智能学习、模拟考试、AI助手等功能",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "CALE考试系统首页"
+    },
+    {
+      "src": "/screenshots/practice.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "练习页面"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "开始练习",
+      "short_name": "练习",
+      "description": "立即开始练习题目",
+      "url": "/practice",
+      "icons": [
+        {
+          "src": "/icons/shortcut-practice.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "模拟考试",
+      "short_name": "考试",
+      "description": "开始模拟考试",
+      "url": "/exam/config",
+      "icons": [
+        {
+          "src": "/icons/shortcut-exam.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "AI学习助手",
+      "short_name": "AI助手",
+      "description": "查看AI学习建议",
+      "url": "/ai/learning-path",
+      "icons": [
+        {
+          "src": "/icons/shortcut-ai.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "错题本",
+      "short_name": "错题",
+      "description": "复习错题",
+      "url": "/wrong-questions",
+      "icons": [
+        {
+          "src": "/icons/shortcut-wrong.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

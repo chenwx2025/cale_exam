@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>离线模式 - CALE考试系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .offline-container {
+      text-align: center;
+      color: white;
+      max-width: 500px;
+    }
+
+    .offline-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+      }
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      opacity: 0.95;
+    }
+
+    .features {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 32px;
+      text-align: left;
+    }
+
+    .features h2 {
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-list {
+      list-style: none;
+    }
+
+    .feature-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+
+    .feature-icon {
+      font-size: 1.5rem;
+    }
+
+    .retry-btn {
+      margin-top: 32px;
+      padding: 14px 32px;
+      background: white;
+      color: #667eea;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .retry-btn:active {
+      transform: translateY(0);
+    }
+
+    .status {
+      margin-top: 24px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .connection-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    .status-dot.online {
+      background: #10b981;
+      animation: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-container">
+    <div class="offline-icon">📡</div>
+
+    <h1>您当前处于离线模式</h1>
+
+    <p>无法连接到服务器，请检查您的网络连接。</p>
+    <p>部分缓存的内容仍可离线访问。</p>
+
+    <div class="status">
+      <div class="connection-status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">离线</span>
+      </div>
+    </div>
+
+    <div class="features">
+      <h2>💡 离线功能提示</h2>
+      <ul class="feature-list">
+        <li>
+          <span class="feature-icon">📚</span>
+          <span>已缓存的题目可以离线查看</span>
+        </li>
+        <li>
+          <span class="feature-icon">📊</span>
+          <span>学习统计数据已本地保存</span>
+        </li>
+        <li>
+          <span class="feature-icon">🔄</span>
+          <span>恢复网络后将自动同步数据</span>
+        </li>
+        <li>
+          <span class="feature-icon">💾</span>
+          <span>离线答题将在联网后上传</span>
+        </li>
+      </ul>
+    </div>
+
+    <button class="retry-btn" onclick="retryConnection()">
+      重新连接
+    </button>
+  </div>
+
+  <script>
+    // 检查网络状态
+    function updateOnlineStatus() {
+      const statusDot = document.getElementById('statusDot')
+      const statusText = document.getElementById('statusText')
+
+      if (navigator.onLine) {
+        statusDot.classList.add('online')
+        statusText.textContent = '在线'
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      } else {
+        statusDot.classList.remove('online')
+        statusText.textContent = '离线'
+      }
+    }
+
+    // 监听网络状态变化
+    window.addEventListener('online', updateOnlineStatus)
+    window.addEventListener('offline', updateOnlineStatus)
+
+    // 初始检查
+    updateOnlineStatus()
+
+    // 重试连接
+    function retryConnection() {
+      if (navigator.onLine) {
+        window.location.href = '/'
+      } else {
+        alert('当前仍处于离线状态，请检查网络连接后重试')
+      }
+    }
+
+    // 定期检查网络状态
+    setInterval(updateOnlineStatus, 5000)
+  </script>
+</body>
+</html>
