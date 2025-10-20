@@ -116,6 +116,7 @@ model User {
   studySessions         StudySession[]          // 学习会话
   notifications         Notification[]          // 通知消息
   notificationSettings  NotificationSettings?   // 通知设置
+  pushSubscriptions     PushSubscription[]      // Push 通知订阅
 
   @@index([email])
   @@index([role])
@@ -371,4 +372,19 @@ model SystemSettings {
 
   @@index([category])
   @@index([key])
+}
+// Push 通知订阅（Phase 5 Sprint 2）
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique // Push 订阅端点
+  auth      String   // 认证密钥
+  p256dh    String   // 公钥
+  userAgent String?  // 用户代理（浏览器信息）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([endpoint])
 }

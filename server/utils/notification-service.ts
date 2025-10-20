@@ -137,6 +137,11 @@ export async function sendStudyReminder(userId: string, settings: any) {
         console.error('[StudyReminder] Failed to send email:', error)
       })
     }
+
+    // 发送 Push 通知（异步）
+    sendStudyReminderPush(userId, emailMessage).catch(error => {
+      console.error('[StudyReminder] Failed to send push:', error)
+    })
   } catch (error) {
     console.error('[StudyReminder] Failed to send:', error)
   }

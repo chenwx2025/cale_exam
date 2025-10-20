@@ -49,6 +49,36 @@
               class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
           </label>
+
+          <div class="border-t pt-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-gray-900 font-medium">浏览器 Push 通知</span>
+                <p class="text-sm text-gray-600">即时接收桌面通知提醒</p>
+                <p v-if="!push.isSupported" class="text-xs text-red-600 mt-1">
+                  您的浏览器不支持 Push 通知
+                </p>
+                <p v-else-if="push.permission === 'denied'" class="text-xs text-red-600 mt-1">
+                  Push 通知权限已被拒绝，请在浏览器设置中允许
+                </p>
+              </div>
+              <button
+                v-if="push.isSupported && push.permission !== 'denied'"
+                @click="togglePushSubscription"
+                :disabled="push.isSubscribing"
+                :class="[
+                  'px-4 py-2 rounded-lg font-medium transition-colors',
+                  push.isSubscribed
+                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                    : 'bg-blue-600 text-white hover:bg-blue-700',
+                  push.isSubscribing ? 'opacity-50 cursor-not-allowed' : ''
+                ]"
+              >
+                <span v-if="push.isSubscribing">处理中...</span>
+                <span v-else>{{ push.isSubscribed ? '取消订阅' : '开启' }}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -222,6 +252,9 @@ definePageMeta({
   middleware: 'auth'
 })
 
+// Push 通知功能
+const push = usePushNotifications()
+
 const loading = ref(true)
 const saving = ref(false)
 
@@ -298,6 +331,22 @@ const toggleReminderDay = (day: number) => {
     settings.value.reminderDays.splice(index, 1)
   } else {
     settings.value.reminderDays.push(day)
+  }
+}
+
+// 切换 Push 订阅
+const togglePushSubscription = async () => {
+  try {
+    if (push.isSubscribed.value) {
+      await push.unsubscribe()
+      alert('已取消 Push 通知订阅')
+    } else {
+      await push.subscribe()
+      alert('Push 通知已开启！您将收到桌面通知提醒')
+    }
+  } catch (error: any) {
+    console.error('Failed to toggle push subscription:', error)
+    alert('操作失败: ' + (error.message || '未知错误'))
   }
 }
 
