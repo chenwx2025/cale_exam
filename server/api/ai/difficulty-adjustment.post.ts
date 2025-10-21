@@ -3,19 +3,13 @@
  * 根据用户表现智能调整题目难度
  */
 
-import { getUserFromToken } from '../../utils/auth-helpers'
+import { requireAuth } from '../../utils/auth-helpers'
 import { adjustDifficulty } from '../../utils/ai-learning-assistant'
 
 export default defineEventHandler(async (event) => {
   try {
     // 验证用户身份
-    const user = await getUserFromToken(event)
-    if (!user) {
-      throw createError({
-        statusCode: 401,
-        message: 'Unauthorized'
-      })
-    }
+    const user = requireAuth(event)
 
     // 获取请求参数
     const body = await readBody(event)

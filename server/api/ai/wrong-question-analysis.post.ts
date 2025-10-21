@@ -3,13 +3,13 @@
  * 分析错题模式，提供针对性建议
  */
 
-import { getUserFromToken } from '../../utils/auth-helpers'
+import { requireAuth } from '../../utils/auth-helpers'
 import { analyzeWrongQuestionPatterns } from '../../utils/ai-learning-assistant'
 
 export default defineEventHandler(async (event) => {
   try {
     // 验证用户身份
-    const user = await getUserFromToken(event)
+    const user = await requireAuth(event)
     if (!user) {
       throw createError({
         statusCode: 401,

@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client'
-import { getUserFromEvent } from '../../utils/auth-helpers'
+import { getCurrentUser } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
-  const user = getUserFromEvent(event)
+  const user = getCurrentUser(event)
 
   try {
     // 标记所有未读通知为已读

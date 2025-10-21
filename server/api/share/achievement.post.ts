@@ -4,14 +4,14 @@
  */
 
 import { PrismaClient } from '@prisma/client'
-import { getUserFromToken } from '../../utils/auth-helpers'
+import { requireAuth } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
   try {
     // 验证用户身份
-    const user = await getUserFromToken(event)
+    const user = await requireAuth(event)
     if (!user) {
       throw createError({
         statusCode: 401,

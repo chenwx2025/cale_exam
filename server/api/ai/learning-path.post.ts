@@ -3,13 +3,13 @@
  * 基于用户学习数据生成个性化学习路径
  */
 
-import { getUserFromToken } from '../../utils/auth-helpers'
+import { requireAuth } from '../../utils/auth-helpers'
 import { generateLearningPath } from '../../utils/ai-learning-assistant'
 
 export default defineEventHandler(async (event) => {
   try {
     // 验证用户身份
-    const user = await getUserFromToken(event)
+    const user = await requireAuth(event)
     if (!user) {
       throw createError({
         statusCode: 401,
