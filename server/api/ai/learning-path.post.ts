@@ -9,17 +9,19 @@ import { generateLearningPath } from '../../utils/ai-learning-assistant'
 export default defineEventHandler(async (event) => {
   try {
     // 验证用户身份
-    const user = await requireAuth(event)
-    if (!user) {
-      throw createError({
-        statusCode: 401,
-        message: 'Unauthorized'
-      })
-    }
+    const user = requireAuth(event)
 
     // 获取请求参数
     const body = await readBody(event)
-    const { examType = 'cale' } = body
+    let examType = body.examType || body.exam || 'cale'
+
+    // 如果传入的是对象，提取type字段
+    if (typeof examType === 'object' && examType !== null) {
+      examType = examType.type || examType.examType || 'cale'
+    }
+
+    // 确保examType是字符串
+    examType = String(examType)
 
     console.log(`[AI-LearningPath] Generating learning path for user ${user.id}, examType: ${examType}`)
 

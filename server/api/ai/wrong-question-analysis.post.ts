@@ -19,7 +19,15 @@ export default defineEventHandler(async (event) => {
 
     // 获取请求参数
     const body = await readBody(event)
-    const { examType = 'cale' } = body
+    let examType = body.examType || body.exam || 'cale'
+    
+    // 如果传入的是对象，提取type字段
+    if (typeof examType === 'object' && examType !== null) {
+      examType = examType.type || examType.examType || 'cale'
+    }
+    
+    // 确保examType是字符串
+    examType = String(examType)
 
     console.log(`[AI-WrongAnalysis] Analyzing wrong questions for user ${user.id}`)
 
