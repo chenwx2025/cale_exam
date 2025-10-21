@@ -149,6 +149,10 @@ export default defineNuxtConfig({
     prerender: {
       crawlLinks: true,
       routes: ['/', '/outline']
+    },
+    // External modules (fix node-cron build issue)
+    externals: {
+      inline: ['node-cron']
     }
   },
 
