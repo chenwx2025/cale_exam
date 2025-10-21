@@ -3,12 +3,9 @@
     <div class="max-w-7xl mx-auto">
       <!-- 页面标题 -->
       <div class="mb-8">
-        <h1 class="text-4xl font-bold text-gray-900 mb-2">🤖 AI 学习助手</h1>
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">🤖 {{ examStore.currentExam.name }} - AI 学习助手</h1>
         <p class="text-gray-600">智能分析您的学习情况，提供个性化学习建议</p>
       </div>
-
-      <!-- 考试选择器 -->
-      <ExamSelector :showDescription="false" class="mb-6" />
 
       <!-- 加载状态 -->
       <div v-if="loading" class="text-center py-12">

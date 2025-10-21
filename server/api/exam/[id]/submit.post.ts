@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import prisma from '../../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -41,34 +39,67 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Calculate scores
+    // Calculate scores and prepare data
     let correctCount = 0
+    const answerData = []
+    const wrongQuestionsData = []
 
-    // Update each answer with correctness
+    // Prepare all data
     for (const answer of exam.answers) {
       const isCorrect = answer.userAnswer === answer.question.correctAnswer
 
-      await prisma.examAnswer.update({
-        where: { id: answer.id },
-        data: { isCorrect }
+      answerData.push({
+        id: answer.id,
+        isCorrect
       })
 
       if (isCorrect) {
         correctCount++
       }
 
-      // Add to wrong questions if incorrect
+      // Prepare wrong question data if incorrect
       if (!isCorrect && answer.userAnswer) {
-        await prisma.wrongQuestion.upsert({
+        wrongQuestionsData.push({
+          userId: exam.userId,
+          questionId: answer.questionId
+        })
+      }
+    }
+
+    const totalQuestions = exam.answers.length
+    const percentage = (correctCount / totalQuestions) * 100
+    const passed = percentage >= 60 // 60% passing score
+
+    console.log('[SUBMIT] 开始提交考试:', {
+      examId,
+      totalQuestions,
+      correctCount,
+      percentage: percentage.toFixed(2) + '%',
+      passed
+    })
+
+    // Execute all updates in a transaction
+    const updatedExam = await prisma.$transaction(async (tx) => {
+      // Update all answers
+      for (const data of answerData) {
+        await tx.examAnswer.update({
+          where: { id: data.id },
+          data: { isCorrect: data.isCorrect }
+        })
+      }
+
+      // Upsert all wrong questions
+      for (const data of wrongQuestionsData) {
+        await tx.wrongQuestion.upsert({
           where: {
             userId_questionId: {
-              userId: exam.userId,
-              questionId: answer.questionId
+              userId: data.userId,
+              questionId: data.questionId
             }
           },
           create: {
-            userId: exam.userId,
-            questionId: answer.questionId,
+            userId: data.userId,
+            questionId: data.questionId,
             wrongCount: 1,
             lastWrong: new Date()
           },
@@ -79,24 +110,31 @@ export default defineEventHandler(async (event) => {
           }
         })
       }
-    }
 
-    const totalQuestions = exam.answers.length
-    const percentage = (correctCount / totalQuestions) * 100
-    const passed = percentage >= 60 // 60% passing score
+      // Update exam status
+      const updated = await tx.exam.update({
+        where: { id: examId },
+        data: {
+          status: 'completed',
+          completedAt: new Date(),
+          timeSpent: timeSpent || null,
+          score: correctCount,
+          totalScore: totalQuestions,
+          percentage,
+          passed
+        }
+      })
 
-    // Update exam
-    const updatedExam = await prisma.exam.update({
-      where: { id: examId },
-      data: {
-        status: 'completed',
-        completedAt: new Date(),
-        timeSpent: timeSpent || null,
-        score: correctCount,
-        totalScore: totalQuestions,
-        percentage,
-        passed
-      }
+      console.log('[SUBMIT] 考试更新成功:', {
+        id: updated.id,
+        status: updated.status,
+        score: updated.score,
+        totalScore: updated.totalScore,
+        percentage: updated.percentage,
+        passed: updated.passed
+      })
+
+      return updated
     })
 
     return {

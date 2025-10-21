@@ -1,27 +1,29 @@
 // API：获取用户错题列表
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import prisma from '../../utils/prisma'
+import { requireAuth } from '../../utils/auth-helpers'
 
 export default defineEventHandler(async (event) => {
   try {
+    // 从认证中获取用户ID
+    const currentUser = requireAuth(event)
+
     const query = getQuery(event)
-    const userId = query.userId as string
     const examType = query.examType as string || 'cale'
     const mastered = query.mastered === 'true' ? true : query.mastered === 'false' ? false : undefined
     const page = parseInt(query.page as string) || 1
     const pageSize = parseInt(query.pageSize as string) || 20
 
-    if (!userId) {
-      return {
-        success: false,
-        error: '缺少用户ID'
-      }
-    }
+    console.log('[WRONG-QUESTIONS] 获取错题列表:', {
+      userId: currentUser.userId,
+      examType,
+      mastered,
+      page,
+      pageSize
+    })
 
     // 构建查询条件
     const where: any = {
-      userId,
+      userId: currentUser.userId,
       question: {
         examType
       }
@@ -50,6 +52,11 @@ export default defineEventHandler(async (event) => {
       ],
       skip: (page - 1) * pageSize,
       take: pageSize
+    })
+
+    console.log('[WRONG-QUESTIONS] 查询结果:', {
+      total,
+      count: wrongQuestions.length
     })
 
     return {

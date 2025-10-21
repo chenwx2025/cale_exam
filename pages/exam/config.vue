@@ -1,59 +1,89 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
     <div class="max-w-4xl mx-auto">
-      <!-- Header -->
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
-          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-          </svg>
-        </div>
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">配置模拟考试</h1>
-        <p class="text-gray-600">选择考试参数，开始你的模拟测试</p>
-      </div>
+      <!-- Header with Action Button -->
+      <div class="mb-8">
+        <div class="flex items-start justify-between mb-6">
+          <div class="flex items-center gap-4">
+            <div class="flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl shadow-lg">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900 mb-1">配置 {{ examStore.currentExam.name }} 模拟考试</h1>
+              <p class="text-gray-600">选择考试参数，开始你的模拟测试</p>
+            </div>
+          </div>
 
-      <!-- Exam Type Selector -->
-      <ExamSelector :showDescription="true" class="mb-8" />
+          <!-- View Question Sets Button (Top Right) -->
+          <NuxtLink
+            to="/exam/question-sets"
+            class="flex-shrink-0 px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-purple-300 font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 group"
+          >
+            <svg class="w-5 h-5 text-purple-600 group-hover:text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            <span>题目集</span>
+          </NuxtLink>
+        </div>
+      </div>
 
       <!-- Quick Mock Exam Button (CALE Only) -->
       <div v-if="examStore.currentExamType === 'cale'" class="mb-8">
-        <button
-          @click="createMockExam"
-          :disabled="creatingMock"
-          class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-5 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <svg v-if="!creatingMock" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-          <svg v-else class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <div class="text-left">
-            <div class="text-lg">{{ creatingMock ? '生成中...' : '一键生成 CALE 全真模拟考试' }}</div>
-            <div class="text-xs text-green-100 font-normal">200题 · 300分钟 (5小时) · 按官方比例分配</div>
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="flex-shrink-0 w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-bold text-gray-900 mb-1">CALE 全真模拟考试</h3>
+              <p class="text-sm text-gray-600 mb-3">
+                完全按照CALE官方考试标准：200道题，300分钟 (5小时)，各Domain按官方占比自动分配
+              </p>
+              <div class="flex flex-wrap gap-2 text-xs text-green-700 font-medium">
+                <span class="px-3 py-1 bg-white rounded-full border border-green-200">📝 200题</span>
+                <span class="px-3 py-1 bg-white rounded-full border border-green-200">⏱️ 300分钟</span>
+                <span class="px-3 py-1 bg-white rounded-full border border-green-200">📊 官方比例</span>
+              </div>
+            </div>
           </div>
-        </button>
-        <p class="mt-2 text-sm text-gray-600 text-center">
-          完全按照CALE官方考试标准：200道题，300分钟 (5小时)，各Domain按官方占比自动分配
-        </p>
-      </div>
-
-      <!-- Quick Action Button -->
-      <div class="mb-8">
-        <NuxtLink
-          to="/exam/question-sets"
-          class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-          </svg>
-          查看已生成的题目集
-        </NuxtLink>
+          <button
+            @click="createMockExam"
+            :disabled="creatingMock"
+            class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg v-if="!creatingMock" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <svg v-else class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>{{ creatingMock ? '生成中...' : '一键生成全真模拟考试' }}</span>
+          </button>
+        </div>
       </div>
 
       <!-- Configuration Form -->
       <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+        <!-- Form Header -->
+        <div class="mb-6 pb-6 border-b border-gray-200">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-900">自定义考试配置</h2>
+              <p class="text-sm text-gray-500">灵活设置题目范围、数量和难度</p>
+            </div>
+          </div>
+        </div>
+
         <form @submit.prevent="createExam" class="space-y-6">
           <!-- Exam Title -->
           <div>
@@ -230,9 +260,17 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'exam',
+  middleware: ['exam-access' as any]
+})
+
+import { useDialog } from '~/composables/useDialog'
+
 const examStore = useExamStore()
 const authStore = useAuthStore()
 const router = useRouter()
+const dialog = useDialog()
 
 const config = ref({
   title: `${examStore.currentExam.name} 模拟考试 - ${new Date().toLocaleDateString('zh-CN')}`,
@@ -259,19 +297,30 @@ const createMockExam = async () => {
   try {
     const response = await $fetch('/api/exam/create-mock', {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: {
+        examType: examStore.currentExamType
+      }
     })
 
     if (response.success) {
       // 显示成功提示
-      alert(`模拟考试创建成功！\n\n总题数: ${response.config.totalQuestions} 题\n考试时长: ${response.config.duration} 分钟\n\n题目分配:\n${Object.entries(response.config.domainBreakdown).map(([domain, count]) => `- ${domain}: ${count}题`).join('\n')}`)
+      await dialog.alert({
+        message: `模拟考试创建成功！\n\n总题数: ${response.config.totalQuestions} 题\n考试时长: ${response.config.duration} 分钟\n\n题目分配:\n${Object.entries(response.config.domainBreakdown || response.config.breakdown || {}).map(([domain, count]) => `- ${domain}: ${count}题`).join('\n')}\n\n即将跳转到题目集页面...`,
+        type: 'success',
+        title: '✅ 考试生成成功'
+      })
 
-      // 跳转到考试页面
-      router.push(`/exam/${response.examId}`)
+      // 跳转到题目集页面，让用户立即看到新创建的考试
+      router.push('/exam/question-sets')
     }
   } catch (error: any) {
     console.error('Create mock exam error:', error)
-    alert(error.data?.message || '创建模拟考试失败，请稍后重试')
+    await dialog.alert({
+      message: error.data?.message || '创建模拟考试失败，请稍后重试',
+      type: 'error',
+      title: '创建失败'
+    })
   } finally {
     creatingMock.value = false
   }
@@ -326,10 +375,21 @@ const createExam = async () => {
       }
     })
 
-    // Navigate to exam page
-    router.push(`/exam/${response.examId}`)
+    // 显示成功提示
+    await dialog.alert({
+      message: `考试创建成功！\n\n考试标题: ${config.value.title}\n题目数量: ${config.value.questionCount} 题\n考试时长: ${config.value.duration} 分钟\n\n即将跳转到题目集页面...`,
+      type: 'success',
+      title: '✅ 考试生成成功'
+    })
+
+    // 跳转到题目集页面，让用户立即看到新创建的考试
+    router.push('/exam/question-sets')
   } catch (error: any) {
-    alert('创建考试失败: ' + (error.data?.message || error.message || '未知错误'))
+    await dialog.alert({
+      message: '创建考试失败: ' + (error.data?.message || error.message || '未知错误'),
+      type: 'error',
+      title: '创建失败'
+    })
   } finally {
     creating.value = false
   }

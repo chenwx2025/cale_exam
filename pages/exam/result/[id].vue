@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
+  <div class="p-6">
     <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center min-h-screen">
+    <div v-if="loading" class="flex items-center justify-center min-h-[400px]">
       <div class="text-center">
         <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -137,7 +137,7 @@
             <!-- Explanation -->
             <div v-if="item.question.explanation" class="bg-white rounded-lg p-4 border border-green-200">
               <h4 class="font-semibold text-green-800 mb-2">答案解析</h4>
-              <p class="text-gray-700 text-sm">{{ item.question.explanation }}</p>
+              <p class="text-gray-700 text-sm whitespace-pre-line">{{ item.question.explanation }}</p>
             </div>
           </div>
         </div>
@@ -181,6 +181,11 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: ['exam-access' as any],
+  layout: 'exam'
+})
+
 const route = useRoute()
 const examId = route.params.id as string
 

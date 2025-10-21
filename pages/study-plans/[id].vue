@@ -21,16 +21,28 @@
       <!-- 计划头部 -->
       <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white shadow-xl">
         <div class="flex items-start justify-between mb-6">
-          <div>
+          <div class="flex-1">
             <h1 class="text-3xl font-bold mb-2">{{ plan.name }}</h1>
             <p v-if="plan.description" class="text-blue-100">{{ plan.description }}</p>
           </div>
-          <span
-            v-if="plan.isActive"
-            class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold"
-          >
-            进行中
-          </span>
+          <div class="flex items-center gap-3">
+            <span
+              v-if="plan.isActive"
+              class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold"
+            >
+              进行中
+            </span>
+            <button
+              @click="deletePlan"
+              class="px-4 py-2 bg-red-500/80 hover:bg-red-600 backdrop-blur-sm rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+              title="删除学习计划"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              删除计划
+            </button>
+          </div>
         </div>
 
         <!-- 进度统计 -->
@@ -190,6 +202,11 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: ['exam-access' as any],
+  layout: 'exam'
+})
+
 const route = useRoute()
 const planId = route.params.id as string
 
@@ -227,6 +244,34 @@ const toggleComplete = async (itemId: string, completed: boolean) => {
     refresh()
   } catch (error: any) {
     alert('更新失败：' + (error.data?.message || error.message || '未知错误'))
+  }
+}
+
+const authStore = useAuthStore()
+
+const deletePlan = async () => {
+  if (!confirm('确定要删除这个学习计划吗？删除后无法恢复。')) {
+    return
+  }
+
+  try {
+    const headers = authStore.getAuthHeader()
+    const requestOptions: any = {
+      method: 'DELETE'
+    }
+
+    if (headers.Authorization) {
+      requestOptions.headers = { Authorization: headers.Authorization }
+    }
+
+    await $fetch(`/api/study-plans/${planId}`, requestOptions)
+
+    // 删除成功后跳转到学习计划列表
+    navigateTo('/study-plans')
+  } catch (error: any) {
+    console.error('Delete error:', error)
+    const errorMessage = error.data?.statusMessage || error.data?.message || error.statusMessage || error.message || '未知错误'
+    alert(`删除失败：${errorMessage}\n\n学习计划ID: ${planId}\n状态码: ${error.statusCode || error.status || '未知'}`)
   }
 }
 </script>

@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '../../utils/prisma'
 import { requireAuth } from '../../utils/auth-helpers'
-
-const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
   try {
@@ -11,14 +9,11 @@ export default defineEventHandler(async (event) => {
     const query = getQuery(event)
     const examType = query.examType as string || 'cale'
 
-    // 获取所有题目集：AI生成、模拟考试 - 只返回当前用户的数据
+    // 获取所有题目集和考试 - 只返回当前用户的数据
     const questionSets = await prisma.exam.findMany({
       where: {
         userId: currentUser.userId,
-        examType,
-        mode: {
-          in: ['ai_generated', 'mock']
-        }
+        examType
       },
       include: {
         answers: {
@@ -77,6 +72,12 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('List question sets error:', error)
 
+    // 如果是 HTTP 错误（401, 403 等），重新抛出以便前端正确处理
+    if (error.statusCode) {
+      throw error
+    }
+
+    // 其他错误返回通用错误消息
     throw createError({
       statusCode: 500,
       message: error.message || '获取题目集列表失败'

@@ -1,8 +1,5 @@
 <template>
   <div>
-    <!-- 考试选择器 -->
-    <ExamSelector :showDescription="false" class="mb-6" />
-
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">我的学习计划</h1>
       <NuxtLink
@@ -110,6 +107,15 @@
             >
               开始学习
             </button>
+            <button
+              @click="deletePlan(plan.id)"
+              class="px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+              title="删除学习计划"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -133,6 +139,11 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: ['exam-access' as any],
+  layout: 'exam'
+})
+
 const examStore = useExamStore()
 const authStore = useAuthStore()
 
@@ -141,11 +152,19 @@ const currentExamType = computed(() => examStore.currentExamType)
 
 // 获取学习计划列表
 const { data: studyPlans, pending, refresh } = await useFetch('/api/study-plans', {
-  query: {
-    examType: currentExamType
-  },
-  headers: authStore.getAuthHeader(),
-  watch: [currentExamType]
+  key: () => `study-plans-list-${currentExamType.value}`,
+  query: computed(() => ({
+    examType: currentExamType.value
+  })),
+  headers: computed(() => {
+    const headers = authStore.getAuthHeader()
+    if (headers.Authorization) {
+      return { Authorization: headers.Authorization }
+    }
+    return undefined
+  }),
+  watch: [currentExamType],
+  dedupe: 'cancel'
 })
 
 const formatDate = (date: string | Date) => {
@@ -158,5 +177,47 @@ const formatDate = (date: string | Date) => {
 
 const startStudy = (planId: string) => {
   navigateTo(`/study-plans/${planId}`)
+}
+
+const deleting = ref(false)
+
+const deletePlan = async (planId: string) => {
+  if (!confirm('确定要删除这个学习计划吗？删除后无法恢复。')) {
+    return
+  }
+
+  deleting.value = true
+
+  try {
+    const headers = authStore.getAuthHeader()
+    const requestOptions: any = {
+      method: 'DELETE'
+    }
+
+    if (headers.Authorization) {
+      requestOptions.headers = { Authorization: headers.Authorization }
+    }
+
+    await $fetch(`/api/study-plans/${planId}`, requestOptions)
+
+    // 立即从本地数据中移除该计划
+    if (studyPlans.value) {
+      studyPlans.value = studyPlans.value.filter((plan: any) => plan.id !== planId)
+    }
+
+    // 然后清除缓存并重新获取数据以确保同步
+    await refreshNuxtData(`study-plans-list-${currentExamType.value}`)
+
+    console.log('删除成功，列表已更新')
+  } catch (error: any) {
+    console.error('Delete error:', error)
+    const errorMessage = error.data?.statusMessage || error.data?.message || error.statusMessage || error.message || '未知错误'
+    alert(`删除失败：${errorMessage}\n\n学习计划ID: ${planId}\n状态码: ${error.statusCode || error.status || '未知'}`)
+
+    // 如果删除失败，重新加载列表以恢复正确状态
+    await refresh()
+  } finally {
+    deleting.value = false
+  }
 }
 </script>

@@ -1,9 +1,53 @@
 <template>
   <div>
-    <!-- 考试选择器 -->
-    <ExamSelector :showDescription="true" class="mb-8" />
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold">{{ examStore.currentExam.name }} - 复习计划</h1>
+      <NuxtLink
+        to="/study-plans"
+        class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+        </svg>
+        查看我的学习计划
+      </NuxtLink>
+    </div>
 
-    <h1 class="text-3xl font-bold mb-8">{{ examStore.currentExam.name }} 复习计划</h1>
+    <!-- 已有学习计划提示 -->
+    <div v-if="existingPlans && existingPlans.length > 0" class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
+      <div class="flex items-start gap-3">
+        <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div class="flex-1">
+          <h3 class="font-bold text-blue-900 mb-2">您已有 {{ existingPlans.length }} 个学习计划</h3>
+          <p class="text-blue-800 text-sm mb-3">
+            继续执行现有计划，或创建新计划来优化您的学习路径
+          </p>
+          <div class="space-y-2">
+            <div v-for="plan in existingPlans.slice(0, 3)" :key="plan.id" class="flex items-center justify-between bg-white p-3 rounded-lg">
+              <div class="flex-1">
+                <span class="font-semibold text-gray-900">{{ plan.name }}</span>
+                <span class="ml-3 text-sm text-gray-600">进度: {{ plan.stats.progress }}%</span>
+              </div>
+              <NuxtLink
+                :to="`/study-plans/${plan.id}`"
+                class="text-blue-600 hover:text-blue-700 text-sm font-semibold"
+              >
+                查看详情 →
+              </NuxtLink>
+            </div>
+          </div>
+          <NuxtLink
+            v-if="existingPlans.length > 3"
+            to="/study-plans"
+            class="inline-block mt-3 text-blue-600 hover:text-blue-700 text-sm font-semibold"
+          >
+            查看全部 {{ existingPlans.length }} 个计划 →
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
 
     <div class="bg-white rounded-xl shadow-md p-8">
       <h2 class="text-2xl font-bold mb-6">创建个性化学习计划</h2>
@@ -146,6 +190,12 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'exam',
+  middleware: ['exam-access' as any]
+})
+
+
 const authStore = useAuthStore()
 const examStore = useExamStore()
 
@@ -158,9 +208,17 @@ const { data: categories, refresh } = await useFetch('/api/categories', {
   query: computed(() => ({ examType: currentExamType.value }))
 })
 
+// 获取已有的学习计划
+const { data: existingPlans, refresh: refreshPlans } = await useFetch('/api/study-plans', {
+  key: () => `existing-study-plans-${currentExamType.value}`,
+  query: computed(() => ({ examType: currentExamType.value })),
+  headers: computed(() => authStore.getAuthHeader())
+})
+
 // 当考试类型改变时，重新获取数据
 watch(currentExamType, () => {
   refresh()
+  refreshPlans()
 })
 
 const planForm = ref({
@@ -193,16 +251,25 @@ const createPlan = async () => {
   creating.value = true
 
   try {
-    const plan = await $fetch('/api/study-plans', {
+    const headers = authStore.getAuthHeader()
+    const requestOptions: any = {
       method: 'POST',
-      headers: authStore.getAuthHeader(),
       body: {
         examType: currentExamType.value,
         ...planForm.value
       }
-    })
+    }
+
+    if (headers.Authorization) {
+      requestOptions.headers = { Authorization: headers.Authorization }
+    }
+
+    const plan: any = await $fetch('/api/study-plans', requestOptions)
 
     alert(`学习计划创建成功！\n\n计划名称：${plan.name}\n总题数：${plan.stats.totalQuestions}\n学习天数：${plan.stats.totalDays}\n每天题数：${plan.stats.questionsPerDay}`)
+
+    // 刷新已有计划列表
+    await refreshPlans()
 
     // 跳转到学习计划列表页面
     navigateTo('/study-plans')

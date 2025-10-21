@@ -108,19 +108,56 @@
 
 <script setup lang="ts">
 const examStore = useExamStore()
+const authStore = useAuthStore()
 const route = useRoute()
+const router = useRouter()
 const categoryId = route.query.category as string
+const mode = route.query.mode as string // 'wrong-questions' 或 undefined
 
 // 创建响应式引用来避免 Pinia store 序列化问题
 const currentExamType = computed(() => examStore.currentExamType)
 
-// 获取题目（根据当前选择的考试类型）
-const { data: questions, pending } = await useFetch(`/api/questions`, {
-  key: () => `questions-${categoryId}-${currentExamType.value}`,
-  query: computed(() => ({
-    categoryId,
-    examType: currentExamType.value
-  }))
+// 根据模式获取题目
+const questions = ref([])
+const pending = ref(true)
+
+onMounted(async () => {
+  pending.value = true
+  try {
+    if (mode === 'wrong-questions') {
+      // 错题练习模式：从错题本获取题目
+      console.log('[练习] 错题练习模式')
+      const response = await $fetch('/api/wrong-questions/list', {
+        headers: authStore.getAuthHeader(),
+        params: {
+          examType: currentExamType.value,
+          page: 1,
+          pageSize: 1000 // 获取所有错题
+        }
+      })
+
+      if (response.success) {
+        // 提取题目对象
+        questions.value = response.data.map((wq: any) => wq.question)
+        console.log('[练习] 加载了', questions.value.length, '道错题')
+      }
+    } else {
+      // 普通练习模式：从分类获取题目
+      console.log('[练习] 普通练习模式, categoryId:', categoryId)
+      const response = await $fetch('/api/questions', {
+        params: {
+          categoryId,
+          examType: currentExamType.value
+        }
+      })
+      questions.value = response || []
+      console.log('[练习] 加载了', questions.value.length, '道题目')
+    }
+  } catch (error) {
+    console.error('加载题目失败:', error)
+  } finally {
+    pending.value = false
+  }
 })
 
 const currentQuestionIndex = ref(0)

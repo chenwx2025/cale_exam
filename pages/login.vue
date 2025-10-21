@@ -133,8 +133,8 @@ const handleLogin = async () => {
   const result = await authStore.login(email.value, password.value)
 
   if (result.success) {
-    // 登录成功，跳转到首页
-    router.push('/')
+    // 登录成功，跳转到考试选择页面
+    router.push('/select-exam')
   } else {
     errorMessage.value = result.message || '登录失败，请重试'
   }
@@ -142,10 +142,10 @@ const handleLogin = async () => {
   loading.value = false
 }
 
-// 如果已登录，直接跳转到首页
+// 如果已登录，直接跳转到考试选择页面
 onMounted(() => {
   if (authStore.isAuthenticated) {
-    router.push('/')
+    router.push('/select-exam')
   }
 })
 </script>

@@ -46,8 +46,10 @@ export default defineEventHandler(async (event: H3Event) => {
 
     // 将用户信息注入到 event context
     event.context.user = payload
-  } catch (error) {
+    console.log('[AUTH] Token验证成功:', { userId: payload.userId, path })
+  } catch (error: any) {
     // Token 无效或过期，清除 context
+    console.error('[AUTH] Token验证失败:', { path, error: error.message, tokenPreview: token?.substring(0, 20) })
     event.context.user = null
   }
 })

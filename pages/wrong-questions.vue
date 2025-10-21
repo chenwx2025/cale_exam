@@ -3,12 +3,9 @@
     <div class="max-w-7xl mx-auto">
       <!-- 页面标题 -->
       <div class="mb-8">
-        <h1 class="text-4xl font-bold text-gray-900 mb-2">📚 我的错题本</h1>
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">📚 {{ examStore.currentExam.name }} - 我的错题本</h1>
         <p class="text-gray-600">复习错题，巩固知识，提升考试通过率</p>
       </div>
-
-      <!-- 考试选择器 -->
-      <ExamSelector :showDescription="false" class="mb-6" />
 
       <!-- 统计卡片 -->
       <div class="grid md:grid-cols-4 gap-4 mb-8">
@@ -205,6 +202,12 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'exam',
+  middleware: ['exam-access' as any]
+})
+
+
 import { ref, onMounted, computed } from 'vue'
 import { useExamStore } from '~/stores/exam'
 import { useAuthStore } from '~/stores/auth'
@@ -237,7 +240,7 @@ const loadWrongQuestions = async () => {
   loading.value = true
   try {
     const params: any = {
-      examType: examStore.currentExam,
+      examType: examStore.currentExamType, // 修复：使用 currentExamType 而不是 currentExam 对象
       page: pagination.value.page,
       pageSize: pagination.value.pageSize
     }
@@ -245,6 +248,8 @@ const loadWrongQuestions = async () => {
     if (filterMastered.value !== 'all') {
       params.mastered = filterMastered.value
     }
+
+    console.log('[错题本] 请求参数:', params)
 
     const response = await $fetch('/api/wrong-questions/list', {
       method: 'GET',

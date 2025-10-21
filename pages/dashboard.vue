@@ -3,23 +3,23 @@
     <div class="max-w-7xl mx-auto px-4 py-8">
       <!-- Header with Exam Selector -->
       <div class="mb-8">
-        <div class="flex items-center justify-between mb-4">
+        <div class="mb-4 flex items-center justify-between">
           <div>
             <h1 class="text-3xl font-bold text-gray-900 mb-2">
               学习中心
             </h1>
-            <p class="text-gray-600">欢迎回来，{{ authStore.user?.name || '学员' }}！</p>
+            <p class="text-gray-600">
+              欢迎回来，<ClientOnly fallback="学员">{{ authStore.user?.name || '学员' }}</ClientOnly>！
+            </p>
           </div>
-
-          <!-- Change Exam Button -->
           <NuxtLink
             to="/select-exam"
-            class="flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all"
+            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm hover:shadow-md"
           >
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
-            <span class="font-semibold text-gray-700">切换考试</span>
+            <span class="font-medium">返回个人中心</span>
           </NuxtLink>
         </div>
 
@@ -222,7 +222,8 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'auth'
+  middleware: ['exam-access' as any],
+  layout: 'exam'
 })
 
 const authStore = useAuthStore()
@@ -245,10 +246,13 @@ onMounted(async () => {
     examStore.initExamType()
 
     try {
+      const headers = authStore.getAuthHeader()
       const response = await $fetch<{
         success: boolean
         data: Stats
-      }>(`/api/stats/exam-summary?examType=${examStore.currentExamType}`)
+      }>(`/api/stats/exam-summary?examType=${examStore.currentExamType}`, {
+        headers: headers.Authorization ? { Authorization: headers.Authorization } : {}
+      })
 
       if (response.success) {
         stats.value = response.data

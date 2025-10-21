@@ -12,28 +12,8 @@ export default defineNuxtConfig({
 
   // i18n Configuration (Phase 6 Sprint 2)
   i18n: {
-    locales: [
-      {
-        code: 'zh-CN',
-        name: '简体中文',
-        file: 'zh-CN.json'
-      },
-      {
-        code: 'en',
-        name: 'English',
-        file: 'en.json'
-      }
-    ],
-    lazy: true,
-    langDir: 'locales/',
-    defaultLocale: 'zh-CN',
-    strategy: 'no_prefix',
-    detectBrowserLanguage: {
-      useCookie: true,
-      cookieKey: 'i18n_locale',
-      redirectOn: 'root',
-      alwaysRedirect: false
-    }
+    locales: ['zh-CN', 'en'],
+    defaultLocale: 'zh-CN'
   },
 
   // Image Optimization (Phase 6 Sprint 3)
@@ -176,7 +156,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       appName: 'Cale 加州中医考试系统',
-      appUrl: process.env.APP_URL || 'http://localhost:3000'
+      appUrl: process.env.APP_URL || 'http://localhost:3001'
     }
   },
 
@@ -186,6 +166,7 @@ export default defineNuxtConfig({
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=5' },
         { name: 'theme-color', content: '#667eea' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         { name: 'apple-mobile-web-app-title', content: 'CALE考试' },

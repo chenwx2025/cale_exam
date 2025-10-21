@@ -1,8 +1,5 @@
 <template>
   <div>
-    <!-- 考试选择器 -->
-    <ExamSelector :showDescription="false" class="mb-6" />
-
     <h1 class="text-3xl font-bold mb-6">{{ examStore.currentExam.name }} 考试大纲</h1>
 
     <!-- 考试概览卡片 -->
@@ -986,6 +983,11 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'exam',
+  middleware: ['exam-access' as any]
+})
+
 const examStore = useExamStore()
 const activeTab = ref('content') // 默认显示内容部分
 const expandedCategories = ref(new Set<string>())

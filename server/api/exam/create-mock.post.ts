@@ -1,104 +1,82 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '../../utils/prisma'
 import { requireAuth } from '../../utils/auth-helpers'
+import { ExamConfigFactory } from '../../exam-configs'
+import type { ExamType } from '../../../types/exam-configs'
 
-const prisma = new PrismaClient()
-
-// CALE官方考试配置
-const CALE_MOCK_EXAM_CONFIG = {
-  totalQuestions: 200,  // CALE考试总题数：200道
-  duration: 300,        // 考试时长：300分钟 (5小时)
-  domainDistribution: {
-    // 官方Domain占比 (基于CALE Examination Bulletin)
-    'DOMAIN_1_ASSESSMENT': 27,      // Domain 1: Patient Assessment (27%)
-    'DOMAIN_2_DIAGNOSIS': 17,       // Domain 2: Diagnosis & Treatment Planning (17%)
-    // Domain 3 (32%) 分为4个子域
-    'DOMAIN_3A_ACU_SELECTION': 16,  // Domain 3A: Point Selection (约一半)
-    'DOMAIN_3B_ACU_TECHNIQUE': 8,   // Domain 3B: Needling Technique (约1/4)
-    'DOMAIN_3C_ADJUNCTIVE': 5,      // Domain 3C: Adjunctive Therapies (约15%)
-    'DOMAIN_3D_HERBAL': 15,         // Domain 4: Herbal Therapy (15%)
-    'DOMAIN_4_PROFESSIONAL': 11     // Domain 5: Professional Development (11%)
-  }
-}
-
+/**
+ * 创建模拟考试 API (使用新的配置架构)
+ *
+ * POST /api/exam/create-mock
+ * Body: { examType?: 'cale' | 'nccaom' }
+ *
+ * 如果不提供 examType，默认使用用户当前选择的考试类型
+ */
 export default defineEventHandler(async (event) => {
   try {
-    // 从认证中间件获取当前用户
+    // 认证检查
     const currentUser = requireAuth(event)
 
-    const config = CALE_MOCK_EXAM_CONFIG
-    const selectedQuestionIds: string[] = []
-    const domainBreakdown: Record<string, number> = {}
+    // 获取请求参数
+    const body = await readBody(event)
 
-    // 按Domain占比从题库中抽取题目
-    for (const [domainCode, percentage] of Object.entries(config.domainDistribution)) {
-      const questionCount = Math.round((percentage / 100) * config.totalQuestions)
+    // 从请求体或 query 参数获取考试类型
+    let examType = (body.examType || getQuery(event).examType || 'cale') as ExamType
 
-      // 获取该Domain的分类ID
-      const category = await prisma.category.findFirst({
-        where: {
-          code: domainCode,
-          examType: 'cale'
-        }
+    // 验证考试类型
+    if (!ExamConfigFactory.isSupported(examType)) {
+      throw createError({
+        statusCode: 400,
+        message: `不支持的考试类型: ${examType}。支持的类型: ${ExamConfigFactory.getSupportedExamTypes().join(', ')}`
       })
-
-      if (!category) {
-        console.warn(`Category not found for domain: ${domainCode}`)
-        continue
-      }
-
-      // 获取该Domain的所有可用题目
-      const availableQuestions = await prisma.question.findMany({
-        where: {
-          examType: 'cale',
-          categoryId: category.id
-        },
-        select: {
-          id: true
-        }
-      })
-
-      if (availableQuestions.length < questionCount) {
-        throw createError({
-          statusCode: 400,
-          message: `${domainCode} 题目不足：需要 ${questionCount} 道，但只有 ${availableQuestions.length} 道`
-        })
-      }
-
-      // 随机抽取题目
-      const shuffled = availableQuestions.sort(() => 0.5 - Math.random())
-      const selected = shuffled.slice(0, questionCount)
-
-      selectedQuestionIds.push(...selected.map(q => q.id))
-      domainBreakdown[domainCode] = questionCount
     }
 
-    // 验证总题数
-    if (selectedQuestionIds.length !== config.totalQuestions) {
-      console.warn(`Total questions mismatch: expected ${config.totalQuestions}, got ${selectedQuestionIds.length}`)
+    console.log(`[CREATE-MOCK] Creating ${examType.toUpperCase()} mock exam for user ${currentUser.userId}`)
+
+    // 获取该考试类型的配置
+    const examConfig = ExamConfigFactory.getConfig(examType)
+
+    // 使用配置生成题目
+    const { questionIds, breakdown } = await examConfig.questionGenerator.generateQuestions(
+      examConfig.mockExamConfig
+    )
+
+    // 验证题目数量
+    if (questionIds.length !== examConfig.mockExamConfig.totalQuestions) {
+      console.warn(
+        `[${examType.toUpperCase()}] Total questions mismatch: ` +
+        `expected ${examConfig.mockExamConfig.totalQuestions}, got ${questionIds.length}`
+      )
     }
 
-    // 获取当前日期用于标题
+    // 生成考试标题
     const dateStr = new Date().toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
     })
 
-    // 创建模拟考试 - 使用认证用户的 ID
+    const examNames: Record<ExamType, string> = {
+      cale: 'CALE 全真模拟考试',
+      nccaom: 'NCCAOM 全真模拟考试'
+    }
+
+    const examTitle = `${examNames[examType]} - ${dateStr}`
+
+    // 创建模拟考试
     const exam = await prisma.exam.create({
       data: {
         userId: currentUser.userId,
-        examType: 'cale',
-        title: `CALE 全真模拟考试 - ${dateStr}`,
-        mode: 'mock',  // 标记为模拟考试
+        examType,
+        title: examTitle,
+        mode: 'mock',
         generatedBy: 'system',
-        questionCount: selectedQuestionIds.length,
-        duration: config.duration,
+        questionCount: questionIds.length,
+        duration: examConfig.mockExamConfig.duration,
         difficulty: 'mixed',
         status: 'not_started',
-        totalScore: selectedQuestionIds.length,
+        totalScore: questionIds.length,
         answers: {
-          create: selectedQuestionIds.map((questionId) => ({
+          create: questionIds.map((questionId) => ({
             questionId
           }))
         }
@@ -116,18 +94,23 @@ export default defineEventHandler(async (event) => {
       }
     })
 
+    console.log(`[CREATE-MOCK] Successfully created exam ${exam.id} with ${questionIds.length} questions`)
+
     return {
       success: true,
       examId: exam.id,
-      message: '模拟考试创建成功',
+      message: `${examType.toUpperCase()} 模拟考试创建成功`,
       config: {
-        totalQuestions: config.totalQuestions,
-        duration: config.duration,
-        domainBreakdown
+        examType,
+        totalQuestions: examConfig.mockExamConfig.totalQuestions,
+        duration: examConfig.mockExamConfig.duration,
+        passingScore: examConfig.mockExamConfig.passingScore,
+        breakdown,
+        metadata: examConfig.mockExamConfig.metadata
       }
     }
   } catch (error: any) {
-    console.error('Create mock exam error:', error)
+    console.error('[CREATE-MOCK] Error:', error)
 
     if (error.statusCode) {
       throw error

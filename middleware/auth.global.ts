@@ -39,7 +39,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
   // 考试类型订阅检查
   const examType = (to.query.examType || to.params.examType) as string
   if (examType && !authStore.canAccessExam(examType)) {
-    // 未订阅该考试类型，跳转到订阅页面
-    return navigateTo(`/subscribe?exam=${examType}`)
+    // 未订阅该考试类型，跳转到考试选择页面
+    return navigateTo('/select-exam')
   }
 })

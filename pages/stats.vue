@@ -17,9 +17,6 @@
         </button>
       </div>
 
-      <!-- 考试选择器 -->
-      <ExamSelector :showDescription="false" class="mb-6" />
-
       <div v-if="loading" class="text-center py-12">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         <p class="mt-4 text-gray-600">加载中...</p>
@@ -194,6 +191,12 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'exam',
+  middleware: ['exam-access' as any]
+})
+
+
 import { ref, onMounted, computed } from 'vue'
 import { useExamStore } from '~/stores/exam'
 import { useAuthStore } from '~/stores/auth'
@@ -240,16 +243,28 @@ const weakestCategory = computed(() => {
 const loadStats = async () => {
   loading.value = true
   try {
+    console.log('[统计页面] 加载统计数据, examType:', examStore.currentExamType)
+
     const response = await $fetch('/api/stats/overview', {
       method: 'GET',
       headers: authStore.getAuthHeader(),
       params: {
-        examType: examStore.currentExam
+        examType: examStore.currentExamType  // 修复：使用 currentExamType 字符串而不是 currentExam 对象
       }
     })
 
+    console.log('[统计页面] 收到响应:', response)
+
     if (response.success) {
       stats.value = response.data
+      console.log('[统计页面] 统计数据加载成功:', {
+        totalQuestions: response.data.practice.totalQuestions,
+        accuracy: response.data.practice.accuracy,
+        wrongQuestions: response.data.wrongQuestions.total,
+        完整数据: response.data
+      })
+    } else {
+      console.error('[统计页面] 响应不成功:', response)
     }
   } catch (error) {
     console.error('加载统计数据失败:', error)
@@ -312,7 +327,7 @@ const shareAchievement = async () => {
           { label: '答对题数', value: stats.value.practice.correctAnswers },
           { label: '正确率', value: `${stats.value.practice.accuracy}%` }
         ],
-        examType: examStore.currentExam,
+        examType: examStore.currentExamType,  // 修复：使用 currentExamType 字符串
         isPublic: true
       }
     })

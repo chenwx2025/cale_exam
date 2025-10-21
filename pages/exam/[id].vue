@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="p-6">
     <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center min-h-screen">
+    <div v-if="loading" class="flex items-center justify-center min-h-[400px]">
       <div class="text-center">
         <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -13,8 +13,8 @@
 
     <!-- Exam Interface -->
     <div v-else-if="exam">
-      <!-- Header with Timer -->
-      <div class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <!-- Exam Info Bar with Timer (替代顶部 header) -->
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
         <div class="max-w-7xl mx-auto px-4 py-4">
           <div class="flex items-center justify-between">
             <div>
@@ -237,6 +237,11 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: ['exam-access' as any],
+  layout: 'exam'
+})
+
 const route = useRoute()
 const router = useRouter()
 const examId = route.params.id as string
@@ -376,11 +381,13 @@ const submitExam = async () => {
       }
     })
 
-    // Navigate to results page
-    router.push(`/exam/result/${examId}`)
+    // Wait a moment to ensure database transaction is complete
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Navigate to results page with full page refresh
+    await navigateTo(`/exam/result/${examId}`)
   } catch (error: any) {
     alert('提交失败: ' + (error.data?.message || error.message))
-  } finally {
     submitting.value = false
     showSubmitConfirm.value = false
   }

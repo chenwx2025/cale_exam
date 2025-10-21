@@ -3,12 +3,9 @@
     <div class="max-w-7xl mx-auto px-4">
       <!-- 页面标题 -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">已做题目</h1>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ examStore.currentExam.name }} - 已做题目</h1>
         <p class="text-gray-600">复习您做过的所有题目</p>
       </div>
-
-      <!-- 考试选择器 -->
-      <ExamSelector @exam-change="handleExamChange" />
 
       <!-- 统计卡片 -->
       <div v-if="stats" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -205,12 +202,13 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'auth'
+  layout: 'exam',
+  middleware: ['exam-access' as any]
 })
 
 // 状态
 const authStore = useAuthStore()
-const selectedExamType = ref('cale')
+const examStore = useExamStore()
 const selectedFilter = ref('all')
 const loading = ref(false)
 const questions = ref<any[]>([])
@@ -231,12 +229,12 @@ const loadQuestions = async () => {
   try {
     const response = await $fetch('/api/questions/practiced', {
       params: {
-        examType: selectedExamType.value,
+        examType: examStore.currentExamType,
         page: currentPage.value,
         limit: 20,
         filter: selectedFilter.value
       },
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader() as Record<string, string>
     })
 
     if (response.success) {
@@ -249,13 +247,6 @@ const loadQuestions = async () => {
   } finally {
     loading.value = false
   }
-}
-
-// 处理考试类型变化
-const handleExamChange = (examInfo: any) => {
-  selectedExamType.value = examInfo.type
-  currentPage.value = 1
-  loadQuestions()
 }
 
 // 换页

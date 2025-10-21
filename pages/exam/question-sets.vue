@@ -8,12 +8,59 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
           </svg>
         </div>
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">题目集列表</h1>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ examStore.currentExam.name }} - 题目集列表</h1>
         <p class="text-gray-600">选择已生成的题目集或创建新的考试</p>
       </div>
 
-      <!-- Exam Type Selector -->
-      <ExamSelector :showDescription="true" class="mb-8" />
+      <!-- Tabs -->
+      <div class="mb-6 bg-white rounded-xl shadow-md border border-gray-200 p-2">
+        <div class="flex gap-2">
+          <button
+            @click="activeTab = 'all'"
+            :class="[
+              'flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200',
+              activeTab === 'all'
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-50'
+            ]"
+          >
+            全部
+          </button>
+          <button
+            @click="activeTab = 'mock'"
+            :class="[
+              'flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200',
+              activeTab === 'mock'
+                ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-50'
+            ]"
+          >
+            全真模拟
+          </button>
+          <button
+            @click="activeTab = 'manual'"
+            :class="[
+              'flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200',
+              activeTab === 'manual'
+                ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-50'
+            ]"
+          >
+            我的考试
+          </button>
+          <button
+            @click="activeTab = 'completed'"
+            :class="[
+              'flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200',
+              activeTab === 'completed'
+                ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-50'
+            ]"
+          >
+            已完成
+          </button>
+        </div>
+      </div>
 
       <!-- Action Buttons -->
       <div class="flex gap-4 mb-8">
@@ -63,9 +110,9 @@
       </div>
 
       <!-- Question Sets List -->
-      <div v-else-if="questionSets.length > 0" class="space-y-4">
+      <div v-else-if="filteredQuestionSets.length > 0" class="space-y-4">
         <div
-          v-for="set in questionSets"
+          v-for="set in filteredQuestionSets"
           :key="set.id"
           class="bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 overflow-hidden"
           :class="{ 'ring-2 ring-blue-500': selectedIds.includes(set.id) }"
@@ -98,10 +145,16 @@
                       全真模拟
                     </span>
                     <span
-                      v-else
+                      v-else-if="set.mode"
                       class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full"
                     >
                       手动配置
+                    </span>
+                    <span
+                      v-if="set.status === 'completed'"
+                      class="px-3 py-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs font-semibold rounded-full"
+                    >
+                      ✓ 已完成
                     </span>
                   </div>
                   <p class="text-sm text-gray-500">
@@ -207,14 +260,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+definePageMeta({
+  middleware: ['exam-access' as any],
+  layout: 'exam'
+})
+
+
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useExamStore } from '~/stores/exam'
 import { useAuthStore } from '~/stores/auth'
+import { useDialog } from '~/composables/useDialog'
 
 const router = useRouter()
 const examStore = useExamStore()
 const authStore = useAuthStore()
+const dialog = useDialog()
 
 interface QuestionSet {
   id: string
@@ -237,21 +298,54 @@ const questionSets = ref<QuestionSet[]>([])
 const loading = ref(true)
 const selectedIds = ref<string[]>([])
 const deleting = ref(false)
+const activeTab = ref<'all' | 'ai_generated' | 'mock' | 'manual' | 'completed'>('all')
+
+// 筛选后的题目集
+const filteredQuestionSets = computed(() => {
+  if (activeTab.value === 'all') {
+    return questionSets.value
+  }
+  if (activeTab.value === 'completed') {
+    return questionSets.value.filter(set => set.status === 'completed')
+  }
+  return questionSets.value.filter(set => set.mode === activeTab.value)
+})
 
 const fetchQuestionSets = async () => {
   try {
     loading.value = true
-    const response = await $fetch('/api/question-sets/list', {
+    const headers = authStore.getAuthHeader()
+    const requestOptions: any = {
       method: 'GET',
-      headers: authStore.getAuthHeader(),
       query: {
         examType: examStore.currentExamType
       }
-    })
+    }
+
+    if (headers.Authorization) {
+      requestOptions.headers = { Authorization: headers.Authorization }
+    }
+
+    const response = await $fetch('/api/question-sets/list', requestOptions)
     questionSets.value = response.questionSets
   } catch (error: any) {
     console.error('Failed to fetch question sets:', error)
-    alert('获取题目集列表失败: ' + (error.data?.message || error.message))
+
+    // 检查是否是认证错误
+    if (error.statusCode === 401) {
+      await dialog.alert({
+        message: '您的登录已过期，请重新登录',
+        type: 'warning',
+        title: '需要登录'
+      })
+      router.push('/login')
+    } else {
+      await dialog.alert({
+        message: '获取题目集列表失败: ' + (error.data?.message || error.message),
+        type: 'error',
+        title: '加载失败'
+      })
+    }
   } finally {
     loading.value = false
   }
@@ -285,9 +379,17 @@ const clearSelection = () => {
   selectedIds.value = []
 }
 
-const confirmBatchDelete = () => {
+const confirmBatchDelete = async () => {
   const count = selectedIds.value.length
-  if (confirm(`确定要删除选中的 ${count} 个题目集吗？\n\n此操作不可恢复，所有相关的答题记录也会被删除。`)) {
+  const confirmed = await dialog.confirm({
+    message: `确定要删除选中的 ${count} 个题目集吗？\n\n此操作不可恢复，所有相关的答题记录也会被删除。`,
+    type: 'danger',
+    title: '批量删除确认',
+    confirmText: '删除',
+    cancelText: '取消'
+  })
+
+  if (confirmed) {
     batchDelete()
   }
 }
@@ -295,24 +397,61 @@ const confirmBatchDelete = () => {
 const batchDelete = async () => {
   try {
     deleting.value = true
-    const response = await $fetch('/api/question-sets/delete', {
+    const headers = authStore.getAuthHeader()
+    const requestOptions: any = {
       method: 'POST',
-      headers: authStore.getAuthHeader(),
       body: {
         examIds: selectedIds.value
       }
-    })
+    }
 
-    if (response.success) {
-      alert(response.message)
+    if (headers.Authorization) {
+      requestOptions.headers = { Authorization: headers.Authorization }
+    }
+
+    const response: any = await $fetch('/api/question-sets/delete', requestOptions)
+
+    await dialog.alert({
+      message: response.message,
+      type: 'success',
+      title: '删除成功'
+    })
+    selectedIds.value = []
+    await fetchQuestionSets()
+  } catch (error: any) {
+    console.error('Delete error:', error)
+
+    // 检查错误状态码
+    if (error.statusCode === 401) {
+      await dialog.alert({
+        message: '您的登录已过期，请重新登录后再试',
+        type: 'warning',
+        title: '需要登录'
+      })
+      // 跳转到登录页
+      router.push('/login')
+    } else if (error.statusCode === 403) {
+      await dialog.alert({
+        message: '您无权删除这些考试\n\n可能原因：\n1. 这些考试不属于您的账号\n2. 请确认您已登录正确的账号',
+        type: 'error',
+        title: '删除失败'
+      })
+    } else if (error.statusCode === 404) {
+      await dialog.alert({
+        message: '找不到要删除的考试（可能已被删除）\n\n页面将自动刷新...',
+        type: 'warning',
+        title: '考试不存在'
+      })
+      // 刷新列表
       selectedIds.value = []
       await fetchQuestionSets()
     } else {
-      alert('删除失败: ' + response.message)
+      await dialog.alert({
+        message: '删除失败: ' + (error.data?.message || error.message || '未知错误'),
+        type: 'error',
+        title: '删除失败'
+      })
     }
-  } catch (error: any) {
-    console.error('Delete error:', error)
-    alert('删除失败: ' + (error.data?.message || error.message))
   } finally {
     deleting.value = false
   }

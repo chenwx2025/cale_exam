@@ -183,7 +183,17 @@
                   <p class="text-sm text-gray-600">订阅时间: {{ new Date(sub.subscribedAt).toLocaleDateString('zh-CN') }}</p>
                 </div>
               </div>
-              <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">已订阅</span>
+              <div class="flex items-center gap-2">
+                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">已订阅</span>
+                <button
+                  @click="unsubscribeExam(sub.examType)"
+                  :disabled="subscribing"
+                  class="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  title="退订该考试"
+                >
+                  退订
+                </button>
+              </div>
             </div>
           </div>
 
@@ -519,9 +529,14 @@ const subscribeExam = async (examType: string) => {
       // Refresh profile to show new subscription
       await fetchProfile()
 
-      // Update auth store
+      // Update auth store - add to subscribedExams array
       if (authStore.user && !authStore.user.subscribedExams.includes(examType)) {
         authStore.user.subscribedExams.push(examType)
+
+        // Update localStorage to persist the change
+        if (process.client) {
+          localStorage.setItem('user', JSON.stringify(authStore.user))
+        }
       }
 
       setTimeout(() => {
@@ -531,6 +546,57 @@ const subscribeExam = async (examType: string) => {
   } catch (error: any) {
     console.error('Subscribe exam error:', error)
     subscriptionError.value = error.data?.message || '订阅失败，请稍后重试'
+  } finally {
+    subscribing.value = false
+  }
+}
+
+// Unsubscribe from exam
+const unsubscribeExam = async (examType: string) => {
+  // 确认退订
+  if (!confirm(`确定要退订 ${examType.toUpperCase()} 考试吗？`)) {
+    return
+  }
+
+  subscribing.value = true
+  subscriptionError.value = ''
+  subscriptionSuccess.value = ''
+
+  try {
+    const response = await $fetch('/api/user/unsubscribe-exam', {
+      method: 'POST',
+      headers: authStore.getAuthHeader(),
+      body: { examType }
+    })
+
+    if (response.success) {
+      subscriptionSuccess.value = `已退订 ${examType.toUpperCase()} 考试`
+
+      // Refresh profile to update subscriptions
+      await fetchProfile()
+
+      // Update auth store - remove from subscribedExams array
+      if (authStore.user && authStore.user.subscribedExams) {
+        const updatedExams = authStore.user.subscribedExams.filter(
+          (e: string) => e !== examType
+        )
+        authStore.user.subscribedExams = updatedExams
+
+        // Update localStorage to persist the change
+        if (process.client) {
+          localStorage.setItem('user', JSON.stringify(authStore.user))
+        }
+      }
+
+      setTimeout(() => {
+        subscriptionSuccess.value = ''
+      }, 3000)
+    } else {
+      subscriptionError.value = response.message || '退订失败'
+    }
+  } catch (error: any) {
+    console.error('Unsubscribe exam error:', error)
+    subscriptionError.value = error.data?.message || '退订失败，请稍后重试'
   } finally {
     subscribing.value = false
   }

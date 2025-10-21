@@ -19,16 +19,16 @@ export default defineEventHandler(async (event) => {
     // 获取学习计划数量
     const studyPlans = await prisma.studyPlan.count({
       where: {
-        userId: user.id,
+        userId: user.userId,
         examType,
         isActive: true
       }
     })
 
     // 获取已完成的考试数量
-    const exams = await prisma.examSession.count({
+    const exams = await prisma.exam.count({
       where: {
-        userId: user.id,
+        userId: user.userId,
         examType,
         status: 'completed'
       }
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     // 获取错题数量
     const wrongQuestions = await prisma.wrongQuestion.count({
       where: {
-        userId: user.id,
+        userId: user.userId,
         question: {
           examType
         }

@@ -4,11 +4,11 @@ interface User {
   id: string
   email: string
   name: string
-  nickname?: string
-  avatar?: string
+  nickname?: string | null
+  avatar?: string | null
   role: string
   subscribedExams: string[]
-  emailVerified: boolean
+  emailVerified?: boolean
 }
 
 interface AuthState {
@@ -25,6 +25,26 @@ export const useAuthStore = defineStore('auth', {
     refreshToken: null,
     loading: false
   }),
+
+  // 禁用 SSR 水合以避免序列化问题
+  hydrate(state) {
+    // 不从服务端水合，只在客户端初始化
+    if (import.meta.client) {
+      const accessToken = localStorage.getItem('accessToken')
+      const refreshToken = localStorage.getItem('refreshToken')
+      const userStr = localStorage.getItem('user')
+
+      if (accessToken && refreshToken && userStr) {
+        state.accessToken = accessToken
+        state.refreshToken = refreshToken
+        try {
+          state.user = JSON.parse(userStr)
+        } catch (error) {
+          console.error('Failed to parse user data:', error)
+        }
+      }
+    }
+  },
 
   getters: {
     isAuthenticated: (state) => !!state.accessToken && !!state.user,
@@ -46,7 +66,7 @@ export const useAuthStore = defineStore('auth', {
      * 初始化 - 从 localStorage 恢复登录状态
      */
     async init() {
-      if (process.client) {
+      if (import.meta.client) {
         const accessToken = localStorage.getItem('accessToken')
         const refreshToken = localStorage.getItem('refreshToken')
         const userStr = localStorage.getItem('user')
@@ -148,7 +168,7 @@ export const useAuthStore = defineStore('auth', {
           this.accessToken = response.accessToken
           this.refreshToken = response.refreshToken
 
-          if (process.client) {
+          if (import.meta.client) {
             localStorage.setItem('accessToken', response.accessToken)
             localStorage.setItem('refreshToken', response.refreshToken)
           }
@@ -187,10 +207,45 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = null
       this.refreshToken = null
 
-      if (process.client) {
+      if (import.meta.client) {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user')
+      }
+    },
+
+    /**
+     * 从服务器获取最新的用户信息
+     */
+    async fetchUserInfo() {
+      if (!this.accessToken) {
+        return false
+      }
+
+      try {
+        const response = await $fetch('/api/user/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`
+          }
+        })
+
+        if (response.success && response.user) {
+          // 更新用户信息
+          this.user = response.user
+
+          // 同步到 localStorage
+          if (import.meta.client) {
+            localStorage.setItem('user', JSON.stringify(response.user))
+          }
+
+          return true
+        }
+
+        return false
+      } catch (error) {
+        console.error('Fetch user info failed:', error)
+        return false
       }
     },
 
@@ -202,7 +257,7 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = refreshToken
       this.user = user
 
-      if (process.client) {
+      if (import.meta.client) {
         localStorage.setItem('accessToken', accessToken)
         localStorage.setItem('refreshToken', refreshToken)
         localStorage.setItem('user', JSON.stringify(user))

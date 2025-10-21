@@ -1,11 +1,10 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '../../utils/prisma'
 import { requireAuth } from '../../utils/auth-helpers'
-
-const prisma = new PrismaClient()
 
 /**
  * 获取用户已做过的题目列表
  * 用于"已做题目"功能
+ * 从 ExamAnswer 表获取考试答题记录
  */
 export default defineEventHandler(async (event) => {
   // 验证用户身份
@@ -19,20 +18,33 @@ export default defineEventHandler(async (event) => {
     const categoryId = query.categoryId ? String(query.categoryId) : undefined
     const filterType = String(query.filter || 'all') // all, correct, wrong
 
+    console.log('[PRACTICED] 获取已做题目:', {
+      userId: user.userId,
+      examType,
+      filterType,
+      page,
+      limit
+    })
+
     // 计算分页偏移量
     const skip = (page - 1) * limit
 
-    // 构建查询条件
+    // 构建查询条件 - 从 ExamAnswer 表查询（通过 exam 关联 userId）
     const whereConditions: any = {
-      userId: user.id,
-      question: {
+      exam: {
+        userId: user.userId,
         examType
+      },
+      userAnswer: {
+        not: null // 只获取已回答的题目
       }
     }
 
     // 如果指定了分类
     if (categoryId) {
-      whereConditions.question.categoryId = categoryId
+      whereConditions.question = {
+        categoryId
+      }
     }
 
     // 如果指定了过滤类型
@@ -42,48 +54,66 @@ export default defineEventHandler(async (event) => {
       whereConditions.isCorrect = false
     }
 
-    // 获取用户答题记录（按最近答题时间排序）
+    // 获取用户答题记录（按最近答题时间排序）- 从 ExamAnswer 表
     const [answers, total] = await Promise.all([
-      prisma.userAnswer.findMany({
+      prisma.examAnswer.findMany({
         where: whereConditions,
         include: {
           question: {
             include: {
               category: true
             }
-          }
+          },
+          exam: true // 包含考试信息
         },
         orderBy: {
           createdAt: 'desc'
         },
         skip,
-        take: limit,
-        distinct: ['questionId'] // 去重，每道题只显示最近的一次答题记录
+        take: limit
       }),
-      prisma.userAnswer.groupBy({
-        by: ['questionId'],
+      prisma.examAnswer.count({
         where: whereConditions
-      }).then(result => result.length) // 计算去重后的总数
+      })
     ])
 
     // 统计信息
     const stats = {
-      total,
-      correct: await prisma.userAnswer.groupBy({
+      total: await prisma.examAnswer.groupBy({
         by: ['questionId'],
         where: {
-          ...whereConditions,
+          exam: {
+            userId: user.userId,
+            examType
+          },
+          userAnswer: { not: null }
+        }
+      }).then(result => result.length),
+      correct: await prisma.examAnswer.groupBy({
+        by: ['questionId'],
+        where: {
+          exam: {
+            userId: user.userId,
+            examType
+          },
+          userAnswer: { not: null },
           isCorrect: true
         }
       }).then(result => result.length),
-      wrong: await prisma.userAnswer.groupBy({
+      wrong: await prisma.examAnswer.groupBy({
         by: ['questionId'],
         where: {
-          ...whereConditions,
+          exam: {
+            userId: user.userId,
+            examType
+          },
+          userAnswer: { not: null },
           isCorrect: false
         }
       }).then(result => result.length)
     }
+
+    console.log('[PRACTICED] 统计结果:', stats)
 
     // 格式化返回数据
     const questions = answers.map(answer => ({
@@ -92,7 +122,8 @@ export default defineEventHandler(async (event) => {
       userAnswer: answer.userAnswer,
       isCorrect: answer.isCorrect,
       answeredAt: answer.createdAt,
-      timeTaken: answer.timeTaken || 0
+      timeTaken: answer.timeSpent || 0,
+      examTitle: answer.exam?.title
     }))
 
     return {

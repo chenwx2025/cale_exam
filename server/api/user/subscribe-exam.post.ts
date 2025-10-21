@@ -29,16 +29,21 @@ export default defineEventHandler(async (event) => {
     if (existingSubscription) {
       // 如果已存在但未激活，则激活它
       if (!existingSubscription.isActive) {
-        await prisma.userExamSubscription.update({
+        const updatedSubscription = await prisma.userExamSubscription.update({
           where: { id: existingSubscription.id },
           data: { isActive: true }
         })
         return {
           success: true,
-          message: '订阅已重新激活'
+          message: '订阅已重新激活',
+          subscription: {
+            examType: updatedSubscription.examType,
+            subscribedAt: updatedSubscription.subscribedAt
+          }
         }
       }
 
+      // 如果已经是激活状态
       return {
         success: false,
         message: '您已订阅该考试类型'
