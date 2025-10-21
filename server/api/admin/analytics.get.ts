@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { requireAdmin } from '../../utils/admin-helpers'
+import { requireAdmin } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 

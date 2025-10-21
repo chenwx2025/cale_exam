@@ -1,4 +1,4 @@
-import { requireAdmin } from '../../../utils/admin-helpers'
+import { requireAdmin } from '../../../utils/auth-helpers'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
