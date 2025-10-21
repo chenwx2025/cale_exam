@@ -391,22 +391,270 @@ model PushSubscription {
 
 // 分享记录（Phase 5 Sprint 3）
 model Share {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   userId      String
-  shareType   String   // achievement（成就）、exam（考试成绩）、milestone（里程碑）
-  title       String   // 分享标题
-  description String?  // 分享描述
-  imageUrl    String?  // 分享卡片图片URL
-  content     String   // 分享内容（JSON格式）
-  isPublic    Boolean  @default(true) // 是否公开
-  viewCount   Int      @default(0) // 浏览次数
-  likeCount   Int      @default(0) // 点赞次数
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  expiresAt   DateTime? // 分享过期时间（可选）
+  shareType   String          // achievement（成就）、exam（考试成绩）、milestone（里程碑）
+  title       String          // 分享标题
+  description String?         // 分享描述
+  imageUrl    String?         // 分享卡片图片URL
+  content     String          // 分享内容（JSON格式）
+  isPublic    Boolean         @default(true) // 是否公开
+  viewCount   Int             @default(0) // 浏览次数
+  likeCount   Int             @default(0) // 点赞次数
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  expiresAt   DateTime?       // 分享过期时间（可选）
+  comments    ShareComment[]  // 评论
+  reactions   ShareReaction[] // 反应
 
   @@index([userId])
   @@index([shareType])
   @@index([isPublic])
   @@index([createdAt])
+}
+
+// 分享评论（Phase 6 Sprint 4）
+model ShareComment {
+  id        String   @id @default(cuid())
+  shareId   String
+  share     Share    @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([shareId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// 分享反应（Phase 6 Sprint 4）
+model ShareReaction {
+  id        String   @id @default(cuid())
+  shareId   String
+  share     Share    @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  userId    String
+  type      String   // like, love, celebrate, insightful
+  createdAt DateTime @default(now())
+
+  @@unique([shareId, userId])
+  @@index([shareId])
+  @@index([userId])
+}
+
+// 用户资料（Phase 6 Sprint 4）
+model UserProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  bio       String?  // 个人简介
+  location  String?  // 位置
+  website   String?  // 个人网站
+  timezone  String?  // 时区
+  studyGoal String?  // 学习目标
+  bannerUrl String?  // 横幅图片URL
+  isPublic  Boolean  @default(true) // 是否公开资料
+  showStats Boolean  @default(true) // 是否显示统计
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// 用户关注关系（Phase 6 Sprint 4）
+model UserFollow {
+  id          String   @id @default(cuid())
+  followerId  String   // 关注者ID
+  followingId String   // 被关注者ID
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// 学习小组（Phase 6 Sprint 4）
+model StudyGroup {
+  id          String             @id @default(cuid())
+  name        String             // 小组名称
+  description String?            // 小组描述
+  examType    String             // 考试类型: cale, nccaom
+  isPublic    Boolean            @default(true) // 是否公开
+  maxMembers  Int                @default(50) // 最大成员数
+  createdBy   String             // 创建者ID
+  avatarUrl   String?            // 小组头像
+  bannerUrl   String?            // 小组横幅
+  rules       String?            // 小组规则
+  tags        String?            // 标签（JSON）
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  members     StudyGroupMember[]
+  posts       StudyGroupPost[]
+  challenges  GroupChallenge[]
+
+  @@index([examType])
+  @@index([isPublic])
+  @@index([createdBy])
+  @@index([createdAt])
+}
+
+// 学习小组成员（Phase 6 Sprint 4）
+model StudyGroupMember {
+  id        String     @id @default(cuid())
+  groupId   String
+  group     StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId    String
+  role      String     @default("member") // member, moderator, admin
+  joinedAt  DateTime   @default(now())
+  isActive  Boolean    @default(true)
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@index([role])
+}
+
+// 小组帖子（Phase 6 Sprint 4）
+model StudyGroupPost {
+  id        String     @id @default(cuid())
+  groupId   String
+  group     StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId    String
+  content   String     // 帖子内容
+  type      String     @default("discussion") // discussion, question, announcement, resource
+  isPinned  Boolean    @default(false) // 是否置顶
+  likeCount Int        @default(0)
+  replyCount Int       @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([groupId])
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([isPinned])
+}
+
+// 小组挑战（Phase 6 Sprint 4）
+model GroupChallenge {
+  id          String     @id @default(cuid())
+  groupId     String
+  group       StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name        String     // 挑战名称
+  description String?    // 挑战描述
+  examType    String     // 考试类型
+  categoryId  String?    // 分类ID（可选）
+  targetType  String     // questions_count, study_time, exam_score, accuracy
+  targetValue Int        // 目标值
+  startDate   DateTime   // 开始日期
+  endDate     DateTime   // 结束日期
+  createdBy   String
+  createdAt   DateTime   @default(now())
+
+  @@index([groupId])
+  @@index([examType])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+// 成就定义（Phase 6 Sprint 4）
+model Achievement {
+  id              String            @id @default(cuid())
+  code            String            @unique // 成就代码（唯一标识）
+  name            String            // 成就名称
+  nameEn          String            // 英文名称
+  description     String            // 成就描述
+  descriptionEn   String            // 英文描述
+  category        String            // 分类: streak, questions, exams, accuracy, social, groups
+  icon            String            // 图标
+  rarity          String            @default("common") // 稀有度: common, rare, epic, legendary
+  points          Int               @default(0) // 奖励积分
+  criteria        String            // 达成条件（JSON）
+  order           Int               @default(0) // 显示顺序
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  userAchievements UserAchievement[]
+
+  @@index([category])
+  @@index([rarity])
+  @@index([isActive])
+}
+
+// 用户成就（Phase 6 Sprint 4）
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  progress      Int         @default(0) // 进度（0-100）
+  isUnlocked    Boolean     @default(false) // 是否已解锁
+  unlockedAt    DateTime?   // 解锁时间
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+  @@index([isUnlocked])
+}
+
+// 用户积分（Phase 6 Sprint 4）
+model UserPoints {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  totalPoints      Int      @default(0) // 总积分
+  currentRank      Int?     // 当前排名
+  previousRank     Int?     // 之前排名
+  weeklyPoints     Int      @default(0) // 本周积分
+  monthlyPoints    Int      @default(0) // 本月积分
+  questionsAnswered Int     @default(0) // 答题数
+  correctAnswers   Int      @default(0) // 正确答案数
+  studyTimeMinutes Int      @default(0) // 学习时长（分钟）
+  streakDays       Int      @default(0) // 连续学习天数
+  lastActivityAt   DateTime @default(now()) // 最后活动时间
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+  @@index([totalPoints])
+  @@index([currentRank])
+  @@index([weeklyPoints])
+  @@index([monthlyPoints])
+}
+
+// 排行榜缓存（Phase 6 Sprint 4）
+model LeaderboardEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String   // global, weekly, monthly, category_specific
+  examType  String?  // 考试类型（可选）
+  rank      Int      // 排名
+  score     Int      // 分数
+  metric    String   // 度量类型: points, study_time, questions, accuracy
+  period    String   // 时间段: daily, weekly, monthly, all_time
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, category, period])
+  @@index([category])
+  @@index([period])
+  @@index([rank])
+  @@index([examType])
+}
+
+// 用户活动（Phase 6 Sprint 4）
+model UserActivity {
+  id          String   @id @default(cuid())
+  userId      String
+  activityType String  // follow, achievement, exam_pass, group_join, share, milestone
+  targetType  String?  // user, group, achievement, exam, share
+  targetId    String?  // 目标ID
+  content     String?  // 活动内容（JSON）
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([activityType])
+  @@index([createdAt])
+  @@index([isPublic])
 }
