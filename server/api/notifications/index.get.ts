@@ -1,10 +1,11 @@
 import { PrismaClient } from '@prisma/client'
-import { getCurrentUser } from '../../utils/auth-helpers'
+import { requireAuth } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
-  const user = getCurrentUser(event)
+  // 要求用户必须登录
+  const user = requireAuth(event)
 
   try {
     const query = getQuery(event)
@@ -15,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
     // 构建查询条件
     const where: any = {
-      userId: user.userId
+      userId: user.id
     }
 
     if (type) {
@@ -39,7 +40,7 @@ export default defineEventHandler(async (event) => {
       prisma.notification.count({ where }),
       prisma.notification.count({
         where: {
-          userId: user.userId,
+          userId: user.id,
           isRead: false
         }
       })

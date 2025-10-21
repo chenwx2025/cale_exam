@@ -8,13 +8,23 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
-            <NuxtLink to="/" class="text-2xl font-bold text-blue-600">
+            <NuxtLink :to="authStore.isAuthenticated ? '/dashboard' : '/'" class="text-2xl font-bold text-blue-600">
               Cale 加州中医考试系统
             </NuxtLink>
           </div>
 
           <div class="flex items-center space-x-4">
             <NuxtLink
+              v-if="authStore.isAuthenticated"
+              to="/dashboard"
+              class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+              active-class="bg-blue-100 text-blue-700"
+            >
+              🏠 学习中心
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="authStore.isAuthenticated"
               to="/outline"
               class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
               active-class="bg-blue-100 text-blue-700"
@@ -22,47 +32,14 @@
               {{ $t('nav.outline') }}
             </NuxtLink>
 
-            <!-- 学习功能下拉菜单 -->
-            <div class="relative group">
-              <button class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1">
-                {{ $t('nav.learningCenter') }}
-                <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </button>
-              <div class="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                <NuxtLink
-                  to="/wrong-questions"
-                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-t-lg"
-                >
-                  📚 {{ $t('nav.wrongQuestions') }}
-                </NuxtLink>
-                <NuxtLink
-                  to="/study-plans"
-                  class="block px-4 py-3 hover:bg-blue-50 transition-colors"
-                >
-                  📅 {{ $t('nav.studyPlans') }}
-                </NuxtLink>
-                <NuxtLink
-                  to="/study-plan"
-                  class="block px-4 py-3 hover:bg-blue-50 transition-colors"
-                >
-                  ✏️ {{ $t('nav.createStudyPlan') }}
-                </NuxtLink>
-                <NuxtLink
-                  to="/stats"
-                  class="block px-4 py-3 hover:bg-blue-50 transition-colors"
-                >
-                  📊 {{ $t('nav.stats') }}
-                </NuxtLink>
-                <NuxtLink
-                  to="/ai/learning-path"
-                  class="block px-4 py-3 hover:bg-blue-50 transition-colors rounded-b-lg"
-                >
-                  🤖 {{ $t('nav.aiAssistant') }}
-                </NuxtLink>
-              </div>
-            </div>
+            <NuxtLink
+              v-if="authStore.isAuthenticated"
+              to="/stats"
+              class="px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+              active-class="bg-blue-100 text-blue-700"
+            >
+              📊 {{ $t('nav.stats') }}
+            </NuxtLink>
 
             <!-- 模拟考试下拉菜单 -->
             <div class="relative group">
