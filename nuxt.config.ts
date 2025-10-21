@@ -98,15 +98,23 @@ export default defineNuxtConfig({
     },
     // Optimize deps
     optimizeDeps: {
-      include: ['vue', 'pinia', '@nuxtjs/i18n']
+      include: ['vue', 'pinia', '@nuxtjs/i18n'],
+      exclude: ['fsevents']
+    },
+    // Resolve alias to fix dependency issues
+    resolve: {
+      alias: {
+        // Fix fsevents on non-macOS
+        'fsevents': 'fsevents'
+      }
     }
   },
 
   // Experimental features for performance
   experimental: {
-    payloadExtraction: true,
+    payloadExtraction: false,
     renderJsonPayloads: true,
-    componentIslands: true,
+    componentIslands: false,
     viewTransition: true
   },
 
@@ -150,7 +158,7 @@ export default defineNuxtConfig({
       crawlLinks: true,
       routes: ['/', '/outline']
     },
-    // External modules (fix node-cron build issue)
+    // External modules (fix build issues)
     externals: {
       inline: ['node-cron']
     }
