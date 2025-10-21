@@ -93,20 +93,23 @@ export default defineNuxtConfig({
             'pinia': ['pinia'],
             'i18n': ['@nuxtjs/i18n']
           }
-        }
+        },
+        external: [
+          '@oxc-parser/binding-wasm32-wasi',
+          '@oxc-transform/binding-wasm32-wasi',
+          'webpack'
+        ]
       }
     },
     // Optimize deps
     optimizeDeps: {
       include: ['vue', 'pinia', '@nuxtjs/i18n'],
-      exclude: ['fsevents']
-    },
-    // Resolve alias to fix dependency issues
-    resolve: {
-      alias: {
-        // Fix fsevents on non-macOS
-        'fsevents': 'fsevents'
-      }
+      exclude: [
+        'fsevents',
+        '@oxc-parser/binding-wasm32-wasi',
+        '@oxc-transform/binding-wasm32-wasi',
+        'webpack'
+      ]
     }
   },
 
@@ -158,9 +161,15 @@ export default defineNuxtConfig({
       crawlLinks: true,
       routes: ['/', '/outline']
     },
-    // External modules (fix build issues)
-    externals: {
-      inline: ['node-cron']
+    // Rollup configuration for Nitro
+    rollupConfig: {
+      external: [
+        'node-cron',
+        '@oxc-parser/binding-wasm32-wasi',
+        '@oxc-transform/binding-wasm32-wasi',
+        'webpack',
+        'fsevents'
+      ]
     }
   },
 
