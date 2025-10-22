@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-    <div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="max-w-[1920px] mx-auto px-6 py-8">
       <!-- 页面标题和进度总览 -->
       <div class="mb-8">
         <div class="flex items-start justify-between mb-4">
@@ -40,7 +40,7 @@
       </div>
 
       <!-- 主内容区 -->
-      <div v-else class="grid lg:grid-cols-4 gap-6">
+      <div v-else class="grid lg:grid-cols-5 gap-8">
         <!-- 左侧：知识点分类导航 -->
         <div class="lg:col-span-1">
           <div class="bg-white rounded-xl shadow-md p-4 sticky top-4">
@@ -99,7 +99,7 @@
         </div>
 
         <!-- 右侧：知识点详细内容 -->
-        <div class="lg:col-span-3">
+        <div class="lg:col-span-4">
           <div v-if="selectedCategory" class="space-y-6">
             <!-- 知识点标题卡片 -->
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-8 text-white">
@@ -216,18 +216,136 @@
                   <div v-if="expandedPoints.has(index)" class="px-6 py-4 bg-white">
                     <p class="text-gray-700 leading-relaxed mb-4 whitespace-pre-line">{{ point.description }}</p>
 
+                    <!-- 思维导图（对阴阳学说和五行学说显示） -->
+                    <MindMap
+                      v-if="point.mindMapData"
+                      :title="point.mindMapData.title"
+                      :subtitle="point.mindMapData.subtitle"
+                      :branches="point.mindMapData.branches"
+                      :connections="point.mindMapData.connections"
+                      class="mt-4"
+                    />
+
+                    <!-- 阴阳学说图表（只对阴阳学说显示） -->
+                    <YinYangDiagram
+                      v-if="point.title === '阴阳学说' || point.hasYinYangDiagram"
+                      class="mt-4"
+                    />
+
+                    <!-- 五行生克关系图（只对五行学说显示） -->
+                    <WuXingDiagram
+                      v-if="point.title === '五行学说'"
+                      class="mt-4"
+                    />
+
+                    <!-- 五行归类体系图（只对五行学说显示） -->
+                    <WuXingClassificationDiagram
+                      v-if="point.title === '五行学说' || point.hasWuXingClassificationDiagram"
+                      class="mt-4"
+                    />
+
+                    <!-- 脉诊图表（只对脉诊要点显示） -->
+                    <PulseDiagram
+                      v-if="point.title === '脉诊要点' || point.hasPulseDiagram"
+                      class="mt-4"
+                    />
+
+                    <!-- 八纲辨证图表（只对八纲辨证显示） -->
+                    <BaGanDiagram
+                      v-if="point.title === '八纲辨证' || point.hasBaGanDiagram"
+                      class="mt-4"
+                    />
+
+                    <!-- 气血津液精神图表（只对气血津液精神理论显示） -->
+                    <QiXueJinYeDiagram
+                      v-if="point.title === '气血津液精神理论' || point.hasQiXueJinYeDiagram"
+                      class="mt-4"
+                    />
+
+                    <!-- 详细解释 -->
+                    <div v-if="point.detailedExplanation" class="mt-4 bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
+                      <h4 class="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                        <span>📖</span>
+                        <span>详细解释</span>
+                      </h4>
+                      <div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                        {{ point.detailedExplanation }}
+                      </div>
+                    </div>
+
+                    <!-- 视觉图表 -->
+                    <div v-if="point.visualDiagram" class="mt-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border-2 border-purple-300">
+                      <h4 class="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                        <span>📊</span>
+                        <span>可视化图表</span>
+                      </h4>
+                      <pre class="text-sm font-mono text-gray-800 overflow-x-auto bg-white p-4 rounded border border-purple-200">{{ point.visualDiagram }}</pre>
+                    </div>
+
+                    <!-- 典型示例 -->
                     <div v-if="point.examples && point.examples.length > 0" class="mt-4">
                       <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                         <span>💡</span>
-                        <span>典型示例：</span>
+                        <span>典型示例</span>
                       </h4>
                       <div class="space-y-2">
                         <div
                           v-for="(example, idx) in point.examples"
                           :key="idx"
-                          class="bg-amber-50 border-l-4 border-amber-400 px-4 py-2 rounded-r-lg"
+                          class="bg-amber-50 border-l-4 border-amber-400 px-4 py-2 rounded-r-lg hover:shadow-md transition-shadow"
                         >
                           <span class="text-gray-700">{{ example }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 临床案例 -->
+                    <div v-if="point.clinicalCases && point.clinicalCases.length > 0" class="mt-4">
+                      <h4 class="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                        <span>🏥</span>
+                        <span>临床案例</span>
+                      </h4>
+                      <div class="space-y-4">
+                        <div
+                          v-for="(caseItem, idx) in point.clinicalCases"
+                          :key="idx"
+                          class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border-2 border-green-300 shadow-sm hover:shadow-md transition-all"
+                        >
+                          <pre class="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap font-sans">{{ caseItem }}</pre>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 关键公式 -->
+                    <div v-if="point.keyFormulas && point.keyFormulas.length > 0" class="mt-4">
+                      <h4 class="font-semibold text-indigo-900 mb-3 flex items-center gap-2">
+                        <span>🔑</span>
+                        <span>关键配穴公式</span>
+                      </h4>
+                      <div class="space-y-2">
+                        <div
+                          v-for="(formula, idx) in point.keyFormulas"
+                          :key="idx"
+                          class="bg-indigo-50 border-l-4 border-indigo-500 px-4 py-2 rounded-r-lg font-semibold text-indigo-900"
+                        >
+                          {{ formula }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 常见错误 -->
+                    <div v-if="point.commonMistakes && point.commonMistakes.length > 0" class="mt-4">
+                      <h4 class="font-semibold text-red-900 mb-3 flex items-center gap-2">
+                        <span>⚠️</span>
+                        <span>注意事项与常见错误</span>
+                      </h4>
+                      <div class="bg-red-50 rounded-lg p-4 border border-red-300 space-y-2">
+                        <div
+                          v-for="(mistake, idx) in point.commonMistakes"
+                          :key="idx"
+                          class="text-sm text-gray-700"
+                        >
+                          {{ mistake }}
                         </div>
                       </div>
                     </div>
@@ -517,6 +635,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -556,12 +675,21 @@ const cardFlipped = ref(false)
 
 // 解析核心知识要点
 const keyPointsList = computed(() => {
-  if (!selectedCategory.value?.keyPoints) return []
+  if (!selectedCategory.value?.keyPoints) {
+    console.log('[DEBUG] selectedCategory.keyPoints 为空', selectedCategory.value)
+    return []
+  }
 
   try {
+    console.log('[DEBUG] 解析 keyPoints，长度:', selectedCategory.value.keyPoints.length)
     const parsed = JSON.parse(selectedCategory.value.keyPoints)
+    console.log('[DEBUG] 解析成功，知识点数量:', parsed.length)
+    if (parsed.length > 0) {
+      console.log('[DEBUG] 第一个知识点:', parsed[0]?.title)
+    }
     return Array.isArray(parsed) ? parsed : []
   } catch (e) {
+    console.error('[DEBUG] 解析 keyPoints 失败:', e)
     return []
   }
 })
@@ -647,7 +775,7 @@ const scrollToPoint = (index: number) => {
     expandedPoints.value.add(index)
   }
   setTimeout(() => {
-    pointRefs.value[index]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    pointRefs.value[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, 100)
 }
 
@@ -696,16 +824,35 @@ const getMemoryTip = (title: string, index: number) => {
 // 加载知识点列表
 const loadKnowledgePoints = async () => {
   loading.value = true
+  console.log('[DEBUG] 开始加载知识点列表...')
+
   try {
+    const headers = authStore.getAuthHeader()
+    const examType = examStore.currentExamType
+
+    console.log('[DEBUG] 请求参数:', { headers, examType })
+
     const response = await $fetch('/api/knowledge-points/list', {
-      headers: authStore.getAuthHeader(),
-      params: {
-        examType: examStore.currentExamType
-      }
+      headers,
+      params: { examType }
     })
+
+    console.log('[DEBUG] API响应:', response)
 
     if (response.success) {
       categories.value = response.data
+      console.log('[DEBUG] ✅ 加载了分类数量:', categories.value.length)
+
+      if (categories.value.length > 0) {
+        console.log('[DEBUG] 第一个分类:', categories.value[0].name)
+        console.log('[DEBUG] 第一个分类keyPoints字段存在:', !!categories.value[0].keyPoints)
+        console.log('[DEBUG] keyPoints字段类型:', typeof categories.value[0].keyPoints)
+        if (categories.value[0].keyPoints) {
+          console.log('[DEBUG] keyPoints字段长度:', categories.value[0].keyPoints.length)
+        }
+      } else {
+        console.warn('[DEBUG] ⚠️ API返回了0个分类！')
+      }
 
       // 预加载所有分类的统计数据
       await Promise.all(
@@ -717,13 +864,22 @@ const loadKnowledgePoints = async () => {
       // 默认选中第一个分类
       if (categories.value.length > 0) {
         selectedCategory.value = categories.value[0]
+        console.log('[DEBUG] 默认选中分类:', selectedCategory.value.name)
         loadMasteredState()
       }
+    } else {
+      console.error('[DEBUG] ❌ API返回失败:', response.error || response)
     }
-  } catch (error) {
-    console.error('加载知识点失败:', error)
+  } catch (error: any) {
+    console.error('[DEBUG] ❌ 加载知识点失败:', error)
+    console.error('[DEBUG] 错误详情:', {
+      message: error.message,
+      status: error.status,
+      statusText: error.statusText
+    })
   } finally {
     loading.value = false
+    console.log('[DEBUG] 加载完成，loading =', loading.value)
   }
 }
 
@@ -837,8 +993,20 @@ const markAsNotMastered = () => {
   }
 }
 
-onMounted(() => {
-  loadKnowledgePoints()
+onMounted(async () => {
+  console.log('[DEBUG] onMounted 触发')
+  console.log('[DEBUG] authStore已初始化:', !!authStore)
+  console.log('[DEBUG] examStore已初始化:', !!examStore)
+  console.log('[DEBUG] currentExamType:', examStore.currentExamType)
+  console.log('[DEBUG] 用户已登录:', authStore.isAuthenticated)
+
+  if (!authStore.isAuthenticated) {
+    console.warn('[DEBUG] 用户未登录，重定向到登录页')
+    // router.push('/login')
+    // return
+  }
+
+  await loadKnowledgePoints()
 })
 </script>
 

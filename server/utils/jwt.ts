@@ -5,8 +5,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'cale-exam-secret-key-change-in-pro
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'cale-exam-refresh-secret-key-change-in-production'
 
 // Token 过期时间
-const ACCESS_TOKEN_EXPIRES_IN = '2h'  // Access Token: 2小时
-const REFRESH_TOKEN_EXPIRES_IN = '7d' // Refresh Token: 7天
+const ACCESS_TOKEN_EXPIRES_IN = '24h'  // Access Token: 24小时（从2h延长）
+const REFRESH_TOKEN_EXPIRES_IN = '30d' // Refresh Token: 30天（从7d延长）
 
 export interface JWTPayload {
   userId: string

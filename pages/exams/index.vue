@@ -420,7 +420,9 @@ const fetchExams = async () => {
     const requestOptions: any = {
       method: 'GET',
       query: {
-        examType: examStore.currentExamType
+        examType: examStore.currentExamType,
+        // 添加时间戳防止缓存
+        _t: Date.now()
       }
     }
 
@@ -506,13 +508,15 @@ const deleteExam = async (examId: string) => {
 
     console.log('删除响应:', response)
 
-    // 从列表中移除
-    allExams.value = allExams.value.filter(exam => exam.id !== examId)
+    // 显示成功消息
     await dialog.alert({
       message: `成功删除"${examTitle}"`,
       type: 'success',
       title: '删除成功'
     })
+
+    // 重新获取列表，确保数据一致性
+    await fetchExams()
   } catch (error: any) {
     console.error('Delete error:', error)
 
@@ -538,7 +542,7 @@ const deleteExam = async (examId: string) => {
         title: '考试不存在'
       })
       // 刷新列表
-      fetchExams()
+      await fetchExams()
     } else {
       await dialog.alert({
         message: '删除失败: ' + (error.data?.message || error.message || '未知错误'),

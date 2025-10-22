@@ -51,6 +51,10 @@ export default defineEventHandler(async (event) => {
         else if (difficulty === 'hard') difficulties.hard++
       })
 
+      // 计算已答题数量和正确数量
+      const answeredCount = set.answers.filter(a => a.selectedAnswer !== null).length
+      const correctCount = set.answers.filter(a => a.isCorrect === true).length
+
       return {
         id: set.id,
         title: set.title,
@@ -60,7 +64,10 @@ export default defineEventHandler(async (event) => {
         generatedBy: set.generatedBy,
         categoryId: set.categoryId,
         status: set.status,
+        score: set.status === 'completed' ? correctCount : null,
         createdAt: set.createdAt,
+        completedAt: set.completedAt,
+        answeredCount: answeredCount,
         difficulties
       }
     })

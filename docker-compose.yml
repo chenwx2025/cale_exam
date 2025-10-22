@@ -1,0 +1,127 @@
+version: '3.8'
+
+# ============================================
+# Cale 加州中医考试系统 - Docker Compose 配置
+# ============================================
+#
+# 使用方法:
+#   启动: docker-compose up -d
+#   停止: docker-compose down
+#   查看日志: docker-compose logs -f
+#   重启: docker-compose restart
+#
+# ============================================
+
+services:
+  # ==========================================
+  # 应用服务
+  # ==========================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cale-exam-app
+    ports:
+      - "${PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://caleuser:${DB_PASSWORD:-calepassword}@db:5432/cale_exam?schema=public
+      - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - APP_URL=${APP_URL:-http://localhost:3001}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cale-network
+    volumes:
+      - app-uploads:/app/uploads
+      - app-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ==========================================
+  # PostgreSQL 数据库
+  # ==========================================
+  db:
+    image: postgres:14-alpine
+    container_name: cale-exam-db
+    environment:
+      - POSTGRES_USER=caleuser
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-calepassword}
+      - POSTGRES_DB=cale_exam
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - cale-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U caleuser -d cale_exam"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"  # 仅用于开发调试，生产环境应移除
+
+  # ==========================================
+  # Nginx 反向代理 (可选)
+  # ==========================================
+  nginx:
+    image: nginx:alpine
+    container_name: cale-exam-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - cale-network
+    # 如果不使用 nginx，可以注释掉整个 nginx 服务
+
+  # ==========================================
+  # Redis 缓存 (可选)
+  # ==========================================
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: cale-exam-redis
+  #   command: redis-server --appendonly yes
+  #   volumes:
+  #     - redis-data:/data
+  #   restart: unless-stopped
+  #   networks:
+  #     - cale-network
+  #   ports:
+  #     - "6379:6379"
+
+# ==========================================
+# 网络配置
+# ==========================================
+networks:
+  cale-network:
+    driver: bridge
+
+# ==========================================
+# 数据卷配置
+# ==========================================
+volumes:
+  postgres-data:
+    driver: local
+  app-uploads:
+    driver: local
+  app-logs:
+    driver: local
+  nginx-logs:
+    driver: local
+  # redis-data:
+  #   driver: local
