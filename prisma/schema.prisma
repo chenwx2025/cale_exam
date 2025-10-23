@@ -84,6 +84,10 @@ model Question {
   @@index([categoryId])
   @@index([difficulty])
   @@index([examType])
+  @@index([examType, categoryId]) // 复合索引：按考试类型和分类查询
+  @@index([examType, difficulty]) // 复合索引：按考试类型和难度查询
+  @@index([categoryId, difficulty]) // 复合索引：按分类和难度查询
+  @@index([createdAt]) // 索引：按创建时间排序
 }
 
 // 用户
@@ -565,6 +569,7 @@ model Achievement {
   description     String            // 成就描述
   descriptionEn   String            // 英文描述
   category        String            // 分类: streak, questions, exams, accuracy, social, groups
+  examType        String            @default("all") // 考试类型: cale, nccaom, all (all表示全平台成就)
   icon            String            // 图标
   rarity          String            @default("common") // 稀有度: common, rare, epic, legendary
   points          Int               @default(0) // 奖励积分
@@ -576,6 +581,7 @@ model Achievement {
   userAchievements UserAchievement[]
 
   @@index([category])
+  @@index([examType])
   @@index([rarity])
   @@index([isActive])
 }
@@ -601,7 +607,8 @@ model UserAchievement {
 // 用户积分（Phase 6 Sprint 4）
 model UserPoints {
   id               String   @id @default(cuid())
-  userId           String   @unique
+  userId           String
+  examType         String   @default("cale") // 考试类型: cale, nccaom, all (all表示全平台统计)
   totalPoints      Int      @default(0) // 总积分
   currentRank      Int?     // 当前排名
   previousRank     Int?     // 之前排名
@@ -615,11 +622,14 @@ model UserPoints {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  @@unique([userId, examType]) // 每个用户在每个考试类型下有唯一的积分记录
   @@index([userId])
+  @@index([examType])
   @@index([totalPoints])
   @@index([currentRank])
   @@index([weeklyPoints])
   @@index([monthlyPoints])
+  @@index([userId, examType]) // 复合索引
 }
 
 // 排行榜缓存（Phase 6 Sprint 4）

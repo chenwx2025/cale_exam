@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, skipHydrate } from 'pinia'
 
 export type ExamType = 'cale' | 'nccaom'
 
@@ -31,7 +31,8 @@ export const useExamStore = defineStore('exam', {
 
   getters: {
     currentExam: (state): ExamInfo => {
-      return examTypes[state.currentExamType]
+      // 跳过 SSR 水合以避免序列化问题
+      return skipHydrate({ ...examTypes[state.currentExamType] })
     },
 
     isCale: (state): boolean => {

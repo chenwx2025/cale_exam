@@ -1,4 +1,5 @@
 import prisma from '../../../utils/prisma'
+import { updateUserStats, updateStreakDays } from '../../../utils/achievement-service'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -135,6 +136,22 @@ export default defineEventHandler(async (event) => {
       })
 
       return updated
+    })
+
+    // Update user stats and achievements (don't block the response)
+    updateUserStats(exam.userId, {
+      type: 'exam',
+      examType: updatedExam.examType, // 传递考试类型
+      questionsAnswered: totalQuestions,
+      correctAnswers: correctCount,
+      studyMinutes: timeSpent ? Math.ceil(timeSpent / 60) : 0
+    }).catch(error => {
+      console.error('更新用户统计失败:', error)
+    })
+
+    // Update streak days（传递考试类型）
+    updateStreakDays(exam.userId, updatedExam.examType).catch(error => {
+      console.error('更新连续学习天数失败:', error)
     })
 
     return {

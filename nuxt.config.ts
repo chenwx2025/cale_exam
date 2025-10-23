@@ -2,19 +2,13 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  ssr: false, // 禁用SSR以避免hydration问题
 
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
-    '@nuxtjs/i18n',
     '@nuxt/image'
   ],
-
-  // i18n Configuration (Phase 6 Sprint 2)
-  i18n: {
-    locales: ['zh-CN', 'en'],
-    defaultLocale: 'zh-CN'
-  },
 
   // Image Optimization (Phase 6 Sprint 3)
   image: {
@@ -70,8 +64,7 @@ export default defineNuxtConfig({
           manualChunks: {
             // Vendor splitting for better caching
             'vue-vendor': ['vue', 'vue-router', '@vue/runtime-core'],
-            'pinia': ['pinia'],
-            'i18n': ['@nuxtjs/i18n']
+            'pinia': ['pinia']
           }
         },
         external: [
@@ -83,7 +76,7 @@ export default defineNuxtConfig({
     },
     // Optimize deps
     optimizeDeps: {
-      include: ['vue', 'pinia', '@nuxtjs/i18n'],
+      include: ['vue', 'pinia'],
       exclude: [
         'fsevents',
         '@oxc-parser/binding-wasm32-wasi',

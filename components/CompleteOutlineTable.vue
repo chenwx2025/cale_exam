@@ -5,10 +5,30 @@
       <div class="flex items-center justify-between mb-4">
         <div>
           <div class="flex items-center gap-4 mb-2">
-            <h2 class="text-3xl font-bold">TABLE 27 - EXAMINATION OUTLINE: CALE</h2>
-            <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">Official PSI Document</span>
+            <h2 class="text-3xl font-bold">{{ language === 'zh' ? 'TABLE 27 - 官方考试大纲：CALE' : 'TABLE 27 - EXAMINATION OUTLINE: CALE' }}</h2>
+            <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">
+              {{ language === 'zh' ? 'PSI 官方文档' : 'Official PSI Document' }}
+            </span>
           </div>
-          <p class="text-blue-100 text-lg">Complete Content Outline with Tasks & Knowledge Statements</p>
+          <p class="text-blue-100 text-lg">
+            {{ language === 'zh' ? '完整考试大纲，包含任务与知识点详解' : 'Complete Content Outline with Tasks & Knowledge Statements' }}
+          </p>
+        </div>
+
+        <!-- Language Toggle Button -->
+        <div class="flex-shrink-0">
+          <button
+            @click="toggleLanguage"
+            class="flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-all transform hover:scale-105 border-2 border-white/30"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+            </svg>
+            <span class="font-semibold">{{ language === 'zh' ? '中文' : 'English' }}</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -17,14 +37,16 @@
         <button
           v-for="(domain, key) in allDomains"
           :key="key"
-          @click="activeDomain = key"
+          @click="activeDomain = key as string"
           class="bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-lg p-4 transition-all transform hover:scale-105"
           :class="{ 'bg-white/30 ring-2 ring-white': activeDomain === key }"
         >
           <div class="text-center">
             <div class="text-2xl font-bold mb-1">{{ domain.percentage }}%</div>
-            <div class="text-xs font-semibold opacity-90">{{ getDomainNumber(key) }}</div>
-            <div class="text-xs opacity-80 mt-1 line-clamp-2">{{ domain.title }}</div>
+            <div class="text-xs font-semibold opacity-90">{{ getDomainNumber(key as string) }}</div>
+            <div class="text-xs opacity-80 mt-1 line-clamp-2">
+              {{ language === 'zh' && domain.titleZh ? domain.titleZh : domain.title }}
+            </div>
           </div>
         </button>
       </div>
@@ -40,12 +62,16 @@
               <span class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold">
                 {{ getDomainNumber(activeDomain) }}
               </span>
-              <h3 class="text-2xl font-bold text-gray-900">{{ currentDomain.title }}</h3>
+              <h3 class="text-2xl font-bold text-gray-900">
+                {{ language === 'zh' && currentDomain.titleZh ? currentDomain.titleZh : currentDomain.title }}
+              </h3>
               <span class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-lg font-bold">
                 {{ currentDomain.percentage }}%
               </span>
             </div>
-            <p class="text-gray-700 leading-relaxed">{{ currentDomain.description }}</p>
+            <p class="text-gray-700 leading-relaxed">
+              {{ language === 'zh' && currentDomain.descriptionZh ? currentDomain.descriptionZh : currentDomain.description }}
+            </p>
           </div>
         </div>
       </div>
@@ -64,12 +90,18 @@
           >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-4 flex-1">
-                <span class="px-3 py-1 bg-gray-600 text-white rounded-md text-xs font-bold uppercase">Subarea</span>
-                <h4 class="text-lg font-bold text-gray-900">{{ subarea.name }}</h4>
+                <span class="px-3 py-1 bg-gray-600 text-white rounded-md text-xs font-bold uppercase">
+                  {{ language === 'zh' ? '子领域' : 'Subarea' }}
+                </span>
+                <h4 class="text-lg font-bold text-gray-900">
+                  {{ language === 'zh' && subarea.nameZh ? subarea.nameZh : subarea.name }}
+                </h4>
                 <span class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold">
                   {{ subarea.percentage }}%
                 </span>
-                <span class="text-sm text-gray-600">{{ subarea.tasks.length }} Tasks</span>
+                <span class="text-sm text-gray-600">
+                  {{ subarea.tasks.length }} {{ language === 'zh' ? '个任务' : 'Tasks' }}
+                </span>
               </div>
               <svg
                 class="w-6 h-6 text-gray-500 transition-transform"
@@ -93,10 +125,18 @@
               <table class="w-full">
                 <thead class="bg-gradient-to-r from-gray-100 to-gray-200 border-b-2 border-gray-400 sticky top-0 z-10">
                   <tr>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-800 uppercase tracking-wider w-20">Task</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-800 uppercase tracking-wider w-2/5">Description</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-800 uppercase tracking-wider w-16">K#</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-800 uppercase tracking-wider">Associated Knowledge Statement</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-800 uppercase tracking-wider w-20">
+                      {{ language === 'zh' ? '任务' : 'Task' }}
+                    </th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-800 uppercase tracking-wider w-2/5">
+                      {{ language === 'zh' ? '描述' : 'Description' }}
+                    </th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-800 uppercase tracking-wider w-16">
+                      {{ language === 'zh' ? '知识点#' : 'K#' }}
+                    </th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-800 uppercase tracking-wider">
+                      {{ language === 'zh' ? '相关知识要求' : 'Associated Knowledge Statement' }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -123,7 +163,9 @@
                         :rowspan="task.knowledgeStatements.length"
                         class="px-6 py-4 text-sm text-gray-800 align-top border-r-2 border-gray-300"
                       >
-                        <span class="font-medium">{{ task.description }}</span>
+                        <span class="font-medium">
+                          {{ language === 'zh' && task.descriptionZh ? task.descriptionZh : task.description }}
+                        </span>
                       </td>
                       <!-- Knowledge Statement ID -->
                       <td class="px-6 py-4 text-center text-sm font-bold text-indigo-700 align-top border-r-2 border-gray-300">
@@ -131,7 +173,7 @@
                       </td>
                       <!-- Knowledge Statement Text -->
                       <td class="px-6 py-4 text-sm text-gray-700 align-top leading-relaxed">
-                        {{ ks.text }}
+                        {{ language === 'zh' && ks.textZh ? ks.textZh : ks.text }}
                       </td>
                     </tr>
                   </template>
@@ -150,12 +192,34 @@
           <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
         </svg>
         <div class="flex-1">
-          <p class="font-semibold text-blue-900 mb-2">Official Examination Outline</p>
+          <p class="font-semibold text-blue-900 mb-2">
+            {{ language === 'zh' ? '官方考试大纲' : 'Official Examination Outline' }}
+          </p>
           <div class="text-sm text-blue-800 space-y-1">
-            <p>• This is the complete TABLE 27 from the official PSI CALE Examination Bulletin</p>
-            <p>• Total Coverage: {{ totalPercentage }}% across {{ totalDomains }} domains, {{ totalSubareas }} subareas, and {{ totalTasks }} tasks</p>
-            <p>• Click on each subarea to expand and view detailed tasks and knowledge statements</p>
-            <p>• Use the domain cards at the top to navigate between different content areas</p>
+            <p v-if="language === 'zh'">
+              • 这是 PSI CALE 官方考试手册中完整的 TABLE 27
+            </p>
+            <p v-else>
+              • This is the complete TABLE 27 from the official PSI CALE Examination Bulletin
+            </p>
+            <p v-if="language === 'zh'">
+              • 总覆盖率：{{ totalPercentage }}%，包含 {{ totalDomains }} 个领域、{{ totalSubareas }} 个子领域和 {{ totalTasks }} 个任务
+            </p>
+            <p v-else>
+              • Total Coverage: {{ totalPercentage }}% across {{ totalDomains }} domains, {{ totalSubareas }} subareas, and {{ totalTasks }} tasks
+            </p>
+            <p v-if="language === 'zh'">
+              • 点击每个子领域以展开查看详细的任务和知识点要求
+            </p>
+            <p v-else>
+              • Click on each subarea to expand and view detailed tasks and knowledge statements
+            </p>
+            <p v-if="language === 'zh'">
+              • 使用顶部的领域卡片在不同内容区域之间切换
+            </p>
+            <p v-else>
+              • Use the domain cards at the top to navigate between different content areas
+            </p>
           </div>
         </div>
       </div>
@@ -167,17 +231,20 @@
 interface KnowledgeStatement {
   id: string
   text: string
+  textZh?: string
 }
 
 interface Task {
   id: string
   description: string
+  descriptionZh?: string
   knowledgeStatements: KnowledgeStatement[]
 }
 
 interface Subarea {
   id: string
   name: string
+  nameZh?: string
   percentage: number
   tasks: Task[]
 }
@@ -185,8 +252,10 @@ interface Subarea {
 interface Domain {
   code: string
   title: string
+  titleZh?: string
   percentage: number
   description: string
+  descriptionZh?: string
   subareas: Subarea[]
 }
 
@@ -200,6 +269,11 @@ const props = defineProps<{
 
 const activeDomain = ref('domain1')
 const expandedSubareas = ref(new Set<string>())
+const language = ref<'en' | 'zh'>('en')
+
+const toggleLanguage = () => {
+  language.value = language.value === 'en' ? 'zh' : 'en'
+}
 
 const currentDomain = computed(() => props.allDomains[activeDomain.value])
 
