@@ -89,56 +89,87 @@ const adminActivityChart = ref<HTMLCanvasElement>()
 const loadAnalytics = async () => {
   loading.value = true
   try {
-    const { data } = await $fetch('/api/admin/analytics')
-    analytics.value = data
-
-    // 等待下一个 tick 确保 DOM 已更新
-    await nextTick()
-    renderCharts()
+    const authStore = useAuthStore()
+    const response = await $fetch('/api/admin/analytics', {
+      headers: authStore.getAuthHeader()
+    })
+    console.log('Analytics API response:', response)
+    analytics.value = response.data
+    console.log('Analytics data set:', analytics.value)
   } catch (error: any) {
     console.error('Failed to load analytics:', error)
     alert('加载分析数据失败: ' + (error.data?.message || error.message))
   } finally {
     loading.value = false
+    // 等待 loading 状态更新后 DOM 重新渲染
+    await nextTick()
+    console.log('Rendering charts...')
+    renderCharts()
   }
 }
 
+// 存储图表实例
+const chartInstances: Chart[] = []
+
 // 渲染图表
 const renderCharts = () => {
-  if (!analytics.value) return
+  if (!analytics.value) {
+    console.log('No analytics data, skipping chart render')
+    return
+  }
+
+  console.log('Analytics data available:', {
+    userGrowth: analytics.value.userGrowth?.length,
+    dailyActiveUsers: analytics.value.dailyActiveUsers?.length,
+    difficultyDistribution: analytics.value.difficultyDistribution?.length,
+    categoryStats: analytics.value.categoryStats?.length
+  })
+
+  // 销毁旧的图表实例
+  chartInstances.forEach(chart => chart.destroy())
+  chartInstances.length = 0
 
   // 1. 用户增长趋势
   if (userGrowthChart.value) {
-    new Chart(userGrowthChart.value, {
-      type: 'line',
-      data: {
-        labels: analytics.value.userGrowth.map((d: any) => d.date),
-        datasets: [{
-          label: '新注册用户',
-          data: analytics.value.userGrowth.map((d: any) => Number(d.count)),
-          borderColor: 'rgb(59, 130, 246)',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          tension: 0.4,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: false
-          }
+    console.log('Creating user growth chart...')
+    try {
+      const chart = new Chart(userGrowthChart.value, {
+        type: 'line',
+        data: {
+          labels: analytics.value.userGrowth.map((d: any) => d.date),
+          datasets: [{
+            label: '新注册用户',
+            data: analytics.value.userGrowth.map((d: any) => Number(d.count)),
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              precision: 0
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
             }
           }
         }
-      }
-    })
+      })
+      chartInstances.push(chart)
+      console.log('User growth chart created successfully')
+    } catch (error) {
+      console.error('Error creating user growth chart:', error)
+    }
+  } else {
+    console.log('userGrowthChart ref not found')
   }
 
   // 2. 每日活跃用户
@@ -217,7 +248,8 @@ const renderCharts = () => {
   // 4. 订阅分布
   if (subscriptionChart.value) {
     const subData = analytics.value.subscriptionStats.reduce((acc: any, item: any) => {
-      const key = `${item.examType}_${item.status}`
+      const statusKey = item.isActive ? 'active' : 'inactive'
+      const key = `${item.examType}_${statusKey}`
       acc[key] = item._count.id
       return acc
     }, {})
@@ -225,13 +257,13 @@ const renderCharts = () => {
     new Chart(subscriptionChart.value, {
       type: 'pie',
       data: {
-        labels: ['CALE 活跃', 'CALE 过期', 'NCCAOM 活跃', 'NCCAOM 过期'],
+        labels: ['CALE 活跃', 'CALE 未激活', 'NCCAOM 活跃', 'NCCAOM 未激活'],
         datasets: [{
           data: [
             subData.cale_active || 0,
-            subData.cale_expired || 0,
+            subData.cale_inactive || 0,
             subData.nccaom_active || 0,
-            subData.nccaom_expired || 0
+            subData.nccaom_inactive || 0
           ],
           backgroundColor: [
             'rgba(59, 130, 246, 0.8)',

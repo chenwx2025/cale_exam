@@ -10,19 +10,136 @@
       <div class="grid grid-cols-12 gap-6">
         <!-- 左侧：中医基础知识点导航 -->
         <div class="col-span-3">
-          <div class="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-lg p-4 sticky top-4">
-            <div class="space-y-2 text-sm">
-              <div class="nav-item" :class="{'active': activeSection === 'qi'}" @click="activeSection = 'qi'">
-                气<br/>构成<br/>人体<br/>的物<br/>质基<br/>础
-              </div>
-              <div class="nav-item" :class="{'active': activeSection === 'xue'}" @click="activeSection = 'xue'">
-                血
-              </div>
-              <div class="nav-item" :class="{'active': activeSection === 'jinye'}" @click="activeSection = 'jinye'">
-                津液
-              </div>
-              <div class="nav-item" :class="{'active': activeSection === 'jing'}" @click="activeSection = 'jing'">
-                精
+          <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-2xl shadow-xl overflow-hidden sticky top-4">
+            <!-- 导航标题 -->
+            <div class="bg-white/10 backdrop-blur-sm px-4 py-3 border-b border-white/20">
+              <h3 class="text-white font-bold text-sm flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                </svg>
+                <span>理论导航</span>
+              </h3>
+            </div>
+
+            <!-- 导航列表 -->
+            <div class="p-3 space-y-2">
+              <!-- 气 -->
+              <button
+                class="nav-item group w-full"
+                :class="{'active': activeSection === 'qi'}"
+                @click="activeSection = 'qi'"
+              >
+                <div class="flex items-center gap-3 p-3 rounded-xl transition-all duration-300"
+                  :class="activeSection === 'qi'
+                    ? 'bg-white text-indigo-700 shadow-lg transform scale-105'
+                    : 'bg-white/10 text-white hover:bg-white/20'"
+                >
+                  <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg transition-all"
+                    :class="activeSection === 'qi'
+                      ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md'
+                      : 'bg-white/20 text-amber-200 group-hover:bg-white/30'"
+                  >
+                    气
+                  </div>
+                  <div class="flex-1 text-left">
+                    <div class="font-bold text-sm mb-0.5">气的理论</div>
+                    <div class="text-xs opacity-75">构成人体的物质基础</div>
+                  </div>
+                  <svg v-if="activeSection === 'qi'" class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+              </button>
+
+              <!-- 血 -->
+              <button
+                class="nav-item group w-full"
+                :class="{'active': activeSection === 'xue'}"
+                @click="activeSection = 'xue'"
+              >
+                <div class="flex items-center gap-3 p-3 rounded-xl transition-all duration-300"
+                  :class="activeSection === 'xue'
+                    ? 'bg-white text-indigo-700 shadow-lg transform scale-105'
+                    : 'bg-white/10 text-white hover:bg-white/20'"
+                >
+                  <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg transition-all"
+                    :class="activeSection === 'xue'
+                      ? 'bg-gradient-to-br from-red-500 to-pink-500 text-white shadow-md'
+                      : 'bg-white/20 text-red-200 group-hover:bg-white/30'"
+                  >
+                    血
+                  </div>
+                  <div class="flex-1 text-left">
+                    <div class="font-bold text-sm mb-0.5">血的理论</div>
+                    <div class="text-xs opacity-75">气血相依的关系</div>
+                  </div>
+                  <svg v-if="activeSection === 'xue'" class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+              </button>
+
+              <!-- 津液 -->
+              <button
+                class="nav-item group w-full"
+                :class="{'active': activeSection === 'jinye'}"
+                @click="activeSection = 'jinye'"
+              >
+                <div class="flex items-center gap-3 p-3 rounded-xl transition-all duration-300"
+                  :class="activeSection === 'jinye'
+                    ? 'bg-white text-indigo-700 shadow-lg transform scale-105'
+                    : 'bg-white/10 text-white hover:bg-white/20'"
+                >
+                  <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg transition-all"
+                    :class="activeSection === 'jinye'
+                      ? 'bg-gradient-to-br from-cyan-500 to-blue-500 text-white shadow-md'
+                      : 'bg-white/20 text-cyan-200 group-hover:bg-white/30'"
+                  >
+                    津液
+                  </div>
+                  <div class="flex-1 text-left">
+                    <div class="font-bold text-sm mb-0.5">津液理论</div>
+                    <div class="text-xs opacity-75">津与液的分类功能</div>
+                  </div>
+                  <svg v-if="activeSection === 'jinye'" class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+              </button>
+
+              <!-- 精 -->
+              <button
+                class="nav-item group w-full"
+                :class="{'active': activeSection === 'jing'}"
+                @click="activeSection = 'jing'"
+              >
+                <div class="flex items-center gap-3 p-3 rounded-xl transition-all duration-300"
+                  :class="activeSection === 'jing'
+                    ? 'bg-white text-indigo-700 shadow-lg transform scale-105'
+                    : 'bg-white/10 text-white hover:bg-white/20'"
+                >
+                  <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg transition-all"
+                    :class="activeSection === 'jing'
+                      ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md'
+                      : 'bg-white/20 text-indigo-200 group-hover:bg-white/30'"
+                  >
+                    精
+                  </div>
+                  <div class="flex-1 text-left">
+                    <div class="font-bold text-sm mb-0.5">精的理论</div>
+                    <div class="text-xs opacity-75">精气神的关系</div>
+                  </div>
+                  <svg v-if="activeSection === 'jing'" class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+              </button>
+            </div>
+
+            <!-- 底部提示 -->
+            <div class="bg-white/5 backdrop-blur-sm px-4 py-2 border-t border-white/10">
+              <div class="text-xs text-white/70 text-center">
+                点击查看详细内容
               </div>
             </div>
           </div>
@@ -281,24 +398,12 @@ const activeSection = ref('qi')
 }
 
 .nav-item {
-  padding: 0.5rem;
-  text-align: center;
-  border-radius: 0.375rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
-  line-height: 1.3;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.nav-item.active {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-  font-weight: 600;
+.nav-item:active {
+  transform: scale(0.98);
 }
 
 .content-section {

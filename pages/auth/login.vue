@@ -8,6 +8,11 @@
           <p class="text-gray-600">登录 CALE 考试系统</p>
         </div>
 
+        <!-- Error Message -->
+        <div v-if="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-sm text-red-800">{{ errorMessage }}</p>
+        </div>
+
         <!-- Login Form -->
         <form @submit.prevent="handleLogin">
           <div class="space-y-4">
@@ -28,13 +33,29 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 密码
               </label>
-              <input
-                v-model="form.password"
-                type="password"
-                required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="••••••••"
-              />
+              <div class="relative">
+                <input
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  required
+                  class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  @click="showPassword = !showPassword"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  tabindex="-1"
+                >
+                  <svg v-if="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div class="flex items-center justify-between">
@@ -62,10 +83,21 @@
         </form>
 
         <!-- Demo Account Info -->
-        <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p class="text-sm text-blue-800 font-medium mb-2">演示账号：</p>
-          <p class="text-sm text-blue-700">邮箱：demo@cale.com</p>
-          <p class="text-sm text-blue-700">密码：demo123</p>
+        <div class="mt-6 space-y-3">
+          <!-- 管理员账号 -->
+          <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <p class="text-sm text-purple-800 font-medium mb-2">🔐 管理员账号：</p>
+            <p class="text-sm text-purple-700">邮箱：chenwx2012@yahoo.com</p>
+            <p class="text-sm text-purple-700">密码：admin123</p>
+            <p class="text-xs text-purple-600 mt-1">登录后自动跳转到管理后台</p>
+          </div>
+
+          <!-- 普通用户账号 -->
+          <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p class="text-sm text-blue-800 font-medium mb-2">👤 演示账号：</p>
+            <p class="text-sm text-blue-700">邮箱：demo@cale.com</p>
+            <p class="text-sm text-blue-700">密码：demo123</p>
+          </div>
         </div>
 
         <!-- Register Link -->
@@ -92,8 +124,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '~/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const form = ref({
   email: '',
@@ -102,32 +136,41 @@ const form = ref({
 })
 
 const loading = ref(false)
+const errorMessage = ref('')
+const showPassword = ref(false)
 
 const handleLogin = async () => {
   loading.value = true
+  errorMessage.value = ''
 
   try {
     const response = await $fetch('/api/auth/login', {
       method: 'POST',
       body: {
-        email: form.value.email,
+        email: form.value.email.trim().toLowerCase(), // 邮箱不区分大小写
         password: form.value.password
       }
     })
 
     if (response.success) {
-      // Save user info to localStorage
-      localStorage.setItem('cale_user', JSON.stringify(response.user))
-      localStorage.setItem('cale_token', response.token)
+      // 使用 authStore 保存认证数据
+      authStore.setAuthData(response.accessToken, response.refreshToken, response.user)
 
-      // Redirect to home page
-      router.push('/')
+      // 检查用户角色，如果是管理员则跳转到管理页面
+      if (response.user.role === 'admin') {
+        console.log('✅ 检测到管理员身份，跳转到管理后台...')
+        await router.push('/admin')
+      } else {
+        // 普通用户跳转到首页
+        console.log('✅ 普通用户登录成功，跳转到首页...')
+        await router.push('/')
+      }
     } else {
-      alert(response.error || '登录失败')
+      errorMessage.value = response.message || '登录失败'
     }
   } catch (error: any) {
     console.error('登录失败:', error)
-    alert('登录失败: ' + (error.data?.error || error.message))
+    errorMessage.value = error.data?.message || error.message || '登录失败，请稍后重试'
   } finally {
     loading.value = false
   }

@@ -187,6 +187,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const authStore = useAuthStore()
 const examId = route.params.id as string
 
 const loading = ref(true)
@@ -194,12 +195,19 @@ const exam = ref<any>(null)
 
 // Add wrong questions to wrong question book
 const addWrongQuestionsToBook = async (wrongAnswers: any[]) => {
-  const userId = 'demo-user' // TODO: Replace with actual user ID
+  // 从exam对象获取实际的用户ID
+  const userId = exam.value?.userId
+
+  if (!userId) {
+    console.error('无法获取用户ID')
+    return
+  }
 
   for (const answer of wrongAnswers) {
     try {
       await $fetch('/api/wrong-questions/add', {
         method: 'POST',
+        headers: authStore.getAuthHeader() as HeadersInit,
         body: {
           userId,
           questionId: answer.questionId

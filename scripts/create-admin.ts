@@ -4,9 +4,9 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function createAdmin() {
-  const email = 'admin@cale.com'
+  const email = 'chenwx2012@yahoo.com'
   const password = 'admin123'  // 请在生产环境中使用强密码
-  const name = 'Admin User'
+  const name = 'Chen Wenxiang'
 
   try {
     // 检查管理员是否已存在

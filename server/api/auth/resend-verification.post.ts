@@ -9,8 +9,11 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const { email } = body
 
+    // 将邮箱转为小写（邮箱不区分大小写）
+    const normalizedEmail = email?.trim().toLowerCase()
+
     // 验证邮箱格式
-    if (!email || !validateEmail(email)) {
+    if (!normalizedEmail || !validateEmail(normalizedEmail)) {
       throw createError({
         statusCode: 400,
         message: '请输入有效的邮箱地址'
@@ -19,7 +22,7 @@ export default defineEventHandler(async (event) => {
 
     // 查找用户
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email: normalizedEmail }
     })
 
     // 安全考虑：即使用户不存在也返回成功消息
@@ -74,7 +77,7 @@ export default defineEventHandler(async (event) => {
     console.log('========================================\n')
 
     // 记录操作日志
-    console.log(`[${new Date().toISOString()}] 用户 ${email} 请求重发验证邮件`)
+    console.log(`[${new Date().toISOString()}] 用户 ${normalizedEmail} 请求重发验证邮件`)
 
     return {
       success: true,

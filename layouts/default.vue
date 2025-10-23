@@ -233,20 +233,53 @@ watch(() => route.path, () => {
 })
 
 const handleLogout = async () => {
-  const confirmed = await dialog.confirm({
-    message: '确定要退出登录吗？',
-    type: 'warning',
-    title: '退出确认',
-    confirmText: '退出',
-    cancelText: '取消'
-  })
+  console.log('[LOGOUT] 开始登出流程')
 
-  if (confirmed) {
-    try {
-      await authStore.logout()
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
+  try {
+    const confirmed = await dialog.confirm({
+      message: '确定要退出登录吗？',
+      type: 'warning',
+      title: '退出确认',
+      confirmText: '退出',
+      cancelText: '取消'
+    })
+
+    console.log('[LOGOUT] 用户确认结果:', confirmed)
+
+    if (confirmed) {
+      // 关闭用户菜单
+      showUserMenu.value = false
+      console.log('[LOGOUT] 正在执行登出...')
+
+      // 执行登出
+      try {
+        await authStore.logout()
+        console.log('[LOGOUT] authStore.logout() 完成')
+      } catch (error) {
+        console.error('[LOGOUT] authStore.logout() 失败:', error)
+      }
+
+      // 强制刷新页面到登录页，确保所有状态都被清除
+      console.log('[LOGOUT] 准备跳转到 /login')
+
+      // 使用多种方式确保跳转
+      if (import.meta.client) {
+        // 清除所有本地存储
+        localStorage.clear()
+        console.log('[LOGOUT] localStorage 已清除')
+
+        // 强制跳转
+        window.location.href = '/login'
+      }
+    } else {
+      console.log('[LOGOUT] 用户取消登出')
+    }
+  } catch (error) {
+    console.error('[LOGOUT] 登出流程发生错误:', error)
+    // 即使出错也尝试跳转到登录页
+    if (import.meta.client) {
+      localStorage.clear()
+      window.location.href = '/login'
     }
   }
 }

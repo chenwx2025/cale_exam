@@ -19,8 +19,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // 将邮箱转为小写（邮箱不区分大小写）
+    const normalizedEmail = email.trim().toLowerCase()
+
     // 验证邮箱格式
-    if (!validateEmail(email)) {
+    if (!validateEmail(normalizedEmail)) {
       throw createError({
         statusCode: 400,
         message: '邮箱格式不正确'
@@ -38,7 +41,7 @@ export default defineEventHandler(async (event) => {
 
     // 检查邮箱是否已存在
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email: normalizedEmail }
     })
 
     if (existingUser) {
@@ -57,7 +60,7 @@ export default defineEventHandler(async (event) => {
     // 创建用户（默认未验证邮箱）
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         name,
         role: 'user',
@@ -69,12 +72,12 @@ export default defineEventHandler(async (event) => {
     })
 
     // 发送验证邮件（异步，不阻塞注册流程）
-    sendVerificationEmail(email, emailVerifyToken).catch(error => {
+    sendVerificationEmail(normalizedEmail, emailVerifyToken).catch(error => {
       console.error('[Register] Failed to send verification email:', error)
     })
 
     // 发送欢迎邮件（异步）
-    sendWelcomeEmail(email, name).catch(error => {
+    sendWelcomeEmail(normalizedEmail, name).catch(error => {
       console.error('[Register] Failed to send welcome email:', error)
     })
 

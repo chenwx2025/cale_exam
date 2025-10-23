@@ -83,34 +83,48 @@ export default defineNuxtPlugin(() => {
   /**
    * 全局fetch拦截器
    */
-  const originalFetch = globalThis.$fetch
-
   globalThis.$fetch = $fetch.create({
     async onRequest({ options }) {
       // 添加认证头
       if (authStore.accessToken) {
-        options.headers = {
-          ...options.headers,
-          Authorization: `Bearer ${authStore.accessToken}`
-        }
+        options.headers = options.headers || {}
+        ;(options.headers as any).Authorization = `Bearer ${authStore.accessToken}`
       }
     },
 
     async onResponseError({ response, options, request }) {
       // 处理401错误
       if (response.status === 401) {
+        const requestUrl = request.toString()
+
+        // 检查是否是认证相关请求 - 这些请求的401错误应该被忽略，不要尝试刷新token
+        const authEndpoints = [
+          '/api/auth/logout',
+          '/api/auth/login',
+          '/api/auth/register',
+          '/api/auth/refresh',
+          '/api/auth/forgot-password',
+          '/api/auth/reset-password'
+        ]
+
+        if (authEndpoints.some(endpoint => requestUrl.includes(endpoint))) {
+          console.log('[API拦截器] 认证请求返回401，直接返回错误（不刷新token）')
+          // 不要重试认证请求，让它正常失败并返回错误信息
+          throw response._data
+        }
+
         console.log('[API拦截器] 检测到401错误，尝试刷新token')
 
         try {
           // 重新发起请求的函数
           const retryRequest = () => {
+            const headers = options.headers || {}
+            ;(headers as any).Authorization = `Bearer ${authStore.accessToken}`
+
             return $fetch(request as string, {
               ...options,
-              headers: {
-                ...options.headers,
-                Authorization: `Bearer ${authStore.accessToken}`
-              }
-            })
+              headers
+            } as any)
           }
 
           // 处理401并重试

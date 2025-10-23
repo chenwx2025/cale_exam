@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   requireAdmin(event)
 
   try {
-    const questionId = event.context.params?.id
+    const questionId = getRouterParam(event, 'id')
 
     if (!questionId) {
       throw createError({
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // 获取题目详细信息
+    // 查询题目详情
     const question = await prisma.question.findUnique({
       where: { id: questionId },
       include: {
@@ -25,16 +25,15 @@ export default defineEventHandler(async (event) => {
           select: {
             id: true,
             name: true,
+            nameEn: true,
             code: true,
-            examType: true
+            type: true
           }
         },
         _count: {
           select: {
             userAnswers: true,
-            wrongQuestions: true,
-            studyPlans: true,
-            examAnswers: true
+            wrongQuestions: true
           }
         }
       }
@@ -47,42 +46,39 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // 获取答题统计
-    const answerStats = await prisma.userAnswer.groupBy({
-      by: ['isCorrect'],
+    // 计算答题统计
+    const answers = await prisma.userAnswer.findMany({
       where: { questionId },
-      _count: true
+      select: { isCorrect: true }
     })
 
-    const totalAnswers = question._count.userAnswers
-    const correctAnswers = answerStats.find(s => s.isCorrect)?._count || 0
-    const wrongAnswers = answerStats.find(s => !s.isCorrect)?._count || 0
+    const totalAnswers = answers.length
+    const correctAnswers = answers.filter(a => a.isCorrect).length
+    const accuracy = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
 
     return {
       success: true,
-      data: {
+      question: {
         ...question,
         stats: {
           totalAnswers,
           correctAnswers,
-          wrongAnswers,
-          accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
-          wrongQuestionsCount: question._count.wrongQuestions,
-          inStudyPlansCount: question._count.studyPlans,
-          inExamsCount: question._count.examAnswers
+          wrongAnswers: totalAnswers - correctAnswers,
+          accuracy,
+          wrongQuestionCount: question._count.wrongQuestions
         }
       }
     }
   } catch (error: any) {
-    console.error('Admin get question detail error:', error)
-
+    // 如果是已知错误，直接抛出
     if (error.statusCode) {
       throw error
     }
 
+    console.error('Get question detail error:', error)
     throw createError({
       statusCode: 500,
-      message: 'Failed to fetch question details'
+      message: 'Failed to get question detail: ' + error.message
     })
   }
 })

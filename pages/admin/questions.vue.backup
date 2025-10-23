@@ -1,12 +1,7 @@
 <template>
-  <div key="admin-questions-page">
-    <ClientOnly>
-      <!-- 密码验证 -->
-      <AdminAuth ref="authComponent" />
-    </ClientOnly>
-
-      <!-- 题目管理内容（仅在验证通过后显示） -->
-      <div v-if="authComponent?.isAuthenticated">
+  <div>
+    <!-- 题目管理内容 -->
+    <div key="questions-content">
       <!-- 考试选择器 -->
       <ExamSelector :showDescription="true" class="mb-8" />
 
@@ -77,6 +72,28 @@
           </div>
         </div>
 
+        <!-- 批量操作栏 -->
+        <div v-if="questions && questions.length > 0" class="mb-4 flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+          <div class="flex items-center gap-3">
+            <input
+              type="checkbox"
+              :checked="isAllSelected"
+              @change="toggleSelectAll"
+              class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-600"
+            />
+            <span class="text-sm font-semibold text-gray-700">
+              全选 (已选择 {{ selectedQuestions.length }} 道题目)
+            </span>
+          </div>
+          <button
+            v-if="selectedQuestions.length > 0"
+            @click="confirmBulkDelete"
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold text-sm"
+          >
+            批量删除 ({{ selectedQuestions.length }})
+          </button>
+        </div>
+
         <!-- 统计信息 -->
         <div v-if="pagination" class="mb-4 text-sm text-gray-600">
           共 {{ pagination.total }} 道题目，当前第 {{ pagination.page }}/{{ pagination.totalPages }} 页
@@ -94,11 +111,19 @@
             v-for="question in questions"
             :key="question.id"
             class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+            :class="{ 'ring-2 ring-blue-400': isQuestionSelected(question.id) }"
           >
             <!-- 题目头部 -->
             <div class="flex justify-between items-start mb-3">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
+              <div class="flex items-center gap-3 flex-1">
+                <input
+                  type="checkbox"
+                  :checked="isQuestionSelected(question.id)"
+                  @change="toggleQuestionSelection(question.id)"
+                  class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-600 flex-shrink-0"
+                />
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
                   <span
                     class="px-2 py-1 text-xs font-semibold rounded"
                     :class="{
@@ -114,8 +139,9 @@
                   </span>
                 </div>
                 <p class="font-semibold text-gray-800">{{ question.question }}</p>
+                </div>
               </div>
-              <div class="flex gap-2 ml-4">
+              <div class="flex gap-2 ml-4 flex-shrink-0">
                 <button
                   @click="editQuestion(question)"
                   class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-semibold"
@@ -191,7 +217,6 @@
           </button>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- 编辑题目模态框 -->
@@ -371,16 +396,79 @@
         </div>
       </div>
     </div>
+
+    <!-- 批量删除确认模态框 -->
+    <div
+      v-if="showBulkDeleteConfirm"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      @click.self="showBulkDeleteConfirm = false"
+    >
+      <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <h2 class="text-xl font-bold mb-4 text-red-600">确认批量删除</h2>
+        <p class="text-gray-600 mb-4">
+          确定要删除选中的 <span class="font-bold text-red-600">{{ selectedQuestions.length }}</span> 道题目吗？
+        </p>
+        <p class="text-sm text-gray-500 mb-6">
+          此操作无法撤销，请谨慎操作。
+        </p>
+        <div class="flex gap-3">
+          <button
+            @click="bulkDeleteQuestions"
+            :disabled="bulkDeleting"
+            class="flex-1 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:bg-gray-400"
+          >
+            {{ bulkDeleting ? '删除中...' : `确认删除 ${selectedQuestions.length} 道题目` }}
+          </button>
+          <button
+            @click="showBulkDeleteConfirm = false"
+            :disabled="bulkDeleting"
+            class="flex-1 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors disabled:opacity-50"
+          >
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useExamStore } from '~/stores/exam'
 
 const examStore = useExamStore()
-const authComponent = ref<any>(null)
 const currentExamType = computed(() => examStore.currentExamType)
+
+// 认证状态检查
+const checkAuth = () => {
+  if (process.client) {
+    const auth = localStorage.getItem('admin_auth')
+    if (auth) {
+      try {
+        const data = JSON.parse(auth)
+        if (data.timestamp && Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+          return true
+        }
+      } catch (e) {
+        localStorage.removeItem('admin_auth')
+      }
+    }
+  }
+  return false
+}
+
+const isAuthenticated = ref(false)
+
+onMounted(() => {
+  isAuthenticated.value = checkAuth()
+  // 监听认证状态变化
+  const checkInterval = setInterval(() => {
+    isAuthenticated.value = checkAuth()
+  }, 1000)
+
+  // 清理
+  onUnmounted(() => clearInterval(checkInterval))
+})
 
 // 筛选条件
 const filters = ref({
@@ -406,6 +494,11 @@ const saving = ref(false)
 const deletingQuestion = ref<any>(null)
 const deleting = ref(false)
 
+// 批量删除相关
+const selectedQuestions = ref<string[]>([])
+const showBulkDeleteConfirm = ref(false)
+const bulkDeleting = ref(false)
+
 // 搜索防抖
 let searchTimeout: NodeJS.Timeout | null = null
 const debounceSearch = () => {
@@ -425,6 +518,35 @@ const fetchCategories = async () => {
     categories.value = response as any[]
   } catch (error: any) {
     console.error('Fetch categories error:', error)
+  }
+}
+
+// 批量选择相关computed
+const isAllSelected = computed(() => {
+  return questions.value.length > 0 && selectedQuestions.value.length === questions.value.length
+})
+
+// 检查题目是否被选中
+const isQuestionSelected = (questionId: string) => {
+  return selectedQuestions.value.includes(questionId)
+}
+
+// 切换单个题目选择
+const toggleQuestionSelection = (questionId: string) => {
+  const index = selectedQuestions.value.indexOf(questionId)
+  if (index > -1) {
+    selectedQuestions.value.splice(index, 1)
+  } else {
+    selectedQuestions.value.push(questionId)
+  }
+}
+
+// 全选/取消全选
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedQuestions.value = []
+  } else {
+    selectedQuestions.value = questions.value.map(q => q.id)
   }
 }
 
@@ -449,6 +571,9 @@ const fetchQuestions = async () => {
       options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options
     }))
     pagination.value = response.pagination
+
+    // 清空选择
+    selectedQuestions.value = []
   } catch (error: any) {
     console.error('Fetch questions error:', error)
     alert('加载题目失败：' + (error.message || '未知错误'))
@@ -567,6 +692,40 @@ const deleteQuestion = async () => {
     alert('删除失败：' + (error.message || '未知错误'))
   } finally {
     deleting.value = false
+  }
+}
+
+// 确认批量删除
+const confirmBulkDelete = () => {
+  if (selectedQuestions.value.length === 0) {
+    alert('请先选择要删除的题目')
+    return
+  }
+  showBulkDeleteConfirm.value = true
+}
+
+// 批量删除题目
+const bulkDeleteQuestions = async () => {
+  if (selectedQuestions.value.length === 0) return
+
+  bulkDeleting.value = true
+  try {
+    const response = await $fetch('/api/admin/questions/bulk-delete', {
+      method: 'POST',
+      body: {
+        questionIds: selectedQuestions.value
+      }
+    }) as any
+
+    alert(`成功删除 ${response.deletedCount} 道题目！`)
+    showBulkDeleteConfirm.value = false
+    selectedQuestions.value = []
+    await fetchQuestions()
+  } catch (error: any) {
+    console.error('Bulk delete questions error:', error)
+    alert('批量删除失败：' + (error.message || '未知错误'))
+  } finally {
+    bulkDeleting.value = false
   }
 }
 

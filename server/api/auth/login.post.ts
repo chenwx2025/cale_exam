@@ -17,8 +17,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // 将邮箱转为小写（邮箱不区分大小写）
+    const normalizedEmail = email.trim().toLowerCase()
+
     // 验证邮箱格式
-    if (!validateEmail(email)) {
+    if (!validateEmail(normalizedEmail)) {
       throw createError({
         statusCode: 400,
         message: '邮箱格式不正确'
@@ -27,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
     // 查找用户
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
       include: {
         subscribedExams: {
           where: { isActive: true }

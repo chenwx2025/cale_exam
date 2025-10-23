@@ -3,6 +3,31 @@ import { requireAdmin } from '../../utils/auth-helpers'
 
 const prisma = new PrismaClient()
 
+// Helper function to convert BigInt to Number in nested objects
+function convertBigIntToNumber(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj
+  }
+
+  if (typeof obj === 'bigint') {
+    return Number(obj)
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertBigIntToNumber(item))
+  }
+
+  if (typeof obj === 'object') {
+    const converted: any = {}
+    for (const key in obj) {
+      converted[key] = convertBigIntToNumber(obj[key])
+    }
+    return converted
+  }
+
+  return obj
+}
+
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
 
@@ -12,7 +37,7 @@ export default defineEventHandler(async (event) => {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
     // 1. 用户增长趋势（过去30天）
-    const userGrowth = await prisma.$queryRaw`
+    const userGrowthRaw: any = await prisma.$queryRaw`
       SELECT
         DATE(createdAt) as date,
         COUNT(*) as count
@@ -21,9 +46,10 @@ export default defineEventHandler(async (event) => {
       GROUP BY DATE(createdAt)
       ORDER BY date ASC
     `
+    const userGrowth = convertBigIntToNumber(userGrowthRaw)
 
     // 2. 每日活跃用户（基于考试和答题记录）
-    const dailyActiveUsers = await prisma.$queryRaw`
+    const dailyActiveUsersRaw: any = await prisma.$queryRaw`
       SELECT
         DATE(createdAt) as date,
         COUNT(DISTINCT userId) as count
@@ -35,6 +61,7 @@ export default defineEventHandler(async (event) => {
       GROUP BY DATE(createdAt)
       ORDER BY date ASC
     `
+    const dailyActiveUsers = convertBigIntToNumber(dailyActiveUsersRaw)
 
     // 3. 题目难度分布
     const difficultyDistribution = await prisma.question.groupBy({
@@ -75,7 +102,7 @@ export default defineEventHandler(async (event) => {
     })
 
     // 6. 每日考试数量
-    const dailyExams = await prisma.$queryRaw`
+    const dailyExamsRaw: any = await prisma.$queryRaw`
       SELECT
         DATE(createdAt) as date,
         COUNT(*) as count
@@ -84,10 +111,11 @@ export default defineEventHandler(async (event) => {
       GROUP BY DATE(createdAt)
       ORDER BY date ASC
     `
+    const dailyExams = convertBigIntToNumber(dailyExamsRaw)
 
     // 7. 用户订阅分布
     const subscriptionStats = await prisma.userExamSubscription.groupBy({
-      by: ['examType', 'status'],
+      by: ['examType', 'isActive'],
       _count: {
         id: true
       }
@@ -137,32 +165,36 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    return {
+    // Convert all BigInt values to Numbers before returning
+    const responseData = {
       success: true,
       data: {
         userGrowth,
         dailyActiveUsers,
-        difficultyDistribution,
+        difficultyDistribution: convertBigIntToNumber(difficultyDistribution),
         categoryStats: categoryStats.map(cat => ({
           id: cat.id,
           name: cat.name,
           code: cat.code,
           examType: cat.examType,
-          questionCount: cat._count.questions
+          questionCount: Number(cat._count.questions)  // Explicitly convert BigInt
         })),
-        examPassRate,
+        examPassRate: convertBigIntToNumber(examPassRate),
         dailyExams,
-        subscriptionStats,
-        lowAccuracyQuestions,
-        adminActivityStats
+        subscriptionStats: convertBigIntToNumber(subscriptionStats),
+        lowAccuracyQuestions: convertBigIntToNumber(lowAccuracyQuestions),
+        adminActivityStats: convertBigIntToNumber(adminActivityStats)
       }
     }
+
+    return responseData
   } catch (error: any) {
     console.error('Admin analytics error:', error)
+    console.error('Error details:', error.message, error.stack)
 
     throw createError({
       statusCode: 500,
-      message: 'Failed to fetch analytics data'
+      message: 'Failed to fetch analytics data: ' + (error.message || 'Unknown error')
     })
   }
 })

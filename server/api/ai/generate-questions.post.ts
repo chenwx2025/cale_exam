@@ -2,6 +2,37 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+// 随机打乱选项数组，并返回新的正确答案
+function shuffleOptions(options: string[], correctAnswer: string): { shuffledOptions: string[], newCorrectAnswer: string } {
+  // 找到原始正确答案的索引
+  const correctIndex = options.findIndex(opt => opt === correctAnswer || opt.includes(correctAnswer.replace(/^[A-D]\.\s*/, '')))
+
+  if (correctIndex === -1) {
+    // 如果找不到，返回原始数据
+    return { shuffledOptions: options, newCorrectAnswer: correctAnswer }
+  }
+
+  // 提取选项内容（去除 A. B. C. D. 前缀）
+  const cleanOptions = options.map(opt => opt.replace(/^[A-D]\.\s*/, ''))
+
+  // Fisher-Yates 洗牌算法
+  const shuffled = [...cleanOptions]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+
+  // 找到正确答案在打乱后的位置
+  const correctContent = cleanOptions[correctIndex]
+  const newCorrectIndex = shuffled.findIndex(opt => opt === correctContent)
+
+  // 重新添加字母前缀
+  const shuffledWithPrefix = shuffled.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+  const newCorrectAnswer = shuffledWithPrefix[newCorrectIndex]
+
+  return { shuffledOptions: shuffledWithPrefix, newCorrectAnswer }
+}
+
 // CALE 官方考试比例
 const CALE_EXAM_PROPORTIONS = {
   'DOMAIN_1_ASSESSMENT': 0.27,      // 27%
@@ -19,7 +50,7 @@ const questionTemplates: Record<string, any> = {
   'DOMAIN_1_ASSESSMENT': [
     {
       patterns: [
-        // T1-T3: Chief complaint & History
+        // T1-T3: Chief complaint & History (基础模板)
         '患者{age}岁{gender}，主诉{chief_complaint}{duration}，伴{symptom2}。{tongue}，{pulse}。根据四诊合参，最可能的诊断是：',
         '{gender}性患者，{age}岁，{chief_complaint}伴{symptom2}{duration}。舌诊见{tongue}，脉象{pulse}。应诊断为：',
 
@@ -32,8 +63,54 @@ const questionTemplates: Record<string, any> = {
         // T30: Pain assessment
         '患者{pain_location}{pain_nature}，{pain_feature}。{tongue}，{pulse}。此疼痛属于：',
 
-        // T31-T32: Tongue & Pulse
-        '患者{tongue_detail}，{pulse_detail}。此舌脉象最符合：'
+        // T31-T32: Tongue & Pulse (基础模板)
+        '患者{tongue_detail}，{pulse_detail}。此舌脉象最符合：',
+
+        // === 扩展：舌诊专项题目 ===
+        // 舌质辨证
+        '患者舌象为{tongue_color_detailed}。此舌质主：',
+        '患者{tongue_color_detailed}，{tongue_coating_detailed}。根据舌诊，应诊断为：',
+
+        // 舌形辨证
+        '患者{tongue_shape_sign}。此舌形象提示：',
+        '患者舌体{tongue_body_feature}。此舌象主病为：',
+
+        // 舌苔辨证
+        '患者{tongue_coating_color}，{tongue_coating_texture}。此苔象提示：',
+        '患者舌苔{tongue_coating_pathology}。根据苔诊，此属：',
+
+        // 综合舌诊
+        '患者{comprehensive_tongue}。此舌象组合最符合：',
+        '舌诊见{tongue_syndrome_sign}。根据舌诊四诊合参，应诊断为：',
+
+        // === 扩展：脉诊专项题目 ===
+        // 脉位辨证
+        '患者脉象{pulse_position_sign}。此脉象主：',
+        '患者{pulse_position_detailed}。根据脉位，此属：',
+
+        // 脉率辨证
+        '患者{pulse_rate_sign}。此脉象提示：',
+        '患者脉来{pulse_rate_detailed}。此脉主病为：',
+
+        // 脉力辨证
+        '患者{pulse_strength_sign}。此脉象特点提示：',
+        '患者脉象{pulse_strength_detailed}。根据脉力，应诊断为：',
+
+        // 特殊脉象
+        '患者{special_pulse_sign}。此脉象主病为：',
+        '患者脉象{complex_pulse_sign}。根据脉诊，最可能的诊断是：',
+
+        // 综合脉诊
+        '患者{comprehensive_pulse}。此脉象组合最符合：',
+        '脉诊发现{pulse_syndrome_sign}。此脉象提示：',
+
+        // === 扩展：舌脉结合辨证 ===
+        '患者{tongue_pulse_combination}。舌脉合参，应诊断为：',
+        '四诊合参：{four_diagnosis_combination}。此证候为：',
+
+        // === 扩展：问诊专项 ===
+        '患者问诊：{inquiry_combination}。根据问诊资料，应考虑：',
+        '患者自述{subjective_symptoms}。结合问诊十问，此属：'
       ],
       variables: {
         age: ['25', '32', '38', '45', '52', '58', '65', '72'],
@@ -107,6 +184,324 @@ const questionTemplates: Record<string, any> = {
         pulse_detail: [
           '脉弦细数', '脉沉细无力', '脉滑数', '脉沉迟无力', '脉浮紧',
           '脉细弱', '脉弦滑', '脉涩', '脉洪大'
+        ],
+
+        // ========== 舌诊扩展变量 ==========
+
+        // 舌质（舌色）详细描述
+        tongue_color_detailed: [
+          '舌质淡白，色白无华', // 淡白舌 → 气血两虚、阳虚
+          '舌质淡红，荣润有神', // 淡红舌 → 正常
+          '舌色鲜红，红活明润', // 红舌 → 热证
+          '舌色深红如血，鲜明绛赤', // 绛舌 → 热盛
+          '舌质紫暗，色暗不鲜', // 紫舌 → 血瘀、寒凝
+          '舌质青紫，晦暗不泽', // 青紫舌 → 寒凝血瘀
+          '舌质淡紫，紫而不鲜', // 淡紫舌 → 阴寒内盛
+          '舌质暗红，有瘀点瘀斑' // 瘀血舌 → 血瘀
+        ],
+
+        // 舌形特征
+        tongue_shape_sign: [
+          '舌体胖大，边有齿痕', // 胖大舌 → 脾虚湿盛
+          '舌体瘦小，单薄干瘪', // 瘦薄舌 → 气血两虚
+          '舌面有裂纹，纵横交错', // 裂纹舌 → 阴虚津亏
+          '舌边有齿痕，印痕明显', // 齿痕舌 → 脾虚湿盛
+          '舌体僵硬，转动不灵', // 强硬舌 → 热盛、瘀血
+          '舌体痿软，伸缩无力', // 痿软舌 → 气血虚损
+          '舌面有红点刺状突起', // 点刺舌 → 热邪亢盛
+          '舌体震颤，不能自主' // 震颤舌 → 气血虚、动风
+        ],
+
+        // 舌体特征
+        tongue_body_feature: [
+          '胖大，占满口腔，边有齿痕', // 胖大舌
+          '瘦小单薄，舌体缩小', // 瘦薄舌
+          '强硬不柔，转动不灵', // 强硬舌
+          '痿软无力，伸缩不利', // 痿软舌
+          '有裂纹，如刀割状', // 裂纹舌
+          '歪斜，偏向一侧', // 歪斜舌
+          '震颤摇动，不能自主', // 震颤舌
+          '短缩，不能伸出' // 短缩舌
+        ],
+
+        // 舌苔颜色
+        tongue_coating_color: [
+          '苔色白', // 白苔 → 表证、寒证
+          '苔色淡黄', // 淡黄苔 → 微热
+          '苔色深黄', // 深黄苔 → 热盛
+          '苔色焦黄', // 焦黄苔 → 热极
+          '苔色灰白', // 灰苔 → 里证
+          '苔色灰黑', // 灰黑苔 → 寒极热极
+          '苔色黑而润', // 黑润苔 → 阴寒内盛
+          '苔色黑而燥' // 黑燥苔 → 热极伤津
+        ],
+
+        // 舌苔质地
+        tongue_coating_texture: [
+          '苔薄，透见舌体', // 薄苔 → 表证初起
+          '苔厚，不见舌体', // 厚苔 → 病邪入里
+          '苔腻，颗粒细腻致密', // 腻苔 → 痰湿
+          '苔腐，疏松如豆腐渣', // 腐苔 → 食积
+          '苔润，湿润有津', // 润苔 → 津液未伤
+          '苔燥，干燥无津', // 燥苔 → 津液已伤
+          '苔滑，苔面水滑', // 滑苔 → 寒湿、痰饮
+          '苔糙，颗粒粗糙' // 糙苔 → 热盛伤津
+        ],
+
+        // 舌苔病理变化
+        tongue_coating_pathology: [
+          '全部剥落，舌面光滑如镜', // 镜面舌 → 胃阴枯竭
+          '部分剥落，呈地图状', // 地图舌 → 胃气阴两虚
+          '厚腻，刮之难去', // 厚腻苔 → 痰湿内盛
+          '黄腻，苔黄而腻', // 黄腻苔 → 湿热
+          '白厚腻，苔白厚而腻', // 白厚腻苔 → 寒湿、痰饮
+          '剥苔，舌苔剥落', // 剥苔 → 胃气大伤
+          '少苔，舌苔稀少', // 少苔 → 阴虚或气血不足
+          '无苔，舌面无苔' // 无苔 → 胃气大虚或阴虚
+        ],
+
+        // 舌苔详细描述
+        tongue_coating_detailed: [
+          '苔薄白，润泽', // 正常或表证初起
+          '苔厚白腻', // 寒湿、痰饮
+          '苔黄腻', // 湿热
+          '苔黄燥', // 热盛伤津
+          '苔白厚腻，刮之难去', // 痰湿重
+          '舌苔剥落，呈地图状', // 胃气阴两虚
+          '舌苔全部剥落，光滑如镜', // 胃阴枯竭
+          '苔灰黑而润', // 阴寒内盛
+          '苔灰黑而燥', // 热极伤津
+          '苔少，舌面干燥' // 阴虚津亏
+        ],
+
+        // 综合舌象（舌质+舌苔组合）
+        comprehensive_tongue: [
+          '舌淡胖，边有齿痕，苔白滑', // 脾虚湿盛
+          '舌红，苔黄腻', // 湿热
+          '舌红少苔，或无苔', // 阴虚火旺
+          '舌淡白，苔白', // 气血两虚、阳虚
+          '舌质暗紫，有瘀点', // 血瘀
+          '舌红绛，无苔', // 热盛伤阴
+          '舌淡，苔白厚腻', // 寒湿、痰饮
+          '舌红，苔薄黄', // 热证初起
+          '舌质胖嫩，苔白润', // 脾肾阳虚
+          '舌红有裂纹，少苔', // 阴虚津亏
+          '舌暗红，苔黄燥', // 热结肠胃
+          '舌淡瘦薄，苔少', // 气血虚
+          '舌红尖赤，苔薄黄', // 心火上炎
+          '舌边红，苔薄白', // 肝经郁热
+          '舌中心黄腻，边尖红', // 脾胃湿热，心肝火旺
+        ],
+
+        // 舌诊证候特征
+        tongue_syndrome_sign: [
+          '舌淡胖，边有齿痕，苔白滑，脉濡缓', // 脾气虚湿盛
+          '舌红少苔，脉细数', // 阴虚火旺
+          '舌质暗紫，有瘀斑，脉涩', // 血瘀证
+          '舌红苔黄腻，脉滑数', // 湿热证
+          '舌淡苔白，脉沉迟', // 阳虚证
+          '舌红绛，无苔，脉细数', // 热盛伤阴
+          '舌淡白，苔薄白，脉细弱', // 气血两虚
+          '舌红尖赤，苔薄黄，脉数', // 心火亢盛
+          '舌边红，苔薄白，脉弦', // 肝郁化火
+          '舌胖大，苔白厚腻，脉滑', // 痰湿内盛
+        ],
+
+        // ========== 脉诊扩展变量 ==========
+
+        // 脉位（浮沉）
+        pulse_position_sign: [
+          '浮，轻取即得', // 浮脉 → 表证
+          '沉，重按始得', // 沉脉 → 里证
+          '浮大中空，如按葱管', // 芤脉 → 失血
+          '沉而实大弦长，坚牢不移', // 牢脉 → 阴寒内盛
+          '沉伏，推筋着骨始得', // 伏脉 → 邪闭、厥病
+          '不浮不沉，从容和缓', // 缓脉 → 平脉或湿证
+          '浮而细软，重按即无', // 濡脉 → 虚证、湿证
+          '浮大无力，散漫无根' // 散脉 → 元气离散
+        ],
+
+        // 脉位详细
+        pulse_position_detailed: [
+          '脉浮，轻取即得，重按稍减', // 浮脉
+          '脉沉，轻取不应，重按始得', // 沉脉
+          '脉浮紧，浮而有力，如转绳索', // 浮紧脉 → 表寒
+          '脉浮数，浮而数急', // 浮数脉 → 表热
+          '脉沉迟，沉而缓慢', // 沉迟脉 → 里寒
+          '脉沉数，沉而数急', // 沉数脉 → 里热
+          '脉沉细，沉而细软', // 沉细脉 → 里虚
+          '脉伏，重按推筋着骨始得' // 伏脉 → 厥病
+        ],
+
+        // 脉率（至数）
+        pulse_rate_sign: [
+          '脉迟，一息不足四至', // 迟脉 → 寒证
+          '脉数，一息五至以上', // 数脉 → 热证
+          '脉缓，一息四至，从容和缓', // 缓脉 → 平脉或湿证
+          '脉疾，一息七八至', // 疾脉 → 热极
+          '脉促，数而时一止，止无定数', // 促脉 → 阳盛实热
+          '脉结，缓而时一止，止无定数', // 结脉 → 阴寒凝滞
+          '脉代，缓而止有定数', // 代脉 → 脏气衰微
+          '脉虚数，数而无力' // 虚数脉 → 阴虚内热
+        ],
+
+        // 脉率详细
+        pulse_rate_detailed: [
+          '一息不足四至，脉来缓慢', // 迟脉
+          '一息五至以上，脉来急促', // 数脉
+          '一息四至，从容和缓', // 缓脉
+          '一息七八至，急促有力', // 疾脉
+          '数而时一止，止无定数', // 促脉
+          '缓而时一止，止无定数', // 结脉
+          '缓而止有定数，良久方还', // 代脉
+          '数而无力，虚数' // 虚数脉
+        ],
+
+        // 脉力（有力无力）
+        pulse_strength_sign: [
+          '脉实，举按均有力', // 实脉 → 实证
+          '脉虚，举按均无力', // 虚脉 → 虚证
+          '脉洪，来盛去衰，如波涛汹涌', // 洪脉 → 气分热盛
+          '脉细，细如线', // 细脉 → 气血虚
+          '脉微，极细极软，若有若无', // 微脉 → 阳气衰微
+          '脉弱，沉细软无力', // 弱脉 → 气血两虚
+          '脉大，脉体宽大', // 大脉 → 病进
+          '脉小，脉体细小' // 小脉 → 病退或虚
+        ],
+
+        // 脉力详细
+        pulse_strength_detailed: [
+          '举按均有力，充实有力', // 实脉
+          '举按均无力，空虚无力', // 虚脉
+          '来盛去衰，如波涛汹涌', // 洪脉
+          '细如线，但应指明显', // 细脉
+          '极细极软，若有若无', // 微脉
+          '沉而细软无力', // 弱脉
+          '脉体宽大，充盛有力', // 洪大脉
+          '脉细而弱，濡弱无力' // 濡弱脉
+        ],
+
+        // 特殊脉象
+        special_pulse_sign: [
+          '脉弦，端直如琴弦', // 弦脉 → 肝胆病、痛证
+          '脉滑，往来流利，如珠走盘', // 滑脉 → 痰饮、食积
+          '脉涩，往来艰涩，如轻刀刮竹', // 涩脉 → 气滞血瘀
+          '脉紧，如转绳索，左右弹指', // 紧脉 → 寒证、痛证
+          '脉长，超过寸关尺三部', // 长脉 → 肝火、热证
+          '脉短，不及寸关尺三部', // 短脉 → 气虚
+          '脉动，短如豆，滑数有力', // 动脉 → 痛惊
+          '脉革，浮搏中空，如按鼓皮' // 革脉 → 亡血失精
+        ],
+
+        // 复杂脉象组合
+        complex_pulse_sign: [
+          '弦细数，弦而细且数', // 肝肾阴虚
+          '弦滑，弦而滑', // 肝郁痰阻
+          '沉弦，沉而弦', // 肝郁内结
+          '弦数，弦而数', // 肝火、肝郁化热
+          '滑数，滑而数', // 痰热、食积化热
+          '细数，细而数', // 阴虚内热
+          '沉迟，沉而迟', // 里寒
+          '浮数，浮而数', // 表热
+          '沉细，沉而细', // 里虚
+          '虚数，虚而数' // 阴虚发热
+        ],
+
+        // 综合脉象
+        comprehensive_pulse: [
+          '脉弦细数，尺脉尤甚', // 肝肾阴虚
+          '脉浮紧，浮而有力', // 表寒证
+          '脉沉迟无力', // 阳虚证
+          '脉滑数有力', // 痰热证
+          '脉细弱无力', // 气血两虚
+          '脉弦滑，左关明显', // 肝郁痰阻
+          '脉沉弦，按之有力', // 肝郁气滞
+          '脉洪大有力', // 阳明热盛
+          '脉濡缓', // 脾虚湿盛
+          '脉涩而结', // 气滞血瘀
+          '脉微细欲绝', // 阳气衰竭
+          '脉虚大无力' // 气阴两虚
+        ],
+
+        // 脉诊证候特征
+        pulse_syndrome_sign: [
+          '脉浮紧，为表寒证', // 外感风寒
+          '脉沉迟，为里寒证', // 阳虚寒证
+          '脉弦细数，为肝肾阴虚', // 肝肾阴虚
+          '脉滑数，为痰热证', // 痰热内盛
+          '脉细弱，为气血两虚', // 气血两虚
+          '脉涩，为血瘀证', // 血瘀阻滞
+          '脉弦，为肝郁证', // 肝气郁结
+          '脉洪大，为气分热盛', // 阳明热盛
+          '脉濡缓，为脾虚湿盛', // 脾虚湿困
+          '脉沉实，为里实证' // 里实热证
+        ],
+
+        // ========== 舌脉结合变量 ==========
+
+        tongue_pulse_combination: [
+          '舌淡胖有齿痕苔白滑，脉濡缓', // 脾虚湿盛
+          '舌红少苔，脉细数', // 阴虚火旺
+          '舌暗紫有瘀斑，脉涩', // 血瘀证
+          '舌红苔黄腻，脉滑数', // 湿热证
+          '舌淡苔白，脉沉迟', // 阳虚证
+          '舌红绛无苔，脉细数', // 热盛伤阴
+          '舌淡苔薄白，脉细弱', // 气血两虚
+          '舌尖红赤苔薄黄，脉数', // 心火亢盛
+          '舌边红苔薄白，脉弦', // 肝郁化火
+          '舌胖大苔白厚腻，脉滑', // 痰湿内盛
+          '舌红裂纹无苔，脉弦细数', // 肝肾阴虚
+          '舌淡瘦薄，脉细弱', // 气血虚
+          '舌暗红苔黄燥，脉沉实', // 热结里实
+          '舌淡胖苔白润，脉沉迟', // 脾肾阳虚
+          '舌红苔黄燥，脉洪数' // 阳明热盛
+        ],
+
+        // 四诊合参组合
+        four_diagnosis_combination: [
+          '患者头晕目眩，腰膝酸软，五心烦热，舌红少苔，脉弦细数', // 肝肾阴虚
+          '患者胸胁胀痛，烦躁易怒，口苦咽干，舌边红，脉弦数', // 肝郁化火
+          '患者纳呆食少，便溏乏力，舌淡胖齿痕，脉缓弱', // 脾气虚
+          '患者心悸失眠，健忘多梦，面色无华，舌淡，脉细', // 心血虚
+          '患者咳嗽气短，自汗易感，舌淡，脉弱', // 肺气虚
+          '患者腰膝酸软，畏寒肢冷，夜尿频，舌淡胖，脉沉迟', // 肾阳虚
+          '患者五心烦热，盗汗，失眠，舌红少苔，脉细数', // 阴虚火旺
+          '患者腹痛喜温，便溏，四肢不温，舌淡胖，脉沉迟', // 脾阳虚
+          '患者面红烦躁，口渴，便秘，舌红苔黄燥，脉洪数', // 阳明热盛
+          '患者胸闷痰多，肢体困重，舌淡苔白腻，脉滑', // 痰湿内阻
+          '患者刺痛固定，舌暗紫有瘀斑，脉涩', // 血瘀证
+          '患者干咳少痰，潮热盗汗，舌红少苔，脉细数', // 肺阴虚
+          '患者心烦失眠，口舌生疮，小便短赤，舌尖红，脉数', // 心火亢盛
+          '患者头重如裹，肢体困重，纳呆，舌淡苔白腻，脉濡', // 湿困脾胃
+          '患者心悸气短，自汗乏力，舌淡，脉虚' // 心气虚
+        ],
+
+        // 问诊组合
+        inquiry_combination: [
+          '患者诉寒热往来，胸胁苦满，心烦喜呕，口苦咽干', // 少阳证
+          '患者诉恶寒发热，头身疼痛，无汗，鼻塞流涕', // 表寒证
+          '患者诉发热，口渴，汗出，便秘', // 阳明证
+          '患者诉腹痛喜温喜按，得温则舒，便溏', // 虚寒证
+          '患者诉脘腹胀满，疼痛拒按，大便秘结', // 实热证
+          '患者诉头晕目眩，烦躁易怒，失眠多梦', // 肝阳上亢
+          '患者诉心悸怔忡，失眠健忘，神疲乏力', // 心脾两虚
+          '患者诉腰膝酸软，耳鸣，遗精', // 肾虚证
+          '患者诉胸胁胀痛，情志抑郁，善太息', // 肝气郁结
+          '患者诉咳嗽，痰多色白，畏寒' // 寒痰证
+        ],
+
+        // 主观症状
+        subjective_symptoms: [
+          '头晕目眩，耳鸣，腰膝酸软', // 肝肾不足
+          '心悸失眠，健忘多梦', // 心血虚
+          '胸闷气短，乏力自汗', // 气虚
+          '五心烦热，盗汗，失眠', // 阴虚
+          '畏寒肢冷，腰膝酸软', // 阳虚
+          '胸胁胀痛，烦躁易怒', // 肝郁
+          '纳呆食少，便溏，乏力', // 脾虚
+          '咳嗽气短，畏风易感', // 肺气虚
+          '腹痛喜温，便溏', // 脾阳虚
+          '口干口苦，烦躁' // 肝胆郁热
         ]
       },
       syndromes: [
@@ -152,29 +547,61 @@ const questionTemplates: Record<string, any> = {
         // T36-T42: Pattern differentiation
         '患者出现{clinical_presentation}。根据{differentiation_method}，应诊断为：',
 
-        // T43: Eight Principles
+        // T43: Eight Principles - 八纲辨证（扩展）
         '患者{eight_principles_signs}。根据八纲辨证，此属：',
+        '患者{complex_eight_principles}。此证属于：',
 
-        // T44: Six Stages
+        // 表里辨证
+        '患者{exterior_interior_signs}。应诊断为：',
+        '患者{half_exterior_interior_signs}。根据表里辨证，此属：',
+
+        // 寒热辨证
+        '患者{heat_cold_signs}。根据寒热辨证，应诊断为：',
+        '患者{true_false_signs}。此属{true_false_type}，治疗应：',
+        '患者{mixed_cold_heat_signs}。此属寒热错杂证，应诊断为：',
+
+        // 虚实辨证
+        '患者{deficiency_excess_signs}。根据虚实辨证，应诊断为：',
+        '患者{qi_blood_yin_yang_signs}。此属{qi_blood_yin_yang_type}证，治疗原则是：',
+        '患者{complex_deficiency_excess}。此属虚实夹杂，应诊断为：',
+
+        // T44: Six Stages - 六经辨证（扩展）
         '患者{six_stage_signs}。根据六经辨证（伤寒论），此属：',
+        '患者{six_stage_detailed}。属于{six_stage_category}，代表方应为：',
+        '患者{meridian_transmission}。此为六经传变，属于：',
 
-        // T45: Four Levels
+        // T45: Four Levels - 卫气营血辨证（扩展）
         '患者{four_level_signs}。根据卫气营血辨证，此属：',
+        '患者{four_level_detailed}。应诊断为{four_level_diagnosis}，治疗应：',
+        '患者温病{four_level_progression}。此属病邪{four_level_direction}，应：',
 
-        // T42: Zang Fu patterns
+        // T42: Zang Fu patterns - 脏腑辨证（扩展）
         '患者{zangfu_signs}。根据脏腑辨证，应诊断为：',
+        '患者{five_zang_signs}。此属{five_zang_pattern}，治疗原则是：',
+        '患者{six_fu_signs}。根据六腑辨证，应诊断为：',
+        '患者{zang_fu_relationship}。此属脏腑相关证，应诊断为：',
 
-        // T48-T49: Treatment principles
+        // T48-T49: Treatment principles（扩展）
         '患者诊断为{pattern}，治疗原则应为：',
+        '患者{pattern_with_symptoms}，治法应选择：',
+        '{pattern}的代表方是：',
+        '治疗{pattern}时，应遵循{treatment_principle}原则，方选：',
+
+        // 三焦辨证（新增）
+        '患者{triple_burner_signs}。根据三焦辨证，应诊断为：',
 
         // T54: Communication with healthcare providers
-        '患者西医诊断为{western_diagnosis}，从中医角度应考虑的证型是：'
+        '患者西医诊断为{western_diagnosis}，从中医角度应考虑的证型是：',
+
+        // 辨证论治综合（新增）
+        '患者{comprehensive_signs}，{diagnostic_clues}。综合四诊，应诊断为：',
+        '患者主诉{chief_complaint}，伴{accompanying_symptoms}，{tongue_pulse}。此属：'
       ],
       variables: {
         // Differentiation methods
         differentiation_method: [
           '脏腑辨证', '八纲辨证', '六经辨证', '卫气营血辨证',
-          '三焦辨证', '五行辨证'
+          '三焦辨证', '五行辨证', '气血津液辨证'
         ],
 
         // Clinical presentations
@@ -187,7 +614,7 @@ const questionTemplates: Record<string, any> = {
           '胸胁胀痛，善太息，情志抑郁，月经不调，脉弦'
         ],
 
-        // T43: Eight Principles signs
+        // T43: Eight Principles signs（基础）
         eight_principles_signs: [
           '恶寒发热，无汗，头痛，脉浮紧',  // 表寒实
           '发热恶风，有汗，咽痛，脉浮数',  // 表热实
@@ -197,7 +624,103 @@ const questionTemplates: Record<string, any> = {
           '畏寒肢冷，面色苍白，神疲乏力，脉沉细'   // 里寒虚（阳虚）
         ],
 
-        // T44: Six Stages signs
+        // 复杂八纲证候（新增）
+        complex_eight_principles: [
+          '面色苍白，四肢厥冷，但口渴，烦躁不安，脉沉而数有力',  // 真热假寒
+          '面红身热，但恶寒喜温，脉沉迟无力',  // 真寒假热
+          '上半身烦热，下半身畏寒，舌红苔白',  // 上热下寒
+          '心下痞满，干呕，肠鸣下利，舌苔黄腻',  // 寒热错杂
+          '腹胀满，按之软，神疲乏力，脉虚无力',  // 真虚假实
+          '神疲懒言，但腹满硬痛拒按，脉沉实'  // 真实假虚
+        ],
+
+        // 表里辨证（新增）
+        exterior_interior_signs: [
+          '恶寒发热并见，头身疼痛，无汗，脉浮紧',  // 表寒证
+          '发热重恶寒轻，咽喉红肿疼痛，脉浮数',  // 表热证
+          '恶寒发热，自汗出，脉浮缓',  // 表虚证
+          '恶寒发热，无汗，脉浮紧有力',  // 表实证
+          '但寒不热，腹痛喜按，便溏，脉沉迟',  // 里寒证
+          '但热不寒，口渴便秘，舌红苔黄，脉数有力'  // 里热证
+        ],
+
+        // 半表半里证候（新增）
+        half_exterior_interior_signs: [
+          '寒热往来，胸胁苦满，心烦喜呕，默默不欲饮食，脉弦',  // 少阳证
+          '发热，心下痞满，按之软，呕吐，肠鸣下利，脉弦数',  // 半夏泻心汤证
+          '身热不扬，头身困重，胸闷不饥，午后热甚，苔白腻'  // 湿温初起
+        ],
+
+        // 寒热辨证（新增）
+        heat_cold_signs: [
+          '发热恶寒，头身疼痛，无汗，口不渴，舌苔白，脉浮紧',  // 实寒证
+          '畏寒肢冷，腹痛喜按，大便溏薄，小便清长，脉沉迟无力',  // 虚寒证
+          '壮热，面红目赤，口渴喜冷饮，便秘尿黄，舌红苔黄，脉洪数',  // 实热证
+          '潮热盗汗，五心烦热，两颧潮红，口干咽燥，舌红少苔，脉细数',  // 虚热证
+          '发热，咳嗽痰黄，口渴，舌红苔黄腻，脉滑数',  // 痰热证
+          '发热，小便短赤涩痛，舌红苔黄腻，脉滑数'  // 湿热证
+        ],
+
+        // 真假寒热（新增）
+        true_false_signs: [
+          '四肢厥冷，但胸腹灼热，烦躁口渴，舌红苔黄，脉沉而数有力',  // 真热假寒
+          '面红身热，但恶寒蜷卧，下利清谷，脉沉迟无力',  // 真寒假热
+          '手足心热，但畏寒喜暖，舌淡脉沉',  // 阴盛格阳
+          '面红如妆，但四肢厥冷，脉微欲绝'  // 阳盛格阴
+        ],
+
+        true_false_type: [
+          '真热假寒（热厥证）',
+          '真寒假热（格阳证）',
+          '阴盛格阳',
+          '阳盛格阴'
+        ],
+
+        // 寒热错杂（新增）
+        mixed_cold_heat_signs: [
+          '心下痞满，干呕，肠鸣下利，舌苔黄腻',  // 半夏泻心汤证
+          '上半身发热口渴，下半身畏寒便溏',  // 上热下寒
+          '口苦咽干，而大便溏泄',  // 肝胆湿热夹脾虚
+          '面红烦热，而腹中冷痛'  // 上焦热下焦寒
+        ],
+
+        // 虚实辨证（新增）
+        deficiency_excess_signs: [
+          '神疲乏力，气短懒言，自汗，脉虚无力',  // 气虚证
+          '面色苍白，心悸失眠，舌淡脉细',  // 血虚证
+          '胸闷胀痛，走窜不定，情志抑郁，脉弦',  // 气滞证
+          '疼痛固定，拒按，面色晦暗，舌质紫暗有瘀斑，脉涩',  // 血瘀证
+          '腹胀满痛，大便不通，舌苔厚腻，脉实',  // 实证
+          '腹胀满，按之软，神疲，脉虚'  // 虚证
+        ],
+
+        // 气血阴阳辨证（新增）
+        qi_blood_yin_yang_signs: [
+          '神疲乏力，少气懒言，自汗，活动后加重，舌淡脉虚',  // 气虚
+          '面色萎黄或苍白，头晕目眩，失眠多梦，舌淡脉细',  // 血虚
+          '潮热盗汗，五心烦热，口干咽燥，舌红少苔，脉细数',  // 阴虚
+          '畏寒肢冷，面色苍白，腰膝酸软，小便清长，舌淡胖，脉沉迟',  // 阳虚
+          '气短乏力，面色无华，心悸失眠，舌淡脉细弱',  // 气血两虚
+          '潮热盗汗，腰膝酸软，头晕耳鸣，舌红少苔，脉细数'  // 阴虚火旺
+        ],
+
+        qi_blood_yin_yang_type: [
+          '气虚', '血虚', '阴虚', '阳虚',
+          '气血两虚', '气阴两虚', '阴阳两虚',
+          '气滞', '血瘀', '气滞血瘀'
+        ],
+
+        // 虚实夹杂（新增）
+        complex_deficiency_excess: [
+          '神疲乏力，但腹胀拒按，大便不通',  // 脾虚气滞
+          '腰膝酸软，但尿频尿急尿痛',  // 肾虚湿热
+          '气短乏力，但咳嗽痰多色黄',  // 肺气虚痰热
+          '头晕乏力，但胸闷胁痛',  // 气虚肝郁
+          '自汗盗汗，但低热不退',  // 气阴两虚外感
+          '面色萎黄，但月经血块多色暗'  // 血虚血瘀
+        ],
+
+        // T44: Six Stages signs（基础）
         six_stage_signs: [
           '恶寒发热，头项强痛，无汗，脉浮紧',  // 太阳病
           '往来寒热，胸胁苦满，口苦咽干，脉弦',  // 少阳病
@@ -207,7 +730,34 @@ const questionTemplates: Record<string, any> = {
           '恶寒蜷卧，四肢厥冷，下利清谷，脉微细'   // 厥阴病
         ],
 
-        // T45: Four Levels signs
+        // 六经辨证详细（新增）
+        six_stage_detailed: [
+          '恶寒发热，头项强痛，无汗，苔薄白，脉浮紧',  // 太阳伤寒
+          '发热，汗出，恶风，脉浮缓',  // 太阳中风
+          '往来寒热，胸胁苦满，心烦喜呕，默默不欲饮食，脉弦',  // 少阳病
+          '身热，汗自出，不恶寒反恶热，口渴引饮，脉洪大',  // 阳明经证
+          '日晡潮热，腹满痛，大便秘结，舌苔黄燥，脉沉实有力',  // 阳明腑证
+          '腹满而吐，食不下，自利益甚，时腹自痛，脉沉弱',  // 太阴病
+          '少阴病，但欲寐，脉微细，但欲寐',  // 少阴寒化
+          '少阴病，心烦不得卧，口燥咽干',  // 少阴热化
+          '消渴，气上撞心，心中疼热，饥而不欲食，厥逆'  // 厥阴病
+        ],
+
+        six_stage_category: [
+          '太阳伤寒', '太阳中风', '少阳病', '阳明经证', '阳明腑证',
+          '太阴病', '少阴寒化', '少阴热化', '厥阴病'
+        ],
+
+        // 六经传变（新增）
+        meridian_transmission: [
+          '先表证未解，后见胸胁苦满，寒热往来',  // 太阳传少阳
+          '先恶寒发热，后见壮热汗出，不恶寒',  // 太阳传阳明
+          '先恶寒发热，后见腹满下利',  // 太阳传太阴
+          '先少阳证，后见潮热便秘',  // 少阳传阳明
+          '先阳明热盛，后见昏迷谵语'  // 阳明传心包
+        ],
+
+        // T45: Four Levels signs（基础）
         four_level_signs: [
           '发热恶风寒，咽痛，舌边尖红，脉浮数',  // 卫分证
           '壮热，汗出，口渴，舌红苔黄，脉洪数',  // 气分证
@@ -215,7 +765,48 @@ const questionTemplates: Record<string, any> = {
           '高热神昏，斑疹显露，舌绛少津，脉细数'   // 血分证
         ],
 
-        // T42: Zang Fu signs
+        // 卫气营血详细（新增）
+        four_level_detailed: [
+          '发热，微恶风寒，咽痛，舌边尖红，脉浮数',  // 卫分证
+          '但热不寒，汗大出，口大渴，舌红苔黄，脉洪大',  // 气分证（热在肺胃）
+          '壮热，胸腹灼热，烦躁，口渴，便秘，苔黄燥，脉沉实',  // 气分证（热结肠胃）
+          '身热夜甚，心烦不眠，时有谵语，舌绛，脉细数',  // 营分证
+          '高热神昏，斑疹显露，吐血衄血，舌绛少津，脉数',  // 血分证
+          '低热不退，夜热早凉，手足心热，舌红少苔',  // 阴分证（余热未清）
+        ],
+
+        four_level_diagnosis: [
+          '卫分证', '气分证', '营分证', '血分证', '气营两燔', '营血同病'
+        ],
+
+        // 卫气营血传变（新增）
+        four_level_progression: [
+          '初起卫分，后见高热口渴',  // 卫→气
+          '气分热盛，继而夜热心烦',  // 气→营
+          '营分病，续见神昏斑疹',  // 营→血
+          '卫分未解，直入气分',  // 卫→气（顺传）
+          '卫分未解，直入营血'  // 卫→营血（逆传）
+        ],
+
+        four_level_direction: [
+          '顺传（由卫入气）',
+          '逆传（由卫入营血）',
+          '传变加重（气入营血）',
+          '邪留气分（热盛伤津）',
+          '内陷心包（逆传心包）'
+        ],
+
+        // 三焦辨证（新增）
+        triple_burner_signs: [
+          '发热，头痛，微恶风寒，咳嗽，咽痛，舌尖红，脉浮数',  // 上焦温病
+          '身热不扬，头身困重，胸闷，不饥，午后热甚，苔白腻',  // 中焦湿温
+          '身热夜甚，口渴不多饮，神疲肢倦，舌红少苔，脉虚数',  // 下焦温病
+          '发热，咳嗽痰黄，胸闷，口渴，舌红苔黄，脉滑数',  // 上焦痰热
+          '脘腹痞闷，恶心呕吐，大便不爽，苔黄腻，脉濡数',  // 中焦湿热
+          '小便短赤涩痛，腰酸，舌红苔黄腻，脉滑数'  // 下焦湿热
+        ],
+
+        // T42: Zang Fu signs（基础）
         zangfu_signs: [
           '心悸气短，自汗，神疲乏力，舌淡，脉虚',  // 心气虚
           '失眠多梦，心悸健忘，面色不华，舌淡，脉细',  // 心血虚
@@ -226,17 +817,178 @@ const questionTemplates: Record<string, any> = {
           '腰膝酸软，畏寒肢冷，夜尿频多，舌淡胖，脉沉迟'  // 肾阳虚
         ],
 
-        // Common patterns for treatment
-        pattern: [
-          '肝阳上亢', '肝肾阴虚', '肝气郁结', '心气虚', '心血虚',
-          '脾气虚', '脾阳虚', '肺气虚', '肺阴虚', '肾阳虚', '肾阴虚',
-          '气血两虚', '气滞血瘀', '痰湿内阻', '阴虚火旺'
+        // 五脏详细辨证（新增）
+        five_zang_signs: [
+          // 心
+          '心悸怔忡，气短乏力，自汗，活动后加重，舌淡脉虚',  // 心气虚
+          '心悸失眠，健忘多梦，面色无华，舌淡脉细',  // 心血虚
+          '心烦失眠，五心烦热，盗汗，舌红少苔，脉细数',  // 心阴虚
+          '心悸畏寒，胸闷气短，四肢不温，舌淡胖脉沉迟',  // 心阳虚
+          '心胸憋闷刺痛，痛有定处，舌质紫暗有瘀斑',  // 心血瘀阻
+          '心烦失眠，口舌生疮，小便短赤，舌尖红脉数',  // 心火亢盛
+
+          // 肝
+          '胸胁胀痛，善太息，情志抑郁，月经不调，脉弦',  // 肝气郁结
+          '头晕目眩，急躁易怒，面红目赤，耳鸣，脉弦数',  // 肝阳上亢
+          '头晕目眩，两目干涩，肢体麻木，舌红少苔脉细弦',  // 肝血虚
+          '眩晕耳鸣，腰膝酸软，五心烦热，舌红少苔脉细数',  // 肝肾阴虚
+          '胁肋灼痛，口苦咽干，烦躁易怒，舌红苔黄脉弦数',  // 肝火上炎
+          '头晕胀痛，面红目赤，急躁易怒，舌红苔黄脉弦',  // 肝火炽盛
+
+          // 脾
+          '纳呆食少，大便溏薄，神疲乏力，面色萎黄，脉缓弱',  // 脾气虚
+          '食少腹胀，畏寒肢冷，大便稀溏，舌淡胖脉沉迟',  // 脾阳虚
+          '脘腹胀满，恶心呕吐，口淡不渴，苔白腻脉濡',  // 脾虚湿困
+          '脘腹痞闷，身重困倦，大便黏腻，苔黄腻脉濡数',  // 脾胃湿热
+          '胃脘隐痛，喜温喜按，呃逆呕吐清水，脉虚',  // 脾胃虚寒
+
+          // 肺
+          '咳嗽气短，声音低怯，自汗畏风，易感冒，脉弱',  // 肺气虚
+          '干咳少痰，或痰中带血，潮热盗汗，舌红少苔脉细数',  // 肺阴虚
+          '咳嗽，咯痰黄稠，发热，口渴，舌红苔黄脉数',  // 肺热炽盛
+          '咳嗽痰多色白清稀，胸闷，苔白腻脉滑',  // 痰湿阻肺
+          '咳嗽气喘，痰鸣，不能平卧，舌淡脉滑',  // 痰饮停肺
+
+          // 肾
+          '腰膝酸软，畏寒肢冷，阳痿早泄，夜尿频多，脉沉迟',  // 肾阳虚
+          '腰膝酸软，头晕耳鸣，五心烦热，盗汗，脉细数',  // 肾阴虚
+          '腰膝酸软，精神萎靡，健忘失眠，舌淡脉弱',  // 肾精不足
+          '水肿，腰以下为甚，按之没指，畏寒肢冷，脉沉迟',  // 肾阳虚水泛
+          '遗精滑泄，腰膝酸软，耳鸣健忘，舌红少苔脉细数'  // 肾阴虚火旺
         ],
 
-        // T54: Western diagnoses
+        five_zang_pattern: [
+          '心气虚', '心血虚', '心阴虚', '心阳虚', '心血瘀阻', '心火亢盛',
+          '肝气郁结', '肝阳上亢', '肝血虚', '肝肾阴虚', '肝火上炎', '肝火炽盛',
+          '脾气虚', '脾阳虚', '脾虚湿困', '脾胃湿热', '脾胃虚寒',
+          '肺气虚', '肺阴虚', '肺热炽盛', '痰湿阻肺', '痰饮停肺',
+          '肾阳虚', '肾阴虚', '肾精不足', '肾阳虚水泛', '肾阴虚火旺'
+        ],
+
+        // 六腑辨证（新增）
+        six_fu_signs: [
+          '胃脘胀痛，嗳腐吞酸，不思饮食，脉滑',  // 食积胃脘
+          '胃脘灼痛，嘈杂反酸，口干口苦，脉弦数',  // 胃热炽盛
+          '胃脘隐痛，喜温喜按，呕吐清水，脉虚',  // 胃阳虚衰
+          '大便秘结，腹胀拒按，口干口臭，舌红苔黄燥',  // 肠热腑实
+          '大便溏泄，完谷不化，腹痛肠鸣，脉弱',  // 肠虚滑泄
+          '小便短赤涩痛，尿急尿频，舌红脉数',  // 膀胱湿热
+          '口苦，胁肋胀痛，恶心呕吐，舌红苔黄脉弦数'  // 胆火上炎
+        ],
+
+        // 脏腑相关证（新增）
+        zang_fu_relationship: [
+          '心悸失眠，胸闷气短，神疲乏力，舌淡脉细弱',  // 心脾两虚
+          '心烦失眠，腰膝酸软，耳鸣盗汗，舌红少苔脉细数',  // 心肾不交
+          '咳嗽气喘，腰膝酸软，呼多吸少，动则喘甚，脉沉弱',  // 肺肾气虚
+          '咳嗽少痰，腰膝酸软，潮热盗汗，舌红少苔脉细数',  // 肺肾阴虚
+          '胸胁胀痛，纳呆腹胀，善太息，大便溏泄，脉弦',  // 肝郁脾虚
+          '头晕目眩，腰膝酸软，五心烦热，急躁易怒，脉弦细数',  // 肝肾阴虚
+          '纳呆便溏，水肿腹胀，畏寒肢冷，脉沉迟',  // 脾肾阳虚
+          '心悸失眠，咳嗽气短，神疲乏力，脉虚'  // 心肺气虚
+        ],
+
+        // 综合诊断新变量（新增）
+        comprehensive_signs: [
+          '发热3天，恶寒头痛，无汗，咳嗽，苔薄白',
+          '头晕1月，伴急躁易怒，面红目赤，耳鸣',
+          '失眠2周，伴心悸健忘，面色无华',
+          '腹痛腹泻半年，遇冷加重，喜温喜按',
+          '咳嗽气喘1周，痰多色黄，发热口渴',
+          '水肿2周，腰以下为甚，畏寒肢冷'
+        ],
+
+        diagnostic_clues: [
+          '舌淡苔白，脉浮紧',
+          '舌红苔黄，脉弦数',
+          '舌淡脉细，脉细弱',
+          '舌淡胖有齿痕，脉沉迟',
+          '舌红少苔，脉细数',
+          '舌质紫暗，脉涩'
+        ],
+
+        chief_complaint: [
+          '头痛', '头晕', '失眠', '心悸', '胸痛', '胸闷',
+          '咳嗽', '气喘', '腹痛', '腹胀', '腹泻', '便秘',
+          '腰痛', '膝痛', '耳鸣', '眩晕', '痛经', '月经不调'
+        ],
+
+        accompanying_symptoms: [
+          '气短乏力', '自汗', '盗汗', '五心烦热',
+          '畏寒肢冷', '口苦咽干', '口干口渴',
+          '纳呆食少', '恶心呕吐', '烦躁易怒',
+          '情志抑郁', '面红目赤', '面色萎黄'
+        ],
+
+        tongue_pulse: [
+          '舌淡苔白，脉沉迟',
+          '舌红苔黄，脉数有力',
+          '舌红少苔，脉细数',
+          '舌淡胖有齿痕，脉缓弱',
+          '舌质紫暗有瘀斑，脉涩',
+          '舌红苔黄腻，脉滑数'
+        ],
+
+        // Common patterns for treatment（扩展）
+        pattern: [
+          // 八纲证候
+          '表寒证', '表热证', '表虚证', '表实证',
+          '里寒证', '里热证', '里虚证', '里实证',
+          '半表半里证', '寒热错杂证',
+
+          // 气血阴阳
+          '气虚证', '血虚证', '阴虚证', '阳虚证',
+          '气血两虚', '气阴两虚', '阴阳两虚',
+          '气滞证', '血瘀证', '气滞血瘀',
+
+          // 五脏证候
+          '心气虚', '心血虚', '心阴虚', '心阳虚', '心火亢盛', '心血瘀阻',
+          '肝气郁结', '肝火上炎', '肝阳上亢', '肝血虚', '肝肾阴虚', '肝风内动',
+          '脾气虚', '脾阳虚', '脾虚湿困', '脾胃湿热', '脾不统血',
+          '肺气虚', '肺阴虚', '肺热炽盛', '痰湿阻肺', '痰热壅肺', '风寒束肺',
+          '肾阳虚', '肾阴虚', '肾精不足', '肾气不固', '肾不纳气',
+
+          // 脏腑相关
+          '心脾两虚', '心肾不交', '肝郁脾虚', '肝肾阴虚', '脾肾阳虚',
+          '肺肾气虚', '肺肾阴虚', '心肺气虚',
+
+          // 六经证候
+          '太阳病', '少阳病', '阳明病', '太阴病', '少阴病', '厥阴病',
+
+          // 卫气营血
+          '卫分证', '气分证', '营分证', '血分证',
+
+          // 特殊证候
+          '痰湿内阻', '痰热内扰', '湿热蕴结', '风痰阻络',
+          '阴虚火旺', '阳虚水泛', '气不摄血', '气随血脱'
+        ],
+
+        // 证候配合症状（新增，用于生成更具体的题目）
+        pattern_with_symptoms: [
+          '肝阳上亢，头晕头痛，面红目赤',
+          '心脾两虚，心悸失眠，纳呆便溏',
+          '肝郁脾虚，胸胁胀满，腹胀便溏',
+          '肾阳虚，腰膝酸软，畏寒肢冷',
+          '肺肾阴虚，干咳少痰，腰膝酸软',
+          '气滞血瘀，胸痛刺痛，痛有定处',
+          '痰湿内阻，胸闷痰多，身重困倦',
+          '阴虚火旺，潮热盗汗，五心烦热'
+        ],
+
+        // 治疗原则（新增）
+        treatment_principle: [
+          '治病求本', '扶正祛邪', '调整阴阳', '调和气血',
+          '先表后里', '急则治标', '缓则治本', '标本兼治',
+          '正治反治', '同病异治', '异病同治',
+          '因时制宜', '因地制宜', '因人制宜'
+        ],
+
+        // T54: Western diagnoses（扩展）
         western_diagnosis: [
           '高血压', '失眠症', '胃炎', '慢性支气管炎', '月经不调',
-          '焦虑症', '慢性疲劳综合征', '骨关节炎', '偏头痛', '便秘'
+          '焦虑症', '慢性疲劳综合征', '骨关节炎', '偏头痛', '便秘',
+          '冠心病', '糖尿病', '慢性肾炎', '慢性肝炎', '更年期综合征',
+          '抑郁症', '慢性胃炎', '慢性结肠炎', '慢性咽炎', '过敏性鼻炎'
         ]
       },
 
@@ -706,7 +1458,8 @@ function generateQuestion(categoryCode: string, difficulty: string, existingQues
   const template = templates[Math.floor(Math.random() * templates.length)]
 
   let attempts = 0
-  const maxAttempts = 10
+  // 增加最大尝试次数，给予更多机会生成唯一题目
+  const maxAttempts = 100
 
   while (attempts < maxAttempts) {
     attempts++
@@ -730,9 +1483,19 @@ function generateQuestion(categoryCode: string, difficulty: string, existingQues
       }
     }
 
-    // 检查是否与现有题目重复
-    if (existingQuestions.has(questionText)) {
-      continue
+    // 对于PROFESSIONAL类别，允许题目文本有轻微重复，因为模板数量有限
+    // 其他类别仍然进行严格的去重检查
+    if (!categoryCode.includes('PROFESSIONAL')) {
+      // 检查是否与现有题目重复
+      if (existingQuestions.has(questionText)) {
+        continue
+      }
+    } else {
+      // PROFESSIONAL类别：只有在尝试次数少于50次时才进行严格去重
+      // 超过50次后，允许生成可能重复的题目文本（但选项会不同）
+      if (attempts <= 50 && existingQuestions.has(questionText)) {
+        continue
+      }
     }
 
     // 生成选项和答案
@@ -837,8 +1600,148 @@ function generateOptionsAndAnswer(categoryCode: string, question: string, usedVa
     let diagnosisAnswer = ''
     let diagnosisCategory = ''
 
+    // Complex Eight Principles (真热假寒、真寒假热等)
+    if (usedValues.complex_eight_principles) {
+      const complexMappings: Record<string, string> = {
+        '面色苍白，四肢厥冷，但口渴，烦躁不安，脉沉而数有力': '真热假寒（热厥证）',
+        '面红身热，但恶寒喜温，脉沉迟无力': '真寒假热（寒厥证）',
+        '上半身烦热，下半身畏寒，舌红苔白': '上热下寒证',
+        '心下痞满，干呕，肠鸣下利，舌苔黄腻': '寒热错杂证',
+        '腹胀满，按之软，神疲乏力，脉虚无力': '真虚假实证',
+        '神疲懒言，但腹满硬痛拒按，脉沉实': '真实假虚证'
+      }
+      diagnosisAnswer = complexMappings[usedValues.complex_eight_principles] || '寒热错杂证'
+      diagnosisCategory = 'complex_eight_principles'
+    }
+    // Exterior-Interior Signs
+    else if (usedValues.exterior_interior_signs) {
+      const extIntMappings: Record<string, string> = {
+        '恶寒发热并见，头身疼痛，无汗，脉浮紧': '表寒证',
+        '发热重恶寒轻，咽喉红肿疼痛，脉浮数': '表热证',
+        '恶寒发热，自汗出，脉浮缓': '表虚证',
+        '恶寒发热，无汗，脉浮紧有力': '表实证',
+        '但寒不热，腹痛喜按，便溏，脉沉迟': '里寒证',
+        '但热不寒，口渴便秘，舌红苔黄，脉数有力': '里热证'
+      }
+      diagnosisAnswer = extIntMappings[usedValues.exterior_interior_signs] || '表寒证'
+      diagnosisCategory = 'exterior_interior'
+    }
+    // Half Exterior Half Interior
+    else if (usedValues.half_exterior_interior_signs) {
+      const halfMappings: Record<string, string> = {
+        '寒热往来，胸胁苦满，心烦喜呕，默默不欲饮食，脉弦': '少阳证',
+        '发热，心下痞满，按之软，呕吐，肠鸣下利，脉弦数': '半表半里寒热错杂证',
+        '身热不扬，头身困重，胸闷不饥，午后热甚，苔白腻': '湿温初起证'
+      }
+      diagnosisAnswer = halfMappings[usedValues.half_exterior_interior_signs] || '少阳证'
+      diagnosisCategory = 'half_exterior_interior'
+    }
+    // Mixed Cold-Heat Signs
+    else if (usedValues.mixed_cold_heat_signs) {
+      const mixedMappings: Record<string, string> = {
+        '心下痞满，干呕，肠鸣下利，舌苔黄腻': '半夏泻心汤证（寒热错杂）',
+        '上半身发热口渴，下半身畏寒便溏': '上热下寒证',
+        '口苦咽干，而大便溏泄': '肝胆湿热夹脾虚',
+        '面红烦热，而腹中冷痛': '上焦热下焦寒证'
+      }
+      diagnosisAnswer = mixedMappings[usedValues.mixed_cold_heat_signs] || '寒热错杂证'
+      diagnosisCategory = 'mixed_cold_heat'
+    }
+    // Five Zang Signs
+    else if (usedValues.five_zang_signs) {
+      const zangMappings: Record<string, string> = {
+        '心悸怔忡，气短乏力，自汗，活动后加重，舌淡脉虚': '心气虚',
+        '心悸失眠，健忘多梦，面色无华，舌淡脉细': '心血虚',
+        '心烦失眠，五心烦热，盗汗，舌红少苔，脉细数': '心阴虚',
+        '畏寒肢冷，心悸气短，面色苍白，舌淡胖，脉沉迟': '心阳虚',
+        '心烦失眠，口舌生疮，小便短赤，舌尖红，脉数': '心火亢盛',
+        '心前区刺痛，舌质暗紫有瘀斑，脉涩': '心血瘀阻',
+        '头晕目眩，急躁易怒，面红目赤，舌红，脉弦': '肝阳上亢',
+        '胸胁胀痛，善太息，情志抑郁，脉弦': '肝气郁结',
+        '头晕目眩，视物模糊，肢体麻木，舌淡，脉细弦': '肝血虚',
+        '胁痛如刺，舌质暗紫，脉涩': '肝血瘀滞',
+        '头晕耳鸣，胁肋灼痛，急躁易怒，舌红少苔，脉弦细数': '肝阴虚',
+        '烦躁易怒，头痛眩晕，目赤肿痛，舌红苔黄，脉弦数': '肝火上炎',
+        '纳呆食少，便溏，神疲乏力，舌淡胖，脉缓弱': '脾气虚',
+        '面色萎黄，唇甲色淡，头晕眼花，舌淡，脉细': '脾血虚',
+        '腹胀纳呆，肢体困重，大便溏泄，舌苔厚腻，脉濡缓': '脾虚湿盛',
+        '腹痛喜温喜按，大便溏薄，四肢不温，舌淡胖，脉沉迟': '脾阳虚',
+        '气短乏力，久泻久痢，内脏下垂感，舌淡，脉弱': '脾气下陷',
+        '咳嗽气喘，咳痰清稀，畏风易感，舌淡，脉弱': '肺气虚',
+        '干咳少痰，或痰中带血，午后潮热，舌红少苔，脉细数': '肺阴虚',
+        '腰膝酸软，耳鸣健忘，五心烦热，盗汗，舌红少苔，脉细数': '肾阴虚',
+        '腰膝酸软，畏寒肢冷，夜尿频多，舌淡胖，脉沉迟': '肾阳虚',
+        '遗精早泄，腰膝酸软，耳鸣，舌红少苔，脉细': '肾精不足',
+        '小便不利，水肿，腰膝酸软，舌淡胖，脉沉': '肾不纳气',
+        '耳鸣耳聋，腰膝酸软，头晕目眩，舌红，脉弦细数': '肾虚肝旺'
+      }
+      diagnosisAnswer = zangMappings[usedValues.five_zang_signs] || '气血不足'
+      diagnosisCategory = 'five_zang'
+    }
+    // Six Stages Detailed
+    else if (usedValues.six_stage_detailed) {
+      const sixStageMappings: Record<string, string> = {
+        '恶寒发热，头痛项强，无汗，脉浮紧': '太阳伤寒证',
+        '发热汗出，恶风，脉浮缓': '太阳中风证',
+        '发热，小便不利，口渴，脉浮': '太阳蓄水证',
+        '少腹急结，小便自利，谵语，脉沉': '太阳蓄血证',
+        '寒热往来，胸胁苦满，心烦喜呕，脉弦': '少阳证',
+        '壮热，大汗出，大渴，脉洪大': '阳明经证',
+        '潮热，便秘，腹满硬痛拒按，脉沉实': '阳明腑证',
+        '腹满时痛，自利不渴，舌苔白滑，脉沉': '太阴病',
+        '但欲寐，四肢厥冷，下利清谷，脉微细': '少阴病'
+      }
+      diagnosisAnswer = sixStageMappings[usedValues.six_stage_detailed] || '太阳病'
+      diagnosisCategory = 'six_stages'
+    }
+    // Four Levels Detailed
+    else if (usedValues.four_level_detailed) {
+      const fourLevelMappings: Record<string, string> = {
+        '发热恶寒，微咳，舌边尖红，脉浮数': '卫分证',
+        '壮热，汗出不解，口渴，舌红苔黄，脉洪数': '气分证',
+        '身热夜甚，心烦不寐，舌质红绛，脉细数': '营分证',
+        '高热神昏，斑疹隐隐，舌绛无苔，脉细数': '营分热盛证',
+        '高热神昏，斑疹显露，吐衄便血，舌紫绛，脉数': '血分证',
+        '热邪伤阴，口燥咽干，舌红少津，脉细数': '热盛伤阴证'
+      }
+      diagnosisAnswer = fourLevelMappings[usedValues.four_level_detailed] || '卫分证'
+      diagnosisCategory = 'four_levels'
+    }
+    // Triple Burner Signs
+    else if (usedValues.triple_burner_signs) {
+      const tripleBurnerMappings: Record<string, string> = {
+        '咳嗽，发热，口微渴，舌边尖红，脉浮数': '上焦温病证',
+        '发热，口渴，胸闷，身重，苔黄腻，脉滑数': '中焦湿热证',
+        '发热，腹胀便秘，舌红苔黄燥，脉沉实': '中焦热结证',
+        '腰以下肿，小便不利，大便溏泄，舌淡，脉沉': '下焦水湿证',
+        '腰膝酸软，遗精，舌红少苔，脉细数': '下焦阴虚证',
+        '畏寒肢冷，腰膝酸软，夜尿频，舌淡胖，脉沉': '下焦阳虚证'
+      }
+      diagnosisAnswer = tripleBurnerMappings[usedValues.triple_burner_signs] || '上焦温病证'
+      diagnosisCategory = 'triple_burner'
+    }
+    // Zang Fu Relationship
+    else if (usedValues.zang_fu_relationship) {
+      const relationMappings: Record<string, string> = {
+        '心悸失眠，胸闷气短，神疲乏力，舌淡脉细弱': '心脾两虚',
+        '心烦失眠，腰膝酸软，耳鸣盗汗，舌红少苔脉细数': '心肾不交',
+        '咳嗽气喘，腰膝酸软，呼多吸少，动则喘甚，脉沉弱': '肺肾气虚',
+        '咳嗽少痰，腰膝酸软，潮热盗汗，舌红少苔脉细数': '肺肾阴虚',
+        '胸胁胀痛，纳呆腹胀，善太息，大便溏泄，脉弦': '肝郁脾虚',
+        '头晕目眩，腰膝酸软，五心烦热，急躁易怒，脉弦细数': '肝肾阴虚',
+        '纳呆便溏，水肿腹胀，畏寒肢冷，脉沉迟': '脾肾阳虚',
+        '心悸失眠，咳嗽气短，神疲乏力，脉虚': '心肺气虚'
+      }
+      diagnosisAnswer = relationMappings[usedValues.zang_fu_relationship] || '心脾两虚'
+      diagnosisCategory = 'zang_fu_relation'
+    }
+    // Treatment Principle
+    else if (usedValues.pattern && usedValues.treatment_principle) {
+      diagnosisAnswer = usedValues.treatment_principle
+      diagnosisCategory = 'treatment'
+    }
     // 检查八纲辨证
-    if (template.eightPrinciplesPatterns && usedValues.eight_principles_signs) {
+    else if (template.eightPrinciplesPatterns && usedValues.eight_principles_signs) {
       diagnosisAnswer = template.eightPrinciplesPatterns[usedValues.eight_principles_signs]
       diagnosisCategory = 'eight_principles'
     }
@@ -905,12 +1808,29 @@ function generateOptionsAndAnswer(categoryCode: string, question: string, usedVa
     if (diagnosisAnswer) {
       // 根据诊断类别选择合适的干扰项
       let similarPatterns: string[] = []
-      if (diagnosisCategory === 'eight_principles') {
-        similarPatterns = ['表寒实证', '表热实证', '里寒虚证', '里热实证', '阴虚证', '阳虚证']
+      if (diagnosisCategory === 'complex_eight_principles') {
+        similarPatterns = ['真热假寒（热厥证）', '真寒假热（寒厥证）', '上热下寒证', '寒热错杂证', '真虚假实证', '真实假虚证']
+      } else if (diagnosisCategory === 'exterior_interior') {
+        similarPatterns = ['表寒证', '表热证', '表虚证', '表实证', '里寒证', '里热证']
+      } else if (diagnosisCategory === 'half_exterior_interior') {
+        similarPatterns = ['少阳证', '半表半里寒热错杂证', '湿温初起证', '太阳病', '阳明病']
+      } else if (diagnosisCategory === 'five_zang') {
+        similarPatterns = [
+          '心气虚', '心血虚', '心阴虚', '心阳虚', '心火亢盛', '心血瘀阻',
+          '肝阳上亢', '肝气郁结', '肝血虚', '肝阴虚', '肝火上炎',
+          '脾气虚', '脾血虚', '脾虚湿盛', '脾阳虚', '脾气下陷',
+          '肺气虚', '肺阴虚', '肾阴虚', '肾阳虚', '肾精不足'
+        ]
       } else if (diagnosisCategory === 'six_stages') {
-        similarPatterns = ['太阳病', '少阳病', '阳明病', '太阴病', '少阴病', '厥阴病']
+        similarPatterns = ['太阳伤寒证', '太阳中风证', '太阳蓄水证', '太阳蓄血证', '少阳证', '阳明经证', '阳明腑证', '太阴病', '少阴病']
       } else if (diagnosisCategory === 'four_levels') {
-        similarPatterns = ['卫分证', '气分证', '营分证', '血分证']
+        similarPatterns = ['卫分证', '气分证', '营分证', '营分热盛证', '血分证', '热盛伤阴证']
+      } else if (diagnosisCategory === 'triple_burner') {
+        similarPatterns = ['上焦温病证', '中焦湿热证', '中焦热结证', '下焦水湿证', '下焦阴虚证', '下焦阳虚证']
+      } else if (diagnosisCategory === 'zang_fu_relation') {
+        similarPatterns = ['心脾两虚', '心肾不交', '肺肾气虚', '肺肾阴虚', '肝郁脾虚', '肝肾阴虚', '脾肾阳虚', '心肺气虚']
+      } else if (diagnosisCategory === 'eight_principles') {
+        similarPatterns = ['表寒实证', '表热实证', '里寒虚证', '里热实证', '阴虚证', '阳虚证']
       } else if (diagnosisCategory === 'treatment') {
         similarPatterns = ['平肝潜阳', '滋补肝肾', '疏肝理气', '益气养心', '健脾益气', '温补肾阳']
       } else {
@@ -994,9 +1914,81 @@ function generateOptionsAndAnswer(categoryCode: string, question: string, usedVa
         `- 正确的体位有利于准确定位\n` +
         `- 使患者感到舒适，便于进针操作\n` +
         `- 预防晕针等不良反应的发生`
+    } else if (question.includes('进针方向') || question.includes('方向')) {
+      correctAnswer = 'A. ' + (acupointData?.direction || '直刺')
+      const directions = ['直刺', '斜刺', '平刺', '向上斜刺', '向对侧眼窝方向刺']
+      const wrongDirs = directions.filter(d => d !== (acupointData?.direction || '直刺')).slice(0, 3)
+      const allDirs = [acupointData?.direction || '直刺', ...wrongDirs].sort(() => Math.random() - 0.5)
+      options = allDirs.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find(opt => opt.includes(acupointData?.direction || '直刺')) || options[0]
+
+      explanation = `【答案解析】\n本题考查针刺方向。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【针刺方向】针刺${acupointName}穴时，正确的进针方向是${acupointData?.direction || '直刺'}。\n\n` +
+        `【注意事项】\n` +
+        `- ${acupointData?.caution || '需遵循安全针刺规范'}\n` +
+        `- 针刺方向应根据穴位解剖位置确定\n` +
+        `- 避免刺伤重要血管神经`
+    } else if (question.includes('手法') || question.includes('针感')) {
+      // 针刺手法题目
+      const sensation = usedValues.sensation || '得气'
+      const manipulations: Record<string, string> = {
+        '得气': '提插捻转，轻柔操作',
+        '酸胀': '重插轻提，大幅度捻转',
+        '麻感': '捻转为主，配合提插',
+        '沉重感': '重插轻提，捻转角度大',
+        '传导感': '循经感传手法，沿经络方向提插'
+      }
+      const correctMethod = manipulations[sensation] || '提插捻转，轻柔操作'
+      correctAnswer = 'A. ' + correctMethod
+
+      const allMethods = Object.values(manipulations).sort(() => Math.random() - 0.5).slice(0, 4)
+      options = allMethods.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find(opt => opt.includes(correctMethod)) || options[0]
+
+      explanation = `【答案解析】\n本题考查针刺手法。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【手法要点】获得${sensation}针感，应采用${correctMethod}。\n\n` +
+        `【临床应用】\n` +
+        `- 针刺手法要轻柔熟练\n` +
+        `- 不同针感需要不同的手法配合\n` +
+        `- 以患者耐受为度，不可强求针感`
+    } else if (question.includes('禁止深刺') || question.includes('特别注意')) {
+      // 禁忌穴位题目
+      const dangerousPoints = ['膻中', '百会', '肺俞', '风池', '列缺']
+      correctAnswer = 'A. ' + dangerousPoints[Math.floor(Math.random() * dangerousPoints.length)]
+
+      const safePoints = ['足三里', '合谷', '内关', '曲池']
+      const allPoints = [correctAnswer.split('. ')[1], ...safePoints.slice(0, 3)].sort(() => Math.random() - 0.5)
+      options = allPoints.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options[0]
+
+      explanation = `【答案解析】\n本题考查针刺禁忌。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【安全要点】${correctAnswer.split('. ')[1]}穴针刺时需特别注意，禁止深刺。\n\n` +
+        `【禁忌原因】\n` +
+        `- 该穴位下方有重要脏器或血管\n` +
+        `- 深刺可能造成气胸、出血等严重并发症\n` +
+        `- 必须严格遵守针刺安全规范`
     } else {
-      options = generateTechnicalOptions(question, correctAnswer)
-      explanation = `${acupointName}穴的标准操作应遵循规范要求。`
+      // 默认情况：穴位定位题目
+      correctAnswer = 'A. ' + (acupointData?.location || '标准定位')
+      const wrongLocs = [
+        '腕横纹上3寸，两筋之间',
+        '腕横纹上1.5寸，桡侧',
+        '掌后横纹上2.5寸'
+      ]
+      const allLocs = [acupointData?.location || '标准定位', ...wrongLocs.slice(0, 3)].sort(() => Math.random() - 0.5)
+      options = allLocs.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`)
+      correctAnswer = options.find(opt => opt.includes(acupointData?.location || '标准定位')) || options[0]
+
+      explanation = `【答案解析】\n本题考查针刺技术。\n\n` +
+        `【正确答案】${correctAnswer}\n\n` +
+        `【技术要点】${acupointName}穴的标准操作应遵循规范要求。\n\n` +
+        `【注意事项】\n` +
+        `- ${acupointData?.caution || '需遵循安全针刺规范'}\n` +
+        `- 准确定位是针刺成功的关键\n` +
+        `- 严格执行无菌操作原则`
     }
 
   } else if (categoryCode.includes('HERBAL')) {
@@ -1385,7 +2377,10 @@ function generateOptionsAndAnswer(categoryCode: string, question: string, usedVa
     explanation = '【答案解析】\n详细解析。'
   }
 
-  return { options, correctAnswer, explanation }
+  // 随机打乱选项顺序，确保正确答案不总是A
+  const { shuffledOptions, newCorrectAnswer } = shuffleOptions(options, correctAnswer)
+
+  return { options: shuffledOptions, correctAnswer: newCorrectAnswer, explanation }
 }
 
 function generateTechnicalOptions(question: string, correctAnswer: string): string[] {

@@ -43,55 +43,144 @@
       <div v-else class="grid lg:grid-cols-5 gap-8">
         <!-- 左侧：知识点分类导航 -->
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-xl shadow-md p-4 sticky top-4">
-            <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <span>📑</span>
-              <span>知识点分类</span>
-            </h2>
-
-            <div class="space-y-2">
-              <button
-                v-for="category in filteredCategories"
-                :key="category.id"
-                @click="selectedCategory = category"
-                :class="[
-                  'w-full text-left px-4 py-3 rounded-lg transition-all relative',
-                  selectedCategory?.id === category.id
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                ]"
-              >
-                <div class="font-semibold text-sm mb-1">{{ category.name }}</div>
-                <div class="text-xs opacity-80 flex items-center justify-between">
-                  <span>
-                    {{ category.questionCount || 0 }} 题
-                    <span v-if="category.weight" class="ml-2">• {{ category.weight }}%</span>
-                  </span>
-                  <span v-if="getCategoryMastery(category) > 0" class="text-xs font-bold">
-                    {{ getCategoryMastery(category) }}%
-                  </span>
+          <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-4">
+            <!-- 导航头部 -->
+            <div class="bg-gradient-to-br from-blue-600 via-blue-500 to-purple-600 p-6 text-white">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
                 </div>
-                <!-- 进度条 -->
-                <div v-if="getCategoryMastery(category) > 0" class="mt-2 bg-white/20 rounded-full h-1">
-                  <div
-                    class="h-1 rounded-full transition-all duration-300"
-                    :class="selectedCategory?.id === category.id ? 'bg-white' : 'bg-gradient-to-r from-blue-500 to-purple-500'"
-                    :style="{ width: getCategoryMastery(category) + '%' }"
-                  ></div>
+                <div>
+                  <h2 class="text-lg font-bold">知识点导航</h2>
+                  <p class="text-xs text-blue-100">快速定位学习内容</p>
                 </div>
-              </button>
+              </div>
             </div>
 
-            <!-- 统计信息 -->
-            <div class="mt-6 pt-4 border-t border-gray-200">
-              <div class="text-sm text-gray-600 space-y-2">
-                <div class="flex justify-between">
-                  <span>总知识点：</span>
-                  <span class="font-semibold">{{ categories.length }}</span>
+            <!-- 分类列表 -->
+            <div class="p-4 max-h-[600px] overflow-y-auto custom-scrollbar">
+              <div class="space-y-2">
+                <button
+                  v-for="category in filteredCategories"
+                  :key="category.id"
+                  @click="selectedCategory = category"
+                  :class="[
+                    'group w-full text-left rounded-xl transition-all duration-300 relative overflow-hidden',
+                    selectedCategory?.id === category.id
+                      ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-200 scale-[1.02]'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gradient-to-br hover:from-gray-100 hover:to-gray-50 hover:shadow-md'
+                  ]"
+                >
+                  <!-- 选中指示器 -->
+                  <div
+                    v-if="selectedCategory?.id === category.id"
+                    class="absolute left-0 top-0 w-1 h-full bg-white"
+                  ></div>
+
+                  <div class="px-4 py-3.5">
+                    <!-- 分类名称和图标 -->
+                    <div class="flex items-start gap-3 mb-2">
+                      <div
+                        :class="[
+                          'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-all',
+                          selectedCategory?.id === category.id
+                            ? 'bg-white/20 backdrop-blur-sm'
+                            : 'bg-blue-50 group-hover:bg-blue-100'
+                        ]"
+                      >
+                        {{ getCategoryIcon(category.code) }}
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div
+                          :class="[
+                            'font-semibold text-sm mb-1 line-clamp-2',
+                            selectedCategory?.id === category.id ? 'text-white' : 'text-gray-900'
+                          ]"
+                        >
+                          {{ category.name }}
+                        </div>
+                        <div
+                          :class="[
+                            'text-xs flex items-center gap-2 flex-wrap',
+                            selectedCategory?.id === category.id ? 'text-blue-100' : 'text-gray-500'
+                          ]"
+                        >
+                          <span class="flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            {{ category.questionCount || 0 }} 题
+                          </span>
+                          <span v-if="category.weight" class="flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                            </svg>
+                            {{ category.weight }}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 掌握度进度 -->
+                    <div v-if="getCategoryMastery(category) > 0" class="mt-3">
+                      <div class="flex items-center justify-between mb-1.5">
+                        <span
+                          :class="[
+                            'text-xs font-medium',
+                            selectedCategory?.id === category.id ? 'text-blue-100' : 'text-gray-500'
+                          ]"
+                        >
+                          掌握度
+                        </span>
+                        <span
+                          :class="[
+                            'text-xs font-bold',
+                            selectedCategory?.id === category.id ? 'text-white' : 'text-blue-600'
+                          ]"
+                        >
+                          {{ getCategoryMastery(category) }}%
+                        </span>
+                      </div>
+                      <div
+                        :class="[
+                          'h-1.5 rounded-full overflow-hidden',
+                          selectedCategory?.id === category.id ? 'bg-white/30' : 'bg-gray-200'
+                        ]"
+                      >
+                        <div
+                          class="h-full rounded-full transition-all duration-500 ease-out"
+                          :class="selectedCategory?.id === category.id ? 'bg-white' : 'bg-gradient-to-r from-blue-500 to-purple-500'"
+                          :style="{ width: getCategoryMastery(category) + '%' }"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- 底部统计信息 -->
+            <div class="border-t border-gray-100 bg-gradient-to-br from-gray-50 to-blue-50 p-4">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white rounded-xl p-3 shadow-sm">
+                  <div class="flex items-center gap-2 mb-1">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    <span class="text-xs text-gray-600">知识点</span>
+                  </div>
+                  <div class="text-xl font-bold text-gray-900">{{ categories.length }}</div>
                 </div>
-                <div class="flex justify-between">
-                  <span>总题数：</span>
-                  <span class="font-semibold">{{ totalQuestions }}</span>
+                <div class="bg-white rounded-xl p-3 shadow-sm">
+                  <div class="flex items-center gap-2 mb-1">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-xs text-gray-600">总题数</span>
+                  </div>
+                  <div class="text-xl font-bold text-gray-900">{{ totalQuestions }}</div>
                 </div>
               </div>
             </div>
@@ -736,6 +825,29 @@ const getCategoryMastery = (category: any) => {
   return Math.round((stat.correct / stat.total) * 100)
 }
 
+// 获取分类图标
+const getCategoryIcon = (code: string) => {
+  const iconMap: Record<string, string> = {
+    'DOMAIN_1': '🔍',
+    'DOMAIN_2': '🩺',
+    'DOMAIN_3A': '📍',
+    'DOMAIN_3B': '🎯',
+    'DOMAIN_3C': '🌟',
+    'DOMAIN_3D': '🌿',
+    'DOMAIN_4': '⚖️'
+  }
+
+  // 查找匹配的图标
+  for (const [key, icon] of Object.entries(iconMap)) {
+    if (code.includes(key)) {
+      return icon
+    }
+  }
+
+  // 默认图标
+  return '📚'
+}
+
 // 切换知识要点展开/折叠
 const toggleKeyPoint = (index: number) => {
   if (expandedPoints.value.has(index)) {
@@ -1025,5 +1137,31 @@ onMounted(async () => {
 
 .rotate-y-180 {
   transform: rotateY(180deg);
+}
+
+/* 自定义滚动条样式 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  border-radius: 10px;
+  transition: background 0.3s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #2563eb, #7c3aed);
+}
+
+/* Firefox 滚动条 */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 #f1f5f9;
 }
 </style>

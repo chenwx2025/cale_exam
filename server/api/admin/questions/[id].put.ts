@@ -46,8 +46,67 @@ export default defineEventHandler(async (event) => {
       updateData.question = body.question.trim()
     }
 
+    // 处理选项和正确答案的格式
+    let parsedOptions: string[] = []
+
+    if (body.options !== undefined) {
+      if (Array.isArray(body.options)) {
+        // 给选项添加 A. B. C. D. 前缀
+        parsedOptions = body.options.map((opt: string, index: number) => {
+          const letter = String.fromCharCode(65 + index) // A, B, C, D
+          const optText = opt.trim()
+          // 如果已经有前缀，不重复添加
+          if (optText.match(/^[A-Z]\.\s*/)) {
+            return optText
+          }
+          return `${letter}. ${optText}`
+        })
+        updateData.options = JSON.stringify(parsedOptions)
+      } else if (typeof body.options === 'string') {
+        updateData.options = body.options
+        // 尝试解析字符串格式的选项
+        try {
+          parsedOptions = JSON.parse(body.options)
+        } catch (e) {
+          parsedOptions = []
+        }
+      } else {
+        updateData.options = null
+      }
+    }
+
+    // 处理正确答案 - 需要包含完整的 "B. 选项文本" 格式
     if (body.correctAnswer && body.correctAnswer.trim().length > 0) {
-      updateData.correctAnswer = body.correctAnswer.trim()
+      const answerLetter = body.correctAnswer.trim().toUpperCase()
+
+      // 如果已经是完整格式（包含点号和文本），直接使用
+      if (answerLetter.match(/^[A-Z]\.\s+.+/)) {
+        updateData.correctAnswer = answerLetter
+      }
+      // 如果只是字母，需要从选项中找到对应的完整文本
+      else if (answerLetter.match(/^[A-Z]$/)) {
+        const answerIndex = answerLetter.charCodeAt(0) - 65 // A=0, B=1, C=2, D=3
+
+        // 如果有更新的选项，使用新选项
+        if (parsedOptions.length > answerIndex) {
+          updateData.correctAnswer = parsedOptions[answerIndex]
+        }
+        // 否则，从现有题目中获取选项
+        else if (existingQuestion.options) {
+          try {
+            const existingOptions = JSON.parse(existingQuestion.options)
+            if (existingOptions.length > answerIndex) {
+              updateData.correctAnswer = existingOptions[answerIndex]
+            } else {
+              updateData.correctAnswer = `${answerLetter}. `
+            }
+          } catch (e) {
+            updateData.correctAnswer = `${answerLetter}. `
+          }
+        } else {
+          updateData.correctAnswer = `${answerLetter}. `
+        }
+      }
     }
 
     if (body.explanation !== undefined) {
@@ -60,16 +119,6 @@ export default defineEventHandler(async (event) => {
 
     if (body.categoryId) {
       updateData.categoryId = body.categoryId
-    }
-
-    if (body.options !== undefined) {
-      if (Array.isArray(body.options)) {
-        updateData.options = JSON.stringify(body.options)
-      } else if (typeof body.options === 'string') {
-        updateData.options = body.options
-      } else {
-        updateData.options = null
-      }
     }
 
     if (body.tags !== undefined) {

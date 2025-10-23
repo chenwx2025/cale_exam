@@ -339,8 +339,23 @@ const deleteWrongQuestion = async (wrongQ: any) => {
 }
 
 const saveNotes = async (wrongQ: any) => {
-  // TODO: 实现保存笔记的API
-  console.log('保存笔记:', wrongQ.notes)
+  try {
+    const response = await $fetch(`/api/wrong-questions/${wrongQ.id}/notes`, {
+      method: 'PATCH',
+      headers: authStore.getAuthHeader() as HeadersInit,
+      body: {
+        notes: wrongQ.notes
+      }
+    }) as any
+
+    if (response.success) {
+      // 显示成功提示（可选：添加toast通知）
+      console.log('笔记保存成功')
+    }
+  } catch (error: any) {
+    console.error('保存笔记失败:', error)
+    alert('保存笔记失败，请重试')
+  }
 }
 
 const startPractice = () => {

@@ -77,21 +77,8 @@
 
 <script setup lang="ts">
 const authStore = useAuthStore()
-const examStore = useExamStore()
-const router = useRouter()
 
-// 如果已登录，智能重定向
-onMounted(() => {
-  if (authStore.isAuthenticated) {
-    // 如果用户已订阅考试，直接进入 dashboard
-    if (authStore.user?.subscribedExams && authStore.user.subscribedExams.length > 0) {
-      // 确保 examStore 已初始化当前考试类型
-      examStore.initExamType()
-      router.push('/dashboard')
-    } else {
-      // 如果未订阅任何考试，进入考试选择页面
-      router.push('/select-exam')
-    }
-  }
-})
+// 注意：移除了自动重定向逻辑
+// 已登录用户可以访问首页查看产品介绍
+// 管理员"返回前台"按钮直接跳转到 /dashboard，避免不必要的重定向
 </script>

@@ -1,0 +1,28 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # 安装依赖
+        - npm ci
+        # 生成 Prisma Client
+        - npx prisma generate
+        # 运行数据库迁移（首次部署后启用）
+        # - npx prisma migrate deploy
+    build:
+      commands:
+        # 构建 Nuxt 3 应用
+        - npm run build
+  artifacts:
+    # Nuxt 3 输出目录
+    baseDirectory: .output/public
+    files:
+      - '**/*'
+  cache:
+    paths:
+      # 缓存 node_modules 加速构建
+      - node_modules/**/*
+      # 缓存 Nuxt 构建产物
+      - .nuxt/**/*
+      # 缓存 Prisma 客户端
+      - node_modules/.prisma/**/*

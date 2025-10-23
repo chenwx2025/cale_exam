@@ -75,3 +75,22 @@ export function requireOwnership(event: H3Event, resourceUserId: string): void {
     })
   }
 }
+
+/**
+ * 获取请求的IP地址
+ */
+export function getRequestIP(event: H3Event): string | null {
+  // 尝试从各种header中获取真实IP
+  const forwarded = getRequestHeader(event, 'x-forwarded-for')
+  if (forwarded) {
+    return forwarded.split(',')[0].trim()
+  }
+
+  const realIP = getRequestHeader(event, 'x-real-ip')
+  if (realIP) {
+    return realIP
+  }
+
+  // 如果都没有，返回null
+  return null
+}
