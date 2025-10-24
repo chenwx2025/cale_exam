@@ -303,7 +303,11 @@
                   </button>
 
                   <div v-if="expandedPoints.has(index)" class="px-6 py-4 bg-white">
-                    <p class="text-gray-700 leading-relaxed mb-4 whitespace-pre-line">{{ point.description }}</p>
+                    <!-- Debug输出 -->
+                    <div v-if="typeof point.description === 'object'" class="mb-4 p-2 bg-yellow-100 text-xs">
+                      ⚠️ Description is an object: {{ JSON.stringify(point.description).substring(0, 100) }}
+                    </div>
+                    <p v-if="point.description && typeof point.description === 'string'" class="text-gray-700 leading-relaxed mb-4 whitespace-pre-line">{{ point.description }}</p>
 
                     <!-- 思维导图（对阴阳学说和五行学说显示） -->
                     <MindMap
@@ -357,9 +361,7 @@
                         <span>📖</span>
                         <span>详细解释</span>
                       </h4>
-                      <div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
-                        {{ point.detailedExplanation }}
-                      </div>
+                      <FormattedText :text="point.detailedExplanation" />
                     </div>
 
                     <!-- 视觉图表 -->
@@ -368,7 +370,7 @@
                         <span>📊</span>
                         <span>可视化图表</span>
                       </h4>
-                      <pre class="text-sm font-mono text-gray-800 overflow-x-auto bg-white p-4 rounded border border-purple-200">{{ point.visualDiagram }}</pre>
+                      <pre class="text-xs sm:text-sm font-mono text-gray-800 overflow-x-auto bg-white p-4 rounded border border-purple-200 leading-5 whitespace-pre">{{ point.visualDiagram }}</pre>
                     </div>
 
                     <!-- 典型示例 -->
@@ -415,9 +417,9 @@
                         <div
                           v-for="(formula, idx) in point.keyFormulas"
                           :key="idx"
-                          class="bg-indigo-50 border-l-4 border-indigo-500 px-4 py-2 rounded-r-lg font-semibold text-indigo-900"
+                          class="bg-indigo-50 border-l-4 border-indigo-500 px-4 py-3 rounded-r-lg text-indigo-900"
                         >
-                          {{ formula }}
+                          <div class="text-sm whitespace-pre-wrap break-words leading-6">{{ formula }}</div>
                         </div>
                       </div>
                     </div>
@@ -428,11 +430,11 @@
                         <span>⚠️</span>
                         <span>注意事项与常见错误</span>
                       </h4>
-                      <div class="bg-red-50 rounded-lg p-4 border border-red-300 space-y-2">
+                      <div class="bg-red-50 rounded-lg p-4 border border-red-300 space-y-3">
                         <div
                           v-for="(mistake, idx) in point.commonMistakes"
                           :key="idx"
-                          class="text-sm text-gray-700"
+                          class="text-sm text-gray-700 whitespace-pre-wrap break-words leading-6"
                         >
                           {{ mistake }}
                         </div>
@@ -462,7 +464,7 @@
                 <span>💡</span>
                 <span>学习建议</span>
               </h3>
-              <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ selectedCategory.studyTips }}</p>
+              <div class="text-gray-700 leading-7 whitespace-pre-wrap break-words">{{ selectedCategory.studyTips }}</div>
             </div>
 
             <!-- 统计与操作 -->
@@ -773,10 +775,41 @@ const keyPointsList = computed(() => {
     console.log('[DEBUG] 解析 keyPoints，长度:', selectedCategory.value.keyPoints.length)
     const parsed = JSON.parse(selectedCategory.value.keyPoints)
     console.log('[DEBUG] 解析成功，知识点数量:', parsed.length)
-    if (parsed.length > 0) {
-      console.log('[DEBUG] 第一个知识点:', parsed[0]?.title)
+
+    if (!Array.isArray(parsed)) {
+      return []
     }
-    return Array.isArray(parsed) ? parsed : []
+
+    // 检查是简单字符串数组还是对象数组
+    if (parsed.length > 0) {
+      const firstItem = parsed[0]
+
+      // 如果是简单字符串数组（复习部分），转换为对象格式
+      if (typeof firstItem === 'string') {
+        console.log('[DEBUG] 检测到字符串数组，转换为对象格式', parsed)
+        const converted = parsed.map((text, index) => ({
+          title: text,
+          description: '',
+          examples: [],
+          detailedExplanation: '',
+          visualDiagram: '',
+          clinicalCases: [],
+          keyFormulas: [],
+          commonMistakes: [],
+          mindMapData: null
+        }))
+        console.log('[DEBUG] 转换后的对象:', converted)
+        return converted
+      }
+
+      // 如果是对象数组（考试内容部分），直接返回
+      console.log('[DEBUG] 第一个知识点:', firstItem?.title)
+      console.log('[DEBUG] 第一个知识点的类型:', typeof firstItem)
+      console.log('[DEBUG] 第一个知识点完整对象:', firstItem)
+      return parsed
+    }
+
+    return parsed
   } catch (e) {
     console.error('[DEBUG] 解析 keyPoints 失败:', e)
     return []

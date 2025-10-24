@@ -1,5 +1,6 @@
 import cron from 'node-cron'
 import { sendBatchStudyReminders, sendExamReminders } from './notification-service'
+import { generateDailyQuestionsForAllGroups } from './daily-question-service'
 
 /**
  * 初始化定时任务
@@ -25,7 +26,18 @@ export function initScheduler() {
     }
   })
 
+  // 每天午夜生成学习小组每日一题
+  cron.schedule('0 0 * * *', async () => {
+    try {
+      console.log('[Scheduler] 开始生成学习小组每日一题')
+      await generateDailyQuestionsForAllGroups()
+    } catch (error) {
+      console.error('[Scheduler] Daily question generation failed:', error)
+    }
+  })
+
   console.log('[Scheduler] ✅ Notification scheduler started successfully')
   console.log('[Scheduler] - Study reminders: Every minute')
   console.log('[Scheduler] - Exam reminders: Daily at 9:00 AM')
+  console.log('[Scheduler] - Daily questions: Daily at 12:00 AM (midnight)')
 }

@@ -76,10 +76,11 @@ model Question {
   source         String?          // 题目来源
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  userAnswers    UserAnswer[]     // 用户答题记录
-  studyPlans     StudyPlanItem[]  // 学习计划关联
-  examAnswers    ExamAnswer[]     // 考试答题记录
-  wrongQuestions WrongQuestion[]  // 错题本记录
+  userAnswers        UserAnswer[]              // 用户答题记录
+  studyPlans         StudyPlanItem[]           // 学习计划关联
+  examAnswers        ExamAnswer[]              // 考试答题记录
+  wrongQuestions     WrongQuestion[]           // 错题本记录
+  dailyQuestions     StudyGroupDailyQuestion[] // 小组每日一题
 
   @@index([categoryId])
   @@index([difficulty])
@@ -112,15 +113,25 @@ model User {
   updatedAt             DateTime                @updatedAt
 
   // 关联数据
-  subscribedExams       UserExamSubscription[]  // 订阅的考试类型
-  userAnswers           UserAnswer[]            // 用户答题记录
-  studyPlans            StudyPlan[]             // 学习计划
-  exams                 Exam[]                  // 模拟考试记录
-  wrongQuestions        WrongQuestion[]         // 错题本
-  studySessions         StudySession[]          // 学习会话
-  notifications         Notification[]          // 通知消息
-  notificationSettings  NotificationSettings?   // 通知设置
-  pushSubscriptions     PushSubscription[]      // Push 通知订阅
+  subscribedExams       UserExamSubscription[]        // 订阅的考试类型
+  userAnswers           UserAnswer[]                  // 用户答题记录
+  studyPlans            StudyPlan[]                   // 学习计划
+  exams                 Exam[]                        // 模拟考试记录
+  wrongQuestions        WrongQuestion[]               // 错题本
+  studySessions         StudySession[]                // 学习会话
+  notifications         Notification[]                // 通知消息
+  notificationSettings  NotificationSettings?         // 通知设置
+  pushSubscriptions     PushSubscription[]            // Push 通知订阅
+  studyGroupMemberships StudyGroupMember[]            @relation("StudyGroupMembers") // 加入的学习小组
+  studyGroupPosts       StudyGroupPost[]              // 发布的小组帖子
+  studyGroupPostReplies StudyGroupPostReply[]         // 小组帖子回复
+  studyGroupCheckIns    StudyGroupCheckIn[]           // 小组打卡记录
+  studyGroupPostLikes   StudyGroupPostLike[]          // 小组帖子点赞
+  studyGroupReplyLikes  StudyGroupReplyLike[]         // 小组回复点赞
+  dailyQuestionAnswers  StudyGroupDailyQuestionAnswer[] // 每日一题答题记录
+  sentInvitations       StudyGroupInvitation[]        @relation("StudyGroupInviter") // 发出的邀请
+  receivedInvitations   StudyGroupInvitation[]        @relation("StudyGroupInvitee") // 收到的邀请
+  challengeParticipations GroupChallengeParticipant[] // 参与的挑战
 
   @@index([email])
   @@index([role])
@@ -478,27 +489,50 @@ model UserFollow {
 
 // 学习小组（Phase 6 Sprint 4）
 model StudyGroup {
-  id          String             @id @default(cuid())
-  name        String             // 小组名称
-  description String?            // 小组描述
-  examType    String             // 考试类型: cale, nccaom
-  isPublic    Boolean            @default(true) // 是否公开
-  maxMembers  Int                @default(50) // 最大成员数
-  createdBy   String             // 创建者ID
-  avatarUrl   String?            // 小组头像
-  bannerUrl   String?            // 小组横幅
-  rules       String?            // 小组规则
-  tags        String?            // 标签（JSON）
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  members     StudyGroupMember[]
-  posts       StudyGroupPost[]
-  challenges  GroupChallenge[]
+  id             String                       @id @default(cuid())
+  name           String                       // 小组名称
+  description    String?                      // 小组描述
+  examType       String                       // 考试类型: cale, nccaom
+  isPublic       Boolean                      @default(true) // 是否公开
+  requireApproval Boolean                     @default(false) // 是否需要审批才能加入
+  maxMembers     Int                          @default(50) // 最大成员数
+  createdBy      String                       // 创建者ID
+  avatarUrl      String?                      // 小组头像
+  bannerUrl      String?                      // 小组横幅
+  rules          String?                      // 小组规则
+  tags           String?                      // 标签（JSON）
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  members        StudyGroupMember[]
+  posts          StudyGroupPost[]
+  challenges     GroupChallenge[]
+  checkIns       StudyGroupCheckIn[]          // 打卡记录
+  dailyQuestions StudyGroupDailyQuestion[]    // 每日一题
+  invitations    StudyGroupInvitation[]       // 邀请记录
+  joinRequests   StudyGroupJoinRequest[]      // 加入申请
+  dailyQuestionConfig StudyGroupDailyQuestionConfig? // 每日一题配置
 
   @@index([examType])
   @@index([isPublic])
   @@index([createdBy])
   @@index([createdAt])
+}
+
+// 学习小组每日一题配置
+model StudyGroupDailyQuestionConfig {
+  id                String      @id @default(cuid())
+  groupId           String      @unique
+  group             StudyGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  enabled           Boolean     @default(false) // 是否启用自动生成
+  generateTime      String      @default("00:00") // 生成时间 HH:MM
+  difficulty        String?     // 难度偏好: easy, medium, hard, mixed
+  focusDomains      String?     // 关注领域（JSON数组）
+  excludeRecent     Int         @default(7) // 排除最近N天出现过的题目
+  prioritizeWeak    Boolean     @default(true) // 优先选择组员错误率高的题目
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@index([groupId])
 }
 
 // 学习小组成员（Phase 6 Sprint 4）
@@ -507,7 +541,8 @@ model StudyGroupMember {
   groupId   String
   group     StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   userId    String
-  role      String     @default("member") // member, moderator, admin
+  user      User       @relation("StudyGroupMembers", fields: [userId], references: [id], onDelete: Cascade)
+  role      String     @default("member") // owner, admin, moderator, member
   joinedAt  DateTime   @default(now())
   isActive  Boolean    @default(true)
 
@@ -519,45 +554,217 @@ model StudyGroupMember {
 
 // 小组帖子（Phase 6 Sprint 4）
 model StudyGroupPost {
-  id        String     @id @default(cuid())
+  id        String                @id @default(cuid())
   groupId   String
-  group     StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group     StudyGroup            @relation(fields: [groupId], references: [id], onDelete: Cascade)
   userId    String
-  content   String     // 帖子内容
-  type      String     @default("discussion") // discussion, question, announcement, resource
-  isPinned  Boolean    @default(false) // 是否置顶
-  likeCount Int        @default(0)
-  replyCount Int       @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String?               // 帖子标题（问题时使用）
+  content   String                // 帖子内容
+  type      String                @default("discussion") // discussion, question, announcement, resource
+  status    String?               // 问题状态: pending, solved, closed (仅当 type=question 时使用)
+  isPinned  Boolean               @default(false) // 是否置顶
+  likeCount Int                   @default(0)
+  replyCount Int                  @default(0)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  replies   StudyGroupPostReply[] // 回复列表
+  likes     StudyGroupPostLike[]  // 点赞列表
 
   @@index([groupId])
   @@index([userId])
   @@index([type])
+  @@index([status])
   @@index([createdAt])
   @@index([isPinned])
 }
 
-// 小组挑战（Phase 6 Sprint 4）
+// 小组帖子回复
+model StudyGroupPostReply {
+  id        String                 @id @default(cuid())
+  postId    String
+  post      StudyGroupPost         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String                 // 回复内容
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+  likes     StudyGroupReplyLike[]  // 点赞列表
+
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// 小组挑战（Phase 4）
 model GroupChallenge {
-  id          String     @id @default(cuid())
-  groupId     String
-  group       StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  name        String     // 挑战名称
-  description String?    // 挑战描述
-  examType    String     // 考试类型
-  categoryId  String?    // 分类ID（可选）
-  targetType  String     // questions_count, study_time, exam_score, accuracy
-  targetValue Int        // 目标值
-  startDate   DateTime   // 开始日期
-  endDate     DateTime   // 结束日期
-  createdBy   String
-  createdAt   DateTime   @default(now())
+  id              String                      @id @default(cuid())
+  groupId         String
+  group           StudyGroup                  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name            String                      // 挑战名称
+  description     String?                     // 挑战描述
+  examType        String                      // 考试类型
+  categoryId      String?                     // 分类ID（可选）
+  targetType      String                      // questions_count, study_time, exam_score, accuracy
+  targetValue     Int                         // 目标值
+  startDate       DateTime                    // 开始日期
+  endDate         DateTime                    // 结束日期
+  status          String                      @default("upcoming") // upcoming, active, completed, cancelled
+  rewardPoints    Int                         @default(0) // 奖励积分
+  maxParticipants Int?                        // 最大参与人数（可选）
+  createdBy       String
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+  participants    GroupChallengeParticipant[] // 参与者列表
 
   @@index([groupId])
   @@index([examType])
   @@index([startDate])
   @@index([endDate])
+  @@index([status])
+}
+
+// 小组挑战参与者（Phase 4）
+model GroupChallengeParticipant {
+  id            String         @id @default(cuid())
+  challengeId   String
+  challenge     GroupChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentValue  Int            @default(0) // 当前进度值
+  isCompleted   Boolean        @default(false) // 是否完成
+  completedAt   DateTime?      // 完成时间
+  rank          Int?           // 排名（挑战结束后计算）
+  rewardEarned  Int            @default(0) // 获得的奖励积分
+  joinedAt      DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([challengeId, userId])
+  @@index([challengeId])
+  @@index([userId])
+  @@index([isCompleted])
+  @@index([rank])
+}
+
+// 小组学习打卡（Phase 6 Sprint 5）
+model StudyGroupCheckIn {
+  id              String     @id @default(cuid())
+  groupId         String
+  group           StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checkInDate     String     // 格式: YYYY-MM-DD，用于唯一性约束
+  questionsCount  Int        @default(0) // 今日答题数
+  studyMinutes    Int        @default(0) // 今日学习时长（分钟）
+  note            String?    // 学习心得
+  createdAt       DateTime   @default(now())
+
+  @@unique([groupId, userId, checkInDate])
+  @@index([groupId])
+  @@index([userId])
+  @@index([checkInDate])
+}
+
+// 小组帖子点赞（Phase 6 Sprint 5）
+model StudyGroupPostLike {
+  id        String         @id @default(cuid())
+  postId    String
+  post      StudyGroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+// 小组回复点赞（Phase 6 Sprint 5）
+model StudyGroupReplyLike {
+  id        String              @id @default(cuid())
+  replyId   String
+  reply     StudyGroupPostReply @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime            @default(now())
+
+  @@unique([replyId, userId])
+  @@index([replyId])
+  @@index([userId])
+}
+
+// 小组邀请（Phase 3）
+model StudyGroupInvitation {
+  id        String     @id @default(cuid())
+  groupId   String
+  group     StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  inviterId String
+  inviter   User       @relation("StudyGroupInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  inviteeId String
+  invitee   User       @relation("StudyGroupInvitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+  status    String     @default("pending") // pending, accepted, rejected, expired
+  message   String?    // 邀请消息
+  expiresAt DateTime   // 过期时间
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([groupId, inviteeId])
+  @@index([groupId])
+  @@index([inviterId])
+  @@index([inviteeId])
+  @@index([status])
+}
+
+// 小组加入申请
+model StudyGroupJoinRequest {
+  id          String     @id @default(cuid())
+  groupId     String
+  group       StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId      String     // 申请人ID
+  status      String     @default("pending") // pending, approved, rejected
+  message     String?    // 申请消息
+  reviewedBy  String?    // 审批人ID
+  reviewedAt  DateTime?  // 审批时间
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@index([status])
+}
+
+// 小组每日一题（Phase 6 Sprint 5）
+model StudyGroupDailyQuestion {
+  id          String   @id @default(cuid())
+  groupId     String
+  group       StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionDate String    // 格式: YYYY-MM-DD
+  createdAt   DateTime @default(now())
+  answers     StudyGroupDailyQuestionAnswer[]
+
+  @@unique([groupId, questionDate])
+  @@index([groupId])
+  @@index([questionDate])
+}
+
+// 小组每日一题答题记录（Phase 6 Sprint 5）
+model StudyGroupDailyQuestionAnswer {
+  id              String                   @id @default(cuid())
+  dailyQuestionId String
+  dailyQuestion   StudyGroupDailyQuestion  @relation(fields: [dailyQuestionId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answer          String                   // 用户答案
+  isCorrect       Boolean                  // 是否正确
+  timeSpent       Int?                     // 答题用时（秒）
+  createdAt       DateTime                 @default(now())
+
+  @@unique([dailyQuestionId, userId])
+  @@index([dailyQuestionId])
+  @@index([userId])
 }
 
 // 成就定义（Phase 6 Sprint 4）
