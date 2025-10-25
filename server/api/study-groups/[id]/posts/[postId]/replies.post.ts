@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { requireAuth } from '~/server/utils/auth-helpers'
+import { parseMentions, createMentions } from '~/server/utils/mention-parser'
 
 const prisma = new PrismaClient()
 
@@ -53,6 +54,14 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // 检查帖子是否已锁定
+    if (post.isLocked) {
+      throw createError({
+        statusCode: 403,
+        message: '该帖子已被锁定，无法添加回复'
+      })
+    }
+
     // 创建回复并更新帖子的回复计数
     const [reply] = await prisma.$transaction([
       prisma.studyGroupPostReply.create({
@@ -82,6 +91,18 @@ export default defineEventHandler(async (event) => {
         }
       })
     ])
+
+    // 处理@提及
+    try {
+      const mentionedUserIds = await parseMentions(content, groupId)
+      if (mentionedUserIds.length > 0) {
+        await createMentions(null, reply.id, user.userId, mentionedUserIds)
+        console.log(`[Reply Create] 创建了 ${mentionedUserIds.length} 个@提及`)
+      }
+    } catch (error) {
+      // @提及处理失败不影响回复创建
+      console.error('[Reply Create] 处理@提及失败:', error)
+    }
 
     return {
       success: true,

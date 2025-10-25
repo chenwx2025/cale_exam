@@ -69,6 +69,15 @@
                   </svg>
                   <span>学习小组</span>
                 </NuxtLink>
+                <NuxtLink
+                  to="/bookmarks"
+                  class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors"
+                >
+                  <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
+                  </svg>
+                  <span>我的收藏</span>
+                </NuxtLink>
                 <div class="border-t border-gray-100">
                   <button
                     @click="handleLogout"

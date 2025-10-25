@@ -99,6 +99,7 @@ model User {
   name                  String
   nickname              String?                 // 昵称
   avatar                String?                 // 头像URL
+  signature             String?                 // 个性签名档
   role                  String                  @default("user") // user | admin
   emailVerified         Boolean                 @default(false)
   emailVerifyToken      String?                 // 邮箱验证 token
@@ -128,10 +129,36 @@ model User {
   studyGroupCheckIns    StudyGroupCheckIn[]           // 小组打卡记录
   studyGroupPostLikes   StudyGroupPostLike[]          // 小组帖子点赞
   studyGroupReplyLikes  StudyGroupReplyLike[]         // 小组回复点赞
+  studyGroupPostBookmarks StudyGroupPostBookmark[]    // 帖子收藏
+  userBadges            UserBadge[]                   // 获得的勋章
+  mentionsReceived      PostMention[]                 @relation("MentionedUser") // 收到的@提及
+  mentionsSent          PostMention[]                 @relation("Mentioner") // 发出的@提及
   dailyQuestionAnswers  StudyGroupDailyQuestionAnswer[] // 每日一题答题记录
   sentInvitations       StudyGroupInvitation[]        @relation("StudyGroupInviter") // 发出的邀请
   receivedInvitations   StudyGroupInvitation[]        @relation("StudyGroupInvitee") // 收到的邀请
   challengeParticipations GroupChallengeParticipant[] // 参与的挑战
+  pollVotes             PollVote[]                    // 投票记录
+
+  // 学习笔记相关
+  studyNotes            StudyNote[]                   @relation("NoteAuthor") // 创建的小组笔记
+  noteAttachments       NoteAttachment[]              @relation("NoteAttachmentUploader") // 上传的附件
+  noteContributions     NoteContributor[]             @relation("NoteContributorUser") // 笔记贡献
+  noteVersions          NoteVersion[]                 @relation("NoteVersionEditor") // 笔记版本编辑
+  noteLikes             NoteLike[]                    @relation("NoteLikeUser") // 笔记点赞
+  noteFavorites         NoteFavorite[]                @relation("NoteFavoriteUser") // 笔记收藏
+  noteComments          NoteComment[]                 @relation("NoteCommentUser") // 笔记评论
+
+  // 个人笔记相关
+  personalNotes         PersonalNote[]                @relation("PersonalNoteAuthor") // 创建的个人笔记
+  personalNoteShares    PersonalNoteShare[]           // 分享笔记到小组的记录
+
+  // 资料库相关
+  uploadedResources     StudyResource[]               @relation("ResourceUploader") // 上传的资料
+  resourceRatings       ResourceRating[]              @relation("ResourceRatings") // 资料评分
+  resourceComments      ResourceComment[]             @relation("ResourceComments") // 资料评论
+  resourceDownloads     ResourceDownload[]            @relation("ResourceDownloads") // 资料下载记录
+  resourceFavorites     ResourceFavorite[]            @relation("ResourceFavorites") // 资料收藏
+  resourceFolders       ResourceFolder[]              @relation("ResourceFolders") // 收藏夹
 
   @@index([email])
   @@index([role])
@@ -511,6 +538,10 @@ model StudyGroup {
   invitations    StudyGroupInvitation[]       // 邀请记录
   joinRequests   StudyGroupJoinRequest[]      // 加入申请
   dailyQuestionConfig StudyGroupDailyQuestionConfig? // 每日一题配置
+  postTags       PostTag[]                    // 帖子标签
+  studyNotes     StudyNote[]                  // 学习笔记
+  sharedPersonalNotes PersonalNoteShare[]      // 从个人笔记分享来的记录
+  resources      StudyResource[]              // 资料库
 
   @@index([examType])
   @@index([isPublic])
@@ -554,22 +585,32 @@ model StudyGroupMember {
 
 // 小组帖子（Phase 6 Sprint 4）
 model StudyGroupPost {
-  id        String                @id @default(cuid())
-  groupId   String
-  group     StudyGroup            @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String?               // 帖子标题（问题时使用）
-  content   String                // 帖子内容
-  type      String                @default("discussion") // discussion, question, announcement, resource
-  status    String?               // 问题状态: pending, solved, closed (仅当 type=question 时使用)
-  isPinned  Boolean               @default(false) // 是否置顶
-  likeCount Int                   @default(0)
-  replyCount Int                  @default(0)
-  createdAt DateTime              @default(now())
-  updatedAt DateTime              @updatedAt
-  replies   StudyGroupPostReply[] // 回复列表
-  likes     StudyGroupPostLike[]  // 点赞列表
+  id         String                  @id @default(cuid())
+  groupId    String
+  group      StudyGroup              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String?                 // 帖子标题（问题时使用）
+  content    String                  // 帖子内容
+  type       String                  @default("discussion") // discussion, question, announcement, resource
+  status     String?                 // 问题状态: pending, solved, closed (仅当 type=question 时使用)
+  isPinned   Boolean                 @default(false) // 是否置顶
+  isFeatured Boolean                 @default(false) // 是否精华帖
+  isLocked   Boolean                 @default(false) // 是否锁定（禁止回复）
+  lockedAt   DateTime?               // 锁定时间
+  lockedBy   String?                 // 锁定操作者ID
+  viewCount  Int                     @default(0) // 浏览量
+  likeCount  Int                     @default(0)
+  replyCount Int                     @default(0)
+  deletedAt  DateTime?               // 软删除时间
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+  replies    StudyGroupPostReply[]   // 回复列表
+  likes      StudyGroupPostLike[]    // 点赞列表
+  bookmarks  StudyGroupPostBookmark[] // 收藏列表
+  mentions   PostMention[]           // @提及记录
+  tags       PostTagRelation[]       // 标签关联
+  poll       Poll?                   // 投票（可选）
 
   @@index([groupId])
   @@index([userId])
@@ -577,23 +618,32 @@ model StudyGroupPost {
   @@index([status])
   @@index([createdAt])
   @@index([isPinned])
+  @@index([isFeatured])
+  @@index([isLocked])
+  @@index([viewCount])
+  @@index([deletedAt])
 }
 
 // 小组帖子回复
 model StudyGroupPostReply {
-  id        String                 @id @default(cuid())
-  postId    String
-  post      StudyGroupPost         @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content   String                 // 回复内容
-  createdAt DateTime               @default(now())
-  updatedAt DateTime               @updatedAt
-  likes     StudyGroupReplyLike[]  // 点赞列表
+  id           String                 @id @default(cuid())
+  postId       String
+  post         StudyGroupPost         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content      String                 // 回复内容
+  isBestAnswer Boolean                @default(false) // 是否为最佳答案
+  deletedAt    DateTime?              // 软删除时间
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  likes        StudyGroupReplyLike[]  // 点赞列表
+  mentions     PostMention[]          // @提及记录
 
   @@index([postId])
   @@index([userId])
   @@index([createdAt])
+  @@index([isBestAnswer])
+  @@index([deletedAt])
 }
 
 // 小组挑战（Phase 4）
@@ -654,10 +704,7 @@ model StudyGroupCheckIn {
   userId          String
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   checkInDate     String     // 格式: YYYY-MM-DD，用于唯一性约束
-  questionsCount  Int        @default(0) // 今日答题数
-  studyMinutes    Int        @default(0) // 今日学习时长（分钟）
-  note            String?    // 学习心得
-  createdAt       DateTime   @default(now())
+  createdAt       DateTime   @default(now()) // 打卡时间
 
   @@unique([groupId, userId, checkInDate])
   @@index([groupId])
@@ -691,6 +738,110 @@ model StudyGroupReplyLike {
   @@unique([replyId, userId])
   @@index([replyId])
   @@index([userId])
+}
+
+// 帖子收藏
+model StudyGroupPostBookmark {
+  id        String         @id @default(cuid())
+  postId    String
+  post      StudyGroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// @提及记录
+model PostMention {
+  id              String              @id @default(cuid())
+  postId          String?             // 帖子ID（如果提及在帖子中）
+  post            StudyGroupPost?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  replyId         String?             // 回复ID（如果提及在回复中）
+  reply           StudyGroupPostReply? @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  mentionedUserId String              // 被提及的用户ID
+  mentionedUser   User                @relation("MentionedUser", fields: [mentionedUserId], references: [id], onDelete: Cascade)
+  mentionerUserId String              // 提及者ID
+  mentioner       User                @relation("Mentioner", fields: [mentionerUserId], references: [id], onDelete: Cascade)
+  isRead          Boolean             @default(false) // 是否已读
+  createdAt       DateTime            @default(now())
+
+  @@index([mentionedUserId])
+  @@index([mentionerUserId])
+  @@index([postId])
+  @@index([replyId])
+  @@index([isRead])
+}
+
+// 帖子标签
+model PostTag {
+  id          String         @id @default(cuid())
+  groupId     String         // 小组ID (标签作用域限定在小组内)
+  group       StudyGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name        String         // 标签名称
+  color       String         @default("#3B82F6") // 标签颜色 (Hex)
+  description String?        // 标签描述
+  postCount   Int            @default(0) // 使用此标签的帖子数
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  posts       PostTagRelation[] // 使用此标签的帖子
+  notes       NoteTag[]      // 使用此标签的笔记
+
+  @@unique([groupId, name]) // 同一小组内标签名唯一
+  @@index([groupId])
+  @@index([name])
+  @@index([postCount])
+}
+
+// 帖子-标签关联表
+model PostTagRelation {
+  id        String         @id @default(cuid())
+  postId    String
+  post      StudyGroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       PostTag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+
+  @@unique([postId, tagId]) // 同一帖子不能重复添加相同标签
+  @@index([postId])
+  @@index([tagId])
+}
+
+// 用户勋章定义
+model Badge {
+  id          String      @id @default(cuid())
+  code        String      @unique // 勋章代码，如 "study_streak_7", "exam_passer"
+  name        String      // 勋章名称
+  description String      // 勋章描述
+  icon        String      // 勋章图标(emoji或图片URL)
+  category    String      // 类别: study(学习), achievement(成就), contribution(贡献), special(特殊)
+  rarity      String      @default("common") // 稀有度: common, rare, epic, legendary
+  examType    String?     // 考试类型限定(可选): cale, nccaom, null表示通用
+  createdAt   DateTime    @default(now())
+  userBadges  UserBadge[] // 获得此勋章的用户
+
+  @@index([category])
+  @@index([rarity])
+  @@index([examType])
+}
+
+// 用户获得的勋章
+model UserBadge {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId     String
+  badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  earnedAt    DateTime @default(now())
+  isDisplayed Boolean  @default(true) // 是否在个人资料中显示
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@index([earnedAt])
 }
 
 // 小组邀请（Phase 3）
@@ -874,4 +1025,473 @@ model UserActivity {
   @@index([activityType])
   @@index([createdAt])
   @@index([isPublic])
+}
+
+// 投票
+model Poll {
+  id              String        @id @default(cuid())
+  postId          String        @unique // 关联的帖子ID
+  post            StudyGroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  question        String        // 投票问题
+  allowMultiple   Boolean       @default(false) // 是否允许多选
+  allowAddOption  Boolean       @default(false) // 是否允许添加选项
+  endAt           DateTime?     // 投票截止时间
+  totalVotes      Int           @default(0) // 总投票数
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  options         PollOption[]  // 投票选项
+  votes           PollVote[]    // 投票记录
+
+  @@index([postId])
+  @@index([endAt])
+}
+
+// 投票选项
+model PollOption {
+  id          String      @id @default(cuid())
+  pollId      String
+  poll        Poll        @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  text        String      // 选项文本
+  order       Int         // 选项顺序
+  voteCount   Int         @default(0) // 该选项的投票数
+  createdAt   DateTime    @default(now())
+  votes       PollVote[]  // 投票记录
+
+  @@index([pollId])
+  @@index([order])
+}
+
+// 投票记录
+model PollVote {
+  id          String      @id @default(cuid())
+  pollId      String
+  poll        Poll        @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  optionId    String
+  option      PollOption  @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+
+  @@unique([pollId, optionId, userId]) // 同一用户对同一选项只能投一次
+  @@index([pollId])
+  @@index([optionId])
+  @@index([userId])
+}
+
+// ============================================
+// 学习笔记模型
+// ============================================
+
+// 学习笔记主体
+model StudyNote {
+  id              String            @id @default(cuid())
+  groupId         String
+  group           StudyGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          User              @relation("NoteAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  // 基本信息
+  title           String            // 笔记标题
+  content         String            // 笔记内容（Markdown）
+  summary         String?           // 摘要/简介
+  coverImage      String?           // 封面图片URL
+
+  // 分类和标签
+  category        String?           // 分类（考点总结、错题整理、学习心得等）
+  tags            NoteTag[]         // 标签关联
+
+  // 关联内容
+  relatedChapter  String?           // 关联章节
+  relatedKnowledge String?          // 关联知识点ID（JSON数组字符串）
+  attachments     NoteAttachment[]  // 附件
+
+  // 协作功能
+  allowEdit       Boolean           @default(false)  // 允许其他成员编辑
+  contributors    NoteContributor[] // 贡献者列表
+  versions        NoteVersion[]     // 版本历史
+
+  // 互动数据
+  viewCount       Int               @default(0)
+  likeCount       Int               @default(0)
+  favoriteCount   Int               @default(0)
+  commentCount    Int               @default(0)
+
+  likes           NoteLike[]
+  favorites       NoteFavorite[]
+  comments        NoteComment[]
+
+  // 分享来源
+  sharedFromPersonal PersonalNoteShare? @relation("SharedFromPersonalNote")
+
+  // 状态
+  status          String            @default("draft")  // draft, published, archived
+  visibility      String            @default("group")  // group, public, private
+  isPinned        Boolean           @default(false)    // 置顶
+  isFeatured      Boolean           @default(false)    // 精选
+
+  // 时间戳
+  publishedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  @@index([groupId])
+  @@index([authorId])
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+  @@index([publishedAt])
+}
+
+// 笔记标签关联
+model NoteTag {
+  id        String      @id @default(cuid())
+  noteId    String
+  note      StudyNote   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       PostTag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+
+  @@unique([noteId, tagId])
+  @@index([noteId])
+  @@index([tagId])
+}
+
+// 笔记附件
+model NoteAttachment {
+  id          String      @id @default(cuid())
+  noteId      String
+  note        StudyNote   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  fileName    String
+  fileUrl     String
+  fileSize    Int         // 文件大小（字节）
+  fileType    String      // MIME类型
+  uploadedBy  String
+  uploader    User        @relation("NoteAttachmentUploader", fields: [uploadedBy], references: [id])
+
+  createdAt   DateTime    @default(now())
+
+  @@index([noteId])
+}
+
+// 笔记贡献者
+model NoteContributor {
+  id            String      @id @default(cuid())
+  noteId        String
+  note          StudyNote   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation("NoteContributorUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  role          String      @default("editor")  // editor, viewer
+  contribution  String?     // 贡献描述
+  editCount     Int         @default(0)
+
+  createdAt     DateTime    @default(now())
+
+  @@unique([noteId, userId])
+  @@index([noteId])
+  @@index([userId])
+}
+
+// 笔记版本历史
+model NoteVersion {
+  id          String      @id @default(cuid())
+  noteId      String
+  note        StudyNote   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  version     Int         // 版本号
+  title       String
+  content     String
+  editorId    String
+  editor      User        @relation("NoteVersionEditor", fields: [editorId], references: [id])
+  changeLog   String?     // 修改说明
+
+  createdAt   DateTime    @default(now())
+
+  @@index([noteId])
+  @@index([version])
+}
+
+// 笔记点赞
+model NoteLike {
+  id        String      @id @default(cuid())
+  noteId    String
+  note      StudyNote   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation("NoteLikeUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+
+  @@unique([noteId, userId])
+  @@index([noteId])
+  @@index([userId])
+}
+
+// 笔记收藏
+model NoteFavorite {
+  id          String      @id @default(cuid())
+  noteId      String
+  note        StudyNote   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User        @relation("NoteFavoriteUser", fields: [userId], references: [id], onDelete: Cascade)
+  folderId    String?     // 收藏夹ID（可选，用于分类收藏）
+  createdAt   DateTime    @default(now())
+
+  @@unique([noteId, userId])
+  @@index([noteId])
+  @@index([userId])
+}
+
+// 笔记评论
+model NoteComment {
+  id          String        @id @default(cuid())
+  noteId      String
+  note        StudyNote     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User          @relation("NoteCommentUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  content     String
+  parentId    String?       // 父评论ID（用于回复）
+  parent      NoteComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     NoteComment[] @relation("CommentReplies")
+
+  likeCount   Int           @default(0)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+
+  @@index([noteId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+// ============================================
+// 个人学习笔记模型
+// ============================================
+
+// 个人学习笔记主体
+model PersonalNote {
+  id              String                  @id @default(cuid())
+  userId          String
+  user            User                    @relation("PersonalNoteAuthor", fields: [userId], references: [id], onDelete: Cascade)
+
+  // 基本信息
+  title           String                  // 笔记标题
+  content         String                  // 笔记内容（Markdown）
+  summary         String?                 // 摘要/简介
+  coverImage      String?                 // 封面图片URL
+
+  // 分类和标签
+  category        String?                 // 分类（考点总结、错题整理、学习心得等）
+  tags            String?                 // 标签（JSON数组字符串）
+
+  // 关联内容
+  examType        String?                 // 考试类型 (cale/nccaom)
+  relatedChapter  String?                 // 关联章节
+  relatedKnowledge String?                // 关联知识点ID（JSON数组字符串）
+
+  // 状态
+  status          String                  @default("draft")  // draft, published, archived
+  isFavorite      Boolean                 @default(false)    // 收藏
+  isPinned        Boolean                 @default(false)    // 置顶
+
+  // 分享记录
+  sharedToGroups  PersonalNoteShare[]
+
+  // 时间戳
+  publishedAt     DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  deletedAt       DateTime?
+
+  @@index([userId])
+  @@index([category])
+  @@index([status])
+  @@index([examType])
+  @@index([createdAt])
+  @@index([publishedAt])
+}
+
+// 个人笔记分享到小组的记录
+model PersonalNoteShare {
+  id              String        @id @default(cuid())
+  personalNoteId  String
+  personalNote    PersonalNote  @relation(fields: [personalNoteId], references: [id], onDelete: Cascade)
+  groupId         String
+  group           StudyGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  studyNoteId     String?       @unique
+  studyNote       StudyNote?    @relation("SharedFromPersonalNote", fields: [studyNoteId], references: [id], onDelete: SetNull)
+
+  sharedBy        String
+  sharer          User          @relation(fields: [sharedBy], references: [id], onDelete: Cascade)
+
+  // 分享时的配置
+  shareMessage    String?       // 分享时的附言
+
+  createdAt       DateTime      @default(now())
+
+  @@unique([personalNoteId, groupId])
+  @@index([personalNoteId])
+  @@index([groupId])
+  @@index([sharedBy])
+}
+
+// ===================================================================
+// 学习资料库 (Study Resource Library)
+// ===================================================================
+
+// 学习资料
+model StudyResource {
+  id              String   @id @default(cuid())
+  groupId         String
+  group           StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  uploaderId      String
+  uploader        User @relation("ResourceUploader", fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  // 基本信息
+  title           String              // 资料标题
+  description     String?             // 资料描述
+  category        String              // 资料分类
+  tags            String?             // 标签（JSON数组）
+
+  // 资料类型和存储
+  type            String              // document, image, video, link, archive
+  fileUrl         String?             // 文件URL（如果是上传的文件）
+  fileName        String?             // 原始文件名
+  fileSize        Int?                // 文件大小（字节）
+  mimeType        String?             // MIME类型
+  externalUrl     String?             // 外部链接URL（如果是链接类型）
+  thumbnailUrl    String?             // 缩略图URL
+
+  // 版本管理
+  version         Int      @default(1)              // 版本号
+  previousVersionId String?                        // 上一版本ID
+  previousVersion   StudyResource? @relation("ResourceVersion", fields: [previousVersionId], references: [id])
+  nextVersions      StudyResource[] @relation("ResourceVersion")
+
+  // 状态和权限
+  status          String   @default("pending")     // pending, approved, rejected
+  visibility      String   @default("members")     // members, admins_only
+  requiresApproval Boolean  @default(false)        // 是否需要审核
+  approvedBy      String?                          // 审核者ID
+  approvedAt      DateTime?                        // 审核时间
+  rejectionReason String?                          // 拒绝原因
+
+  // 统计数据
+  viewCount       Int      @default(0)             // 浏览次数
+  downloadCount   Int      @default(0)             // 下载次数
+  ratingSum       Int      @default(0)             // 评分总和
+  ratingCount     Int      @default(0)             // 评分人数
+  averageRating   Float?                           // 平均评分
+
+  // 关联数据
+  ratings         ResourceRating[]                 // 评分记录
+  comments        ResourceComment[]                // 评论
+  downloads       ResourceDownload[]               // 下载记录
+  favorites       ResourceFavorite[]               // 收藏记录
+
+  // 时间戳
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?                        // 软删除
+
+  @@index([groupId])
+  @@index([uploaderId])
+  @@index([category])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([downloadCount])
+  @@index([averageRating])
+}
+
+// 资料评分
+model ResourceRating {
+  id          String   @id @default(cuid())
+  resourceId  String
+  resource    StudyResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User @relation("ResourceRatings", fields: [userId], references: [id], onDelete: Cascade)
+  rating      Int                     // 1-5星评分
+  review      String?                 // 评价文字
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([resourceId, userId])
+  @@index([resourceId])
+  @@index([userId])
+  @@index([rating])
+}
+
+// 资料评论
+model ResourceComment {
+  id          String   @id @default(cuid())
+  resourceId  String
+  resource    StudyResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User @relation("ResourceComments", fields: [userId], references: [id], onDelete: Cascade)
+  content     String                  // 评论内容
+  parentId    String?                 // 父评论ID（支持回复）
+  parent      ResourceComment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     ResourceComment[] @relation("CommentReplies")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?               // 软删除
+
+  @@index([resourceId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+// 资料下载记录
+model ResourceDownload {
+  id          String   @id @default(cuid())
+  resourceId  String
+  resource    StudyResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User @relation("ResourceDownloads", fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress   String?                 // IP地址（防刷）
+  userAgent   String?                 // 用户代理
+  createdAt   DateTime @default(now())
+
+  @@index([resourceId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// 资料收藏
+model ResourceFavorite {
+  id          String   @id @default(cuid())
+  resourceId  String
+  resource    StudyResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User @relation("ResourceFavorites", fields: [userId], references: [id], onDelete: Cascade)
+  folderId    String?                 // 收藏夹ID（可选）
+  folder      ResourceFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+
+  @@unique([resourceId, userId])
+  @@index([resourceId])
+  @@index([userId])
+  @@index([folderId])
+}
+
+// 收藏夹（个人分类）
+model ResourceFolder {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User @relation("ResourceFolders", fields: [userId], references: [id], onDelete: Cascade)
+  name        String                  // 收藏夹名称
+  description String?                 // 描述
+  icon        String?                 // 图标
+  color       String?                 // 颜色
+  isDefault   Boolean  @default(false) // 是否为默认收藏夹
+  favorites   ResourceFavorite[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isDefault])
 }

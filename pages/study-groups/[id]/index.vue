@@ -59,6 +59,41 @@
             </div>
           </div>
 
+          <!-- Quick Actions (for members) -->
+          <div v-if="group.isMember" class="mt-6 pt-6 border-t border-gray-200">
+            <div class="flex items-center justify-end gap-3">
+              <button
+                @click="showMembersModal = true"
+                class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                </svg>
+                <span class="font-medium">成员 ({{ members.length }})</span>
+              </button>
+
+              <button
+                @click="showDailyQuestionModal = true"
+                class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                </svg>
+                <span class="font-medium">每日一题</span>
+              </button>
+
+              <button
+                @click="$router.push(`/study-groups/${group.id}/resources`)"
+                class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-md hover:shadow-lg"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                </svg>
+                <span class="font-medium">学习资料库</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Join Button (for non-members) -->
           <div v-if="!group.isMember" class="mt-6 pt-6 border-t border-gray-200">
             <button
@@ -72,9 +107,9 @@
         </div>
 
         <!-- Member Content -->
-        <div v-if="group.isMember" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Main Content (Left) -->
-          <div class="lg:col-span-2 space-y-6">
+        <div v-if="group.isMember" class="space-y-6">
+          <!-- Main Content (Full Width) -->
+          <div class="space-y-6">
             <!-- Tab Navigation -->
             <div class="bg-white rounded-xl shadow-md p-2 flex gap-2">
               <button
@@ -87,6 +122,28 @@
                 ]"
               >
                 💬 讨论
+              </button>
+              <button
+                @click="activeTab = 'checkin'"
+                :class="[
+                  'flex-1 px-4 py-3 rounded-lg font-medium transition-all',
+                  activeTab === 'checkin'
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
+                    : 'text-gray-600 hover:bg-gray-100'
+                ]"
+              >
+                🔥 打卡
+              </button>
+              <button
+                @click="activeTab = 'notes'"
+                :class="[
+                  'flex-1 px-4 py-3 rounded-lg font-medium transition-all',
+                  activeTab === 'notes'
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
+                    : 'text-gray-600 hover:bg-gray-100'
+                ]"
+              >
+                📝 学习笔记
               </button>
               <button
                 @click="activeTab = 'challenges'"
@@ -102,8 +159,20 @@
             </div>
 
             <!-- Discussions Tab -->
-            <DiscussionsTab
+            <DiscussionsTabBBS
               v-if="activeTab === 'discussions'"
+              :group-id="groupId"
+            />
+
+            <!-- Check-in Tab -->
+            <StudyGroupCheckIn
+              v-if="activeTab === 'checkin'"
+              :group-id="groupId"
+            />
+
+            <!-- Notes Tab -->
+            <NotesTab
+              v-if="activeTab === 'notes'"
               :group-id="groupId"
             />
 
@@ -114,19 +183,6 @@
               :can-manage="canManage"
               @create-challenge="showCreateChallengeModal = true"
               ref="challengesTabRef"
-            />
-          </div>
-
-          <!-- Sidebar (Right) -->
-          <div class="lg:col-span-1">
-            <MembersSidebar
-              :group-id="groupId"
-              :user-role="userRole"
-              :exam-type="group.examType"
-              @invite-member="showInviteMemberModal = true"
-              @leave-group="leaveGroup"
-              @members-updated="handleMembersUpdated"
-              ref="membersSidebarRef"
             />
           </div>
         </div>
@@ -149,15 +205,60 @@
       @close="showInviteMemberModal = false"
       @invited="handleMemberInvited"
     />
+
+    <!-- Members Modal -->
+    <div v-if="showMembersModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="showMembersModal = false">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-2xl font-bold text-gray-900">小组成员</h2>
+          <button @click="showMembersModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <MembersSidebar
+            :group-id="groupId"
+            :user-role="userRole"
+            :exam-type="group?.examType"
+            @invite-member="showInviteMemberModal = true"
+            @leave-group="leaveGroup"
+            @members-updated="handleMembersUpdated"
+            ref="membersSidebarRef"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Question Modal -->
+    <div v-if="showDailyQuestionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="showDailyQuestionModal = false">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-2xl font-bold text-gray-900">每日一题</h2>
+          <button @click="showDailyQuestionModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <StudyGroupDailyQuestion :group-id="groupId" :can-manage="canManage" :hide-card="true" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import DiscussionsTab from '~/components/study-groups/DiscussionsTab.vue'
+import DiscussionsTabBBS from '~/components/study-groups/DiscussionsTabBBS.vue'
+import NotesTab from '~/components/study-groups/NotesTab.vue'
 import ChallengesTab from '~/components/study-groups/ChallengesTab.vue'
 import MembersSidebar from '~/components/study-groups/MembersSidebar.vue'
 import CreateChallengeModal from '~/components/study-groups/CreateChallengeModal.vue'
 import InviteMemberModal from '~/components/study-groups/InviteMemberModal.vue'
+import StudyGroupCheckIn from '~/components/StudyGroupCheckIn.vue'
+import StudyGroupDailyQuestion from '~/components/StudyGroupDailyQuestion.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -172,6 +273,8 @@ const activeTab = ref('discussions')
 const isJoining = ref(false)
 const showCreateChallengeModal = ref(false)
 const showInviteMemberModal = ref(false)
+const showMembersModal = ref(false)
+const showDailyQuestionModal = ref(false)
 
 const challengesTabRef = ref(null)
 const membersSidebarRef = ref(null)
@@ -188,7 +291,7 @@ const userRole = computed(() => {
     return 'member'
   }
 
-  const membership = members.value.find(m => m.user.id === authStore.user.id)
+  const membership = members.value.find(m => m.user?.id === authStore.user.id)
   console.log('[Study Group Detail] - 找到的membership:', membership)
   console.log('[Study Group Detail] - 最终返回的role:', membership?.role || 'member')
 
@@ -225,6 +328,14 @@ async function loadGroup() {
 
     if (response.data) {
       group.value = response.data
+      // 初始化 members 数组
+      if (response.data.members && Array.isArray(response.data.members)) {
+        members.value = response.data.members
+        console.log('[Study Group Detail] members 已初始化，数量:', members.value.length)
+      } else {
+        members.value = []
+        console.log('[Study Group Detail] members 为空数组')
+      }
     } else {
       console.error('[Study Group Detail] 响应数据格式错误:', response)
       error.value = '数据格式错误'

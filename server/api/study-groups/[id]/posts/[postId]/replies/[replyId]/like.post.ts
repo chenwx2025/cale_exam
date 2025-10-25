@@ -4,7 +4,7 @@ import { requireAuth } from '~/server/utils/auth-helpers'
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
-  const user = await requireAuth(event)
+  const user = requireAuth(event)
   const groupId = getRouterParam(event, 'id')
   const replyId = getRouterParam(event, 'replyId')
 
@@ -34,9 +34,9 @@ export default defineEventHandler(async (event) => {
     // 检查是否已经点赞
     const existingLike = await prisma.studyGroupReplyLike.findUnique({
       where: {
-        userId_replyId: {
-          userId: user.userId,
-          replyId
+        replyId_userId: {
+          replyId,
+          userId: user.userId
         }
       }
     })
@@ -45,9 +45,9 @@ export default defineEventHandler(async (event) => {
       // 取消点赞
       await prisma.studyGroupReplyLike.delete({
         where: {
-          userId_replyId: {
-            userId: user.userId,
-            replyId
+          replyId_userId: {
+            replyId,
+            userId: user.userId
           }
         }
       })

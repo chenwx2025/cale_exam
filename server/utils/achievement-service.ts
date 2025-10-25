@@ -430,8 +430,18 @@ export async function updateStreakDays(userId: string, examType?: string) {
       })
 
       if (!userPoints) {
-        await prisma.userPoints.create({
-          data: {
+        // 使用 upsert 避免 unique constraint 冲突
+        await prisma.userPoints.upsert({
+          where: {
+            userId_examType: {
+              userId,
+              examType: type
+            }
+          },
+          update: {
+            lastActivityAt: new Date()
+          },
+          create: {
             userId,
             examType: type,
             streakDays: 1,

@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { requireAuth } from '~/server/utils/auth-helpers'
+import { parseMentions, createMentions } from '~/server/utils/mention-parser'
 
 const prisma = new PrismaClient()
 
@@ -8,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const groupId = getRouterParam(event, 'id')
   const body = await readBody(event)
 
-  const { content, type, title, status } = body
+  const { content, type, title, status, tagIds } = body
 
   if (!groupId) {
     throw createError({
@@ -24,11 +25,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 如果是问题类型，标题是必需的
-  if (type === 'question' && (!title || !title.trim())) {
+  // 标题是必需的（BBS模式）
+  if (!title || !title.trim()) {
     throw createError({
       statusCode: 400,
-      message: '问题标题不能为空'
+      message: '标题不能为空'
     })
   }
 
@@ -52,19 +53,59 @@ export default defineEventHandler(async (event) => {
     const postData: any = {
       groupId,
       userId: user.userId,
+      title: title.trim(),
       content: content.trim(),
       type: type || 'discussion'
     }
 
-    // 如果是问题类型，添加标题和状态
+    // 如果是问题类型，添加状态
     if (type === 'question') {
-      postData.title = title.trim()
       postData.status = status || 'pending'
     }
 
     const post = await prisma.studyGroupPost.create({
       data: postData
     })
+
+    // 处理@提及
+    try {
+      const mentionedUserIds = await parseMentions(content, groupId)
+      if (mentionedUserIds.length > 0) {
+        await createMentions(post.id, null, user.userId, mentionedUserIds)
+        console.log(`[Post Create] 创建了 ${mentionedUserIds.length} 个@提及`)
+      }
+    } catch (error) {
+      // @提及处理失败不影响帖子创建
+      console.error('[Post Create] 处理@提及失败:', error)
+    }
+
+    // 处理标签关联
+    if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+      try {
+        // 创建帖子-标签关联
+        await prisma.postTagRelation.createMany({
+          data: tagIds.map((tagId: string) => ({
+            postId: post.id,
+            tagId
+          })),
+          skipDuplicates: true
+        })
+
+        // 更新标签的使用计数
+        await prisma.postTag.updateMany({
+          where: {
+            id: { in: tagIds }
+          },
+          data: {
+            postCount: { increment: 1 }
+          }
+        })
+
+        console.log(`[Post Create] 关联了 ${tagIds.length} 个标签`)
+      } catch (error) {
+        console.error('[Post Create] 处理标签失败:', error)
+      }
+    }
 
     return {
       success: true,

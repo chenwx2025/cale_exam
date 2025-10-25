@@ -6,6 +6,8 @@ const prisma = new PrismaClient()
 export default defineEventHandler(async (event) => {
   const user = requireAuth(event) // 移除 await，requireAuth 是同步函数
   const groupId = getRouterParam(event, 'id')
+  const query = getQuery(event)
+  const tagId = query.tagId as string | undefined
 
   if (!groupId) {
     throw createError({
@@ -15,7 +17,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    console.log('[GET Posts] 开始获取帖子列表, groupId:', groupId, 'userId:', user.userId)
+    console.log('[GET Posts] 开始获取帖子列表, groupId:', groupId, 'userId:', user.userId, 'tagId:', tagId)
 
     // 检查用户是否是小组成员
     const membership = await prisma.studyGroupMember.findFirst({
@@ -35,9 +37,24 @@ export default defineEventHandler(async (event) => {
 
     console.log('[GET Posts] 用户是小组成员，开始查询帖子')
 
-    // 获取帖子列表
+    // 构建查询条件
+    const whereCondition: any = {
+      groupId,
+      deletedAt: null  // 只显示未删除的帖子
+    }
+
+    // 如果指定了标签，添加标签过滤
+    if (tagId) {
+      whereCondition.tags = {
+        some: {
+          tagId: tagId
+        }
+      }
+    }
+
+    // 获取帖子列表 (排除已删除的帖子)
     const posts = await prisma.studyGroupPost.findMany({
-      where: { groupId },
+      where: whereCondition,
       include: {
         user: {
           select: {
@@ -70,11 +87,24 @@ export default defineEventHandler(async (event) => {
             userId: true,
             createdAt: true
           }
+        },
+        tags: {
+          include: {
+            tag: true
+          }
+        },
+        poll: {
+          select: {
+            id: true,
+            totalVotes: true
+          }
         }
       },
-      orderBy: {
-        createdAt: 'desc'
-      }
+      orderBy: [
+        { isPinned: 'desc' },     // 置顶优先
+        { isFeatured: 'desc' },   // 精华次之
+        { createdAt: 'desc' }     // 最新排后
+      ]
     })
 
     console.log('[GET Posts] 查询到帖子数量:', posts.length)
@@ -112,13 +142,16 @@ export default defineEventHandler(async (event) => {
         type: post.type,
         status: post.status,
         isPinned: post.isPinned,
+        isFeatured: post.isFeatured, // 是否精华帖
+        viewCount: post.viewCount, // 浏览量
         likeCount: post.likeCount,
         replyCount: post.replyCount,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
         isLiked, // 当前用户是否点赞
         author: post.user, // 前端期望 author 字段
-        replies: formattedReplies
+        replies: formattedReplies,
+        tags: post.tags.map(t => t.tag) // 标签列表
       }
 
       console.log(`[GET Posts] 帖子 ${post.id} 最终返回对象:`, JSON.stringify(result))

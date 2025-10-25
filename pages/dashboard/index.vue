@@ -93,7 +93,7 @@
           <!-- Secondary Actions -->
           <div class="bg-white rounded-2xl shadow-lg p-6">
             <h2 class="text-xl font-bold text-gray-900 mb-4">快速入口</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
               <NuxtLink
                 to="/outline"
                 class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group"
@@ -121,6 +121,21 @@
                 <div>
                   <div class="font-semibold text-gray-900">已做题目</div>
                   <div class="text-xs text-gray-500">复习题目</div>
+                </div>
+              </NuxtLink>
+
+              <NuxtLink
+                to="/dashboard/notes"
+                class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group"
+              >
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-gray-900">学习笔记</div>
+                  <div class="text-xs text-gray-500">我的笔记</div>
                 </div>
               </NuxtLink>
 
@@ -200,6 +215,38 @@
                 <div class="text-xs text-gray-500">道可用题目</div>
               </div>
             </div>
+          </div>
+
+          <!-- Personal Notes Quick Access -->
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-bold text-gray-900">个人学习笔记</h2>
+              <NuxtLink
+                to="/dashboard/notes"
+                class="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                查看全部 →
+              </NuxtLink>
+            </div>
+            <NuxtLink
+              to="/dashboard/notes"
+              class="block p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl hover:from-green-100 hover:to-emerald-100 transition-all group"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold text-gray-900 mb-1">我的学习笔记</div>
+                  <div class="text-sm text-gray-600">记录学习心得，分享到小组</div>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </NuxtLink>
           </div>
 
           <!-- Recent Activity -->
