@@ -169,17 +169,14 @@ const { data: studyPlans, pending, refresh } = await useFetch('/api/study-plans'
 
 // Reload when navigating back to this page
 onActivated(() => {
-  console.log('[Study Plans] onActivated - refreshing data')
   refresh()
 })
 
 // Watch route to reload when coming back from create page
 const route = useRoute()
 watch(() => route.fullPath, (newPath, oldPath) => {
-  console.log('[Study Plans] Route changed:', { newPath, oldPath })
   // Reload if we're on study-plans index and coming from another page
   if (newPath.includes('/study-plans') && oldPath && oldPath !== newPath) {
-    console.log('[Study Plans] Refreshing data after route change')
     refresh()
   }
 }, { immediate: false })
