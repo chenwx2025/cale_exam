@@ -1390,6 +1390,7 @@ model StudyResource {
   comments        ResourceComment[]                // 评论
   downloads       ResourceDownload[]               // 下载记录
   favorites       ResourceFavorite[]               // 收藏记录
+  files           ResourceFile[]                   // 多文件支持
 
   // 时间戳
   createdAt       DateTime @default(now())
@@ -1404,6 +1405,36 @@ model StudyResource {
   @@index([createdAt])
   @@index([downloadCount])
   @@index([averageRating])
+}
+
+// 资料文件（支持一个资源包含多个文件）
+model ResourceFile {
+  id              String   @id @default(cuid())
+  resourceId      String
+  resource        StudyResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  // 文件信息
+  fileName        String              // 原始文件名
+  fileUrl         String              // 文件URL
+  fileSize        Int                 // 文件大小（字节）
+  mimeType        String              // MIME类型
+  type            String              // document, image, video, archive, other
+  thumbnailUrl    String?             // 缩略图URL
+
+  // 排序和显示
+  displayOrder    Int      @default(0) // 显示顺序
+  isPrimary       Boolean  @default(false) // 是否为主文件（用于缩略图）
+
+  // 统计
+  downloadCount   Int      @default(0) // 单个文件下载次数
+
+  // 时间戳
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([resourceId])
+  @@index([type])
+  @@index([displayOrder])
 }
 
 // 资料评分

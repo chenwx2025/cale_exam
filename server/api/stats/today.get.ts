@@ -5,7 +5,7 @@ import prisma from '~/server/utils/prisma'
  * 获取用户今日学习统计
  */
 export default defineEventHandler(async (event) => {
-  const user = requireAuth(event)
+  const user = await requireAuth(event)
   const query = getQuery(event)
   let examType = String(query.examType || 'cale')
 

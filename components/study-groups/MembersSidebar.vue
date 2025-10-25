@@ -146,6 +146,10 @@ const props = defineProps({
   examType: {
     type: String,
     default: 'cale'
+  },
+  initialMembers: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -177,7 +181,15 @@ const canManage = computed(() => {
 // Load members on mount
 onMounted(async () => {
   await authStore.init()
-  await loadMembers()
+
+  // Use initial members if provided, otherwise load from API
+  if (props.initialMembers && props.initialMembers.length > 0) {
+    console.log('[MembersSidebar] 使用初始成员数据，数量:', props.initialMembers.length)
+    members.value = props.initialMembers
+  } else {
+    console.log('[MembersSidebar] 没有初始成员数据，从API加载')
+    await loadMembers()
+  }
 
   // Close dropdown when clicking outside
   document.addEventListener('click', closeAllMenus)
@@ -192,15 +204,16 @@ async function loadMembers() {
   loadingMembers.value = true
   try {
     console.log('[MembersSidebar] 开始加载成员, groupId:', props.groupId)
-    const { data, error } = await useFetch(`/api/study-groups/${props.groupId}/members`, {
+    const response = await $fetch(`/api/study-groups/${props.groupId}/members`, {
       headers: authStore.getAuthHeader()
     })
-    if (error.value) {
-      console.error('[MembersSidebar] 加载成员失败:', error.value)
-    } else if (data.value) {
-      members.value = data.value.data || []
+    console.log('[MembersSidebar] API响应:', response)
+    if (response && response.data) {
+      members.value = response.data || []
       console.log('[MembersSidebar] 加载到成员数量:', members.value.length)
       emit('members-updated', members.value)
+    } else {
+      console.error('[MembersSidebar] 响应格式错误:', response)
     }
   } catch (err) {
     console.error('[MembersSidebar] 加载成员异常:', err)

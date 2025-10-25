@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
   // 要求用户必须登录
-  const user = requireAuth(event)
+  const user = await requireAuth(event)
 
   try {
     const query = getQuery(event)

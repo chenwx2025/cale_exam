@@ -187,9 +187,15 @@ const handleLike = async () => {
 
   isLiking.value = true
   try {
-    const result = await $fetch(`/api/study-groups/${props.groupId}/notes/${props.note.id}/like`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[NoteCard] 使用扁平路由 API 点赞笔记')
+    const result = await $fetch(`/api/study-note-like`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: {
+        groupId: props.groupId,
+        noteId: props.note.id
+      }
     })
 
     if (result.success) {
@@ -208,9 +214,15 @@ const handleFavorite = async () => {
 
   isFavoriting.value = true
   try {
-    const result = await $fetch(`/api/study-groups/${props.groupId}/notes/${props.note.id}/favorite`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[NoteCard] 使用扁平路由 API 收藏笔记')
+    const result = await $fetch(`/api/study-note-favorite`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: {
+        groupId: props.groupId,
+        noteId: props.note.id
+      }
     })
 
     if (result.success) {

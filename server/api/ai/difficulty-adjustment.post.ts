@@ -9,7 +9,7 @@ import { adjustDifficulty } from '../../utils/ai-learning-assistant'
 export default defineEventHandler(async (event) => {
   try {
     // 验证用户身份
-    const user = requireAuth(event)
+    const user = await requireAuth(event)
 
     // 获取请求参数
     const body = await readBody(event)

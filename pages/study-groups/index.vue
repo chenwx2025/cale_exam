@@ -231,6 +231,20 @@ const changePage = (page: number) => {
 onMounted(() => {
   loadGroups()
 })
+
+// Reload when navigating back to this page
+onActivated(() => {
+  loadGroups()
+})
+
+// Watch route to reload when coming back from group detail page
+const route = useRoute()
+watch(() => route.fullPath, (newPath, oldPath) => {
+  // Only reload if we're on the study-groups index page
+  if (newPath === '/study-groups' && oldPath && oldPath !== newPath) {
+    loadGroups()
+  }
+})
 </script>
 
 <style scoped>

@@ -148,6 +148,7 @@ const loadNotes = async () => {
   loading.value = true
   try {
     const params = new URLSearchParams({
+      groupId: props.groupId,
       page: pagination.value.page.toString(),
       pageSize: pagination.value.pageSize.toString()
     })
@@ -165,16 +166,20 @@ const loadNotes = async () => {
       params.append('status', viewMode.value)
     }
 
-    const result = await $fetch(`/api/study-groups/${props.groupId}/notes?${params.toString()}`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[NotesTab] 使用扁平路由 API 加载笔记')
+    const result = await $fetch(`/api/study-notes?${params.toString()}`, {
       headers: authStore.getAuthHeader()
     })
+    console.log('[NotesTab] API响应:', result)
 
     if (result.success) {
       notes.value = result.data.notes
       pagination.value = result.data.pagination
+      console.log('[NotesTab] 加载到笔记数量:', notes.value.length)
     }
   } catch (error) {
-    console.error('加载笔记失败:', error)
+    console.error('[NotesTab] 加载笔记失败:', error)
   } finally {
     loading.value = false
   }

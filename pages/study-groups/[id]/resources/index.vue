@@ -270,6 +270,7 @@ const loadResources = async () => {
   loading.value = true
   try {
     const params = new URLSearchParams({
+      groupId,
       page: pagination.value.page,
       pageSize: pagination.value.pageSize,
       sortBy: filters.value.sortBy,
@@ -286,13 +287,16 @@ const loadResources = async () => {
       params.append('search', filters.value.search)
     }
 
-    const result = await $fetch(`/api/study-groups/${groupId}/resources?${params}`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[ResourcesPage] 使用扁平路由 API 加载资料列表')
+    const result = await $fetch(`/api/study-resources?${params}`, {
       headers: authStore.getAuthHeader()
     })
 
     if (result.success) {
       resources.value = result.data.resources
       pagination.value = result.data.pagination
+      console.log('[ResourcesPage] 加载到资料数量:', resources.value.length)
     }
   } catch (error) {
     console.error('加载资料失败:', error)
@@ -357,5 +361,18 @@ const getTypeLabel = (type) => {
 // Load resources on mount
 onMounted(() => {
   loadResources()
+})
+
+// Reload when navigating back to this page
+onActivated(() => {
+  loadResources()
+})
+
+// Watch route to reload when coming back from resource detail page
+watch(() => route.fullPath, (newPath, oldPath) => {
+  const resourcesIndexPath = `/study-groups/${groupId}/resources`
+  if (newPath === resourcesIndexPath && oldPath && oldPath !== newPath) {
+    loadResources()
+  }
 })
 </script>

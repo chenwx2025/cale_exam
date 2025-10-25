@@ -203,10 +203,13 @@ async function submitChallenge() {
 
   isSubmitting.value = true
   try {
-    const response = await $fetch(`/api/study-groups/${props.groupId}/challenges`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[CreateChallenge] 使用扁平路由 API 创建挑战')
+    const response = await $fetch(`/api/study-group-challenges`, {
       method: 'POST',
       headers: authStore.getAuthHeader(),
       body: {
+        groupId: props.groupId,
         name: formData.value.name,
         examType: props.examType,
         targetType: formData.value.type,
@@ -216,14 +219,16 @@ async function submitChallenge() {
         endDate: new Date(formData.value.endDate + 'T23:59:59').toISOString()
       }
     })
+    console.log('[CreateChallenge] 挑战创建响应:', response)
 
     if (response && response.success) {
+      console.log('[CreateChallenge] 挑战创建成功:', response.data.id)
       emit('created', response.data)
       close()
     }
   } catch (err) {
-    console.error('创建挑战异常:', err)
-    alert('创建挑战失败')
+    console.error('[CreateChallenge] 创建挑战异常:', err)
+    alert('创建挑战失败: ' + (err.data?.message || err.message || '未知错误'))
   } finally {
     isSubmitting.value = false
   }

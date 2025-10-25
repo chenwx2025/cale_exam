@@ -73,15 +73,9 @@ function getWeekDates() {
 }
 
 export default defineEventHandler(async (event) => {
-  console.log('[FLAT CHECK-IN GET] ========== GET 请求到达 ==========')
-
-  const user = requireAuth(event)
-  console.log('[FLAT CHECK-IN GET] 用户:', user.userId)
-
+  const user = await requireAuth(event)
   const query = getQuery(event)
   const groupId = query.groupId
-
-  console.log('[FLAT CHECK-IN GET] groupId:', groupId)
 
   if (!groupId) {
     throw createError({
@@ -235,17 +229,8 @@ export default defineEventHandler(async (event) => {
     }))
 
     // 8. 小组今日统计
-    const todayGroupCheckIns = recentCheckIns.length // 已经查询过了，直接用长度
+    const todayGroupCheckIns = recentCheckIns.length
     const totalMembers = allMembers.length
-
-    console.log('[FLAT CHECK-IN GET] 返回数据:', {
-      userId: user.userId,
-      todayCheckIn: todayCheckIn ? '已打卡' : '未打卡',
-      streakDays,
-      totalCheckIns,
-      attendanceRate,
-      leaderboardCount: sortedLeaderboard.length
-    })
 
     // 格式化时间（避免 toLocaleTimeString 的问题）
     let checkInTime = null

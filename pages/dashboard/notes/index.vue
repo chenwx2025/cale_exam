@@ -301,4 +301,18 @@ watch([searchQuery], () => {
 onMounted(() => {
   loadNotes()
 })
+
+// Reload when navigating back to this page
+onActivated(() => {
+  loadNotes()
+})
+
+// Watch route to reload when coming back from create/edit page
+const route = useRoute()
+watch(() => route.fullPath, (newPath, oldPath) => {
+  // Only reload if we're on the notes index page
+  if (newPath === '/dashboard/notes' && oldPath && oldPath !== newPath) {
+    loadNotes()
+  }
+})
 </script>

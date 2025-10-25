@@ -138,15 +138,19 @@ const isFavoriting = ref(false)
 const loadNote = async () => {
   loading.value = true
   try {
-    const result = await $fetch(`/api/study-groups/${groupId}/notes/${noteId}`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[NoteDetail] 使用扁平路由 API 加载笔记详情')
+    const result = await $fetch(`/api/study-note-detail?groupId=${groupId}&noteId=${noteId}`, {
       headers: authStore.getAuthHeader()
     })
+    console.log('[NoteDetail] API响应:', result)
 
     if (result.success) {
       note.value = result.data
+      console.log('[NoteDetail] 笔记详情加载成功')
     }
   } catch (error) {
-    console.error('加载笔记失败:', error)
+    console.error('[NoteDetail] 加载笔记失败:', error)
   } finally {
     loading.value = false
   }
@@ -169,9 +173,12 @@ const handleLike = async () => {
   if (isLiking.value) return
   isLiking.value = true
   try {
-    await $fetch(`/api/study-groups/${groupId}/notes/${noteId}/like`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[NoteDetail] 使用扁平路由 API 点赞笔记')
+    await $fetch(`/api/study-note-like`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: { groupId, noteId }
     })
     await loadNote()
   } catch (error) {
@@ -186,9 +193,12 @@ const handleFavorite = async () => {
   if (isFavoriting.value) return
   isFavoriting.value = true
   try {
-    await $fetch(`/api/study-groups/${groupId}/notes/${noteId}/favorite`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[NoteDetail] 使用扁平路由 API 收藏笔记')
+    await $fetch(`/api/study-note-favorite`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: { groupId, noteId }
     })
     await loadNote()
   } catch (error) {

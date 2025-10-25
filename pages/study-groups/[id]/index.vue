@@ -161,6 +161,7 @@
             <!-- Discussions Tab -->
             <DiscussionsTabBBS
               v-if="activeTab === 'discussions'"
+              ref="discussionsTabRef"
               :group-id="groupId"
             />
 
@@ -222,6 +223,7 @@
             :group-id="groupId"
             :user-role="userRole"
             :exam-type="group?.examType"
+            :initial-members="members"
             @invite-member="showInviteMemberModal = true"
             @leave-group="leaveGroup"
             @members-updated="handleMembersUpdated"
@@ -278,6 +280,7 @@ const showDailyQuestionModal = ref(false)
 
 const challengesTabRef = ref(null)
 const membersSidebarRef = ref(null)
+const discussionsTabRef = ref(null)
 
 // Computed - use authStore.user directly instead of currentUser ref
 const userRole = computed(() => {
@@ -310,6 +313,24 @@ onMounted(async () => {
   console.log('[Study Group Detail] Auth store user:', authStore.user ? authStore.user.id : 'null')
 
   await loadGroup()
+})
+
+// Reload discussions when navigating back from post detail page
+onActivated(() => {
+  if (activeTab.value === 'discussions' && discussionsTabRef.value) {
+    discussionsTabRef.value.loadPosts()
+  }
+})
+
+// Watch route to reload discussions when coming back from post detail
+watch(() => route.fullPath, (newPath, oldPath) => {
+  const groupDetailPath = `/study-groups/${groupId}`
+  // If we're back on the group detail page from a post detail page
+  if (newPath === groupDetailPath && oldPath && oldPath.includes('/posts/')) {
+    if (activeTab.value === 'discussions' && discussionsTabRef.value) {
+      discussionsTabRef.value.loadPosts()
+    }
+  }
 })
 
 // Load group

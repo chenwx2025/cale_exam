@@ -60,7 +60,7 @@
         <div
           v-show="mode === 'edit' || mode === 'split'"
           :class="[
-            'editor-pane',
+            'editor-pane relative',
             mode === 'split' ? 'w-1/2' : 'w-full'
           ]"
         >
@@ -69,11 +69,52 @@
             v-model="localValue"
             @input="handleInput"
             @keydown="handleKeydown"
+            @blur="handleBlur"
             :placeholder="placeholder"
             :rows="rows"
             class="w-full px-4 py-3 focus:outline-none resize-none font-mono text-sm"
             style="min-height: 300px;"
           ></textarea>
+
+          <!-- @mention autocomplete dropdown -->
+          <div
+            v-if="showMentionDropdown"
+            class="mention-dropdown"
+            :style="dropdownStyle"
+          >
+            <!-- 加载中状态 -->
+            <div v-if="groupMembers.length === 0" class="mention-item">
+              <div class="flex items-center gap-2 text-gray-500">
+                <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-sm">加载成员中...</span>
+              </div>
+            </div>
+            <!-- 成员列表 -->
+            <div
+              v-else-if="filteredMembers.length > 0"
+              v-for="(member, index) in filteredMembers"
+              :key="member.id"
+              @mousedown.prevent="selectMention(member)"
+              :class="[
+                'mention-item',
+                { 'mention-item-active': index === selectedMentionIndex }
+              ]"
+            >
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                  {{ member.displayName.charAt(0) }}
+                </div>
+                <div>
+                  <div class="font-medium text-sm">{{ member.displayName }}</div>
+                  <div class="text-xs text-gray-500">@{{ member.username }}</div>
+                </div>
+              </div>
+            </div>
+            <!-- 无匹配结果 -->
+            <div v-else class="mention-item">
+              <div class="text-sm text-gray-500">未找到匹配的成员</div>
+            </div>
+          </div>
         </div>
 
         <!-- 预览区 -->
@@ -152,14 +193,29 @@ const props = defineProps({
   rows: {
     type: Number,
     default: 10
+  },
+  groupId: {
+    type: String,
+    default: null
   }
 });
 
 const emit = defineEmits(['update:modelValue']);
 
+const authStore = useAuthStore();
 const textareaRef = ref(null);
 const localValue = ref(props.modelValue);
 const mode = ref('split'); // 'edit', 'preview', 'split'
+
+// @ 提及功能相关状态
+const showMentionDropdown = ref(false);
+const mentionQuery = ref('');
+const mentionStartPos = ref(0);
+const selectedMentionIndex = ref(0);
+const groupMembers = ref([]);
+const dropdownStyle = ref({});
+
+// console.log('[MarkdownEditor] 组件初始化, groupId:', props.groupId);
 
 // 配置marked
 marked.setOptions({
@@ -302,13 +358,161 @@ const insertEmoji = (emoji) => {
   });
 };
 
+// 加载小组成员
+const loadGroupMembers = async () => {
+  if (!props.groupId) {
+    return;
+  }
+
+  try {
+    const response = await $fetch(`/api/study-group-members?groupId=${props.groupId}`, {
+      headers: authStore.getAuthHeader()
+    });
+
+    if (response && response.data) {
+      groupMembers.value = response.data.map(member => ({
+        id: member.user.id,
+        displayName: member.user.nickname || member.user.name || member.user.email.split('@')[0],
+        username: member.user.name || member.user.email.split('@')[0],
+        email: member.user.email
+      }));
+    }
+  } catch (error) {
+    console.error('[MarkdownEditor] 加载小组成员失败:', error);
+  }
+};
+
+// 过滤成员列表
+const filteredMembers = computed(() => {
+  if (!mentionQuery.value) {
+    return groupMembers.value.slice(0, 5);
+  }
+  const query = mentionQuery.value.toLowerCase();
+  return groupMembers.value.filter(member =>
+    member.displayName.toLowerCase().includes(query) ||
+    member.username.toLowerCase().includes(query) ||
+    member.email.toLowerCase().includes(query)
+  ).slice(0, 5);
+});
+
+// 更新下拉框位置
+const updateDropdownPosition = () => {
+  if (!textareaRef.value) return;
+
+  const textarea = textareaRef.value;
+  const lineHeight = parseInt(getComputedStyle(textarea).lineHeight);
+  const paddingTop = parseInt(getComputedStyle(textarea).paddingTop);
+
+  // 简单计算：基于光标位置估算行数
+  const textBeforeCursor = localValue.value.substring(0, mentionStartPos.value);
+  const lines = textBeforeCursor.split('\n').length;
+
+  dropdownStyle.value = {
+    top: `${paddingTop + (lines) * lineHeight}px`,
+    left: '10px'
+  };
+};
+
+// 选择提及
+const selectMention = (member) => {
+  if (!textareaRef.value) return;
+
+  const textarea = textareaRef.value;
+  const cursorPos = textarea.selectionStart;
+
+  // 替换@xxx为@username
+  const textBefore = localValue.value.substring(0, mentionStartPos.value);
+  const textAfter = localValue.value.substring(cursorPos);
+
+  const mentionText = member.displayName.includes(' ')
+    ? `@"${member.displayName}" `
+    : `@${member.username} `;
+
+  localValue.value = textBefore + mentionText + textAfter;
+
+  // 关闭下拉框
+  showMentionDropdown.value = false;
+  mentionQuery.value = '';
+
+  // 将光标移到插入文本后
+  nextTick(() => {
+    const newCursorPos = mentionStartPos.value + mentionText.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    textarea.focus();
+  });
+};
+
+// 处理失焦
+const handleBlur = () => {
+  // 延迟关闭，允许点击下拉项
+  setTimeout(() => {
+    showMentionDropdown.value = false;
+  }, 200);
+};
+
 // 处理输入
 const handleInput = (event) => {
   localValue.value = event.target.value;
+
+  // 如果没有 groupId，不启用提及功能
+  if (!props.groupId) {
+    return;
+  }
+
+  const value = event.target.value;
+  const cursorPos = event.target.selectionStart;
+
+  // 检查是否输入了 @
+  const textBeforeCursor = value.substring(0, cursorPos);
+  const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+  if (lastAtIndex !== -1) {
+    // 检查@之前是否是空格或开头
+    const charBeforeAt = lastAtIndex > 0 ? textBeforeCursor[lastAtIndex - 1] : ' ';
+    if (charBeforeAt === ' ' || charBeforeAt === '\n' || lastAtIndex === 0) {
+      // 提取@后面的查询字符串
+      const queryAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+
+      // 检查@后面是否有空格或换行（如果有，不显示下拉）
+      if (!queryAfterAt.includes(' ') && !queryAfterAt.includes('\n')) {
+        showMentionDropdown.value = true;
+        mentionQuery.value = queryAfterAt;
+        mentionStartPos.value = lastAtIndex;
+        selectedMentionIndex.value = 0;
+
+        // 计算下拉框位置
+        updateDropdownPosition();
+        return;
+      }
+    }
+  }
+
+  // 关闭下拉框
+  showMentionDropdown.value = false;
+  mentionQuery.value = '';
 };
 
 // 处理快捷键
 const handleKeydown = (event) => {
+  // 处理提及下拉框的键盘事件
+  if (showMentionDropdown.value) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      selectedMentionIndex.value = Math.min(selectedMentionIndex.value + 1, filteredMembers.value.length - 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      selectedMentionIndex.value = Math.max(selectedMentionIndex.value - 1, 0);
+    } else if (event.key === 'Enter' && filteredMembers.value.length > 0) {
+      event.preventDefault();
+      selectMention(filteredMembers.value[selectedMentionIndex.value]);
+      return;
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      showMentionDropdown.value = false;
+      return;
+    }
+  }
+
   if (event.ctrlKey || event.metaKey) {
     switch (event.key.toLowerCase()) {
       case 'b':
@@ -368,6 +572,20 @@ defineExpose({
   focus,
   scrollIntoView
 });
+
+// 监听 groupId 变化，重新加载成员
+watch(() => props.groupId, (newGroupId, oldGroupId) => {
+  if (newGroupId && newGroupId !== oldGroupId) {
+    loadGroupMembers();
+  }
+});
+
+// 组件挂载时加载成员
+onMounted(async () => {
+  if (props.groupId) {
+    await loadGroupMembers();
+  }
+});
 </script>
 
 <style scoped>
@@ -377,6 +595,34 @@ defineExpose({
 
 .toolbar-btn {
   user-select: none;
+}
+
+/* @ 提及下拉框样式 */
+.mention-dropdown {
+  position: absolute;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.mention-item {
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.mention-item:hover,
+.mention-item-active {
+  background-color: #f3f4f6;
+}
+
+.mention-item:not(:last-child) {
+  border-bottom: 1px solid #f3f4f6;
 }
 
 /* Markdown预览样式 */

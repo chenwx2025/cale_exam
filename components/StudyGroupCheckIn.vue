@@ -180,22 +180,13 @@ const currentDate = computed(() => {
 const loadCheckInData = async () => {
   try {
     loading.value = true
-    console.log('[StudyGroupCheckIn] 开始加载数据...')
-    console.log('[StudyGroupCheckIn] 使用扁平路由 GET API')
 
     const response = await $fetch(`/api/study-group-check-in?groupId=${props.groupId}`, {
       headers: authStore.getAuthHeader()
     })
 
-    console.log('[StudyGroupCheckIn] API响应:', response)
-
     if (response.success && response.data) {
       checkInData.value = response.data
-      console.log('[StudyGroupCheckIn] 数据加载成功:', {
-        todayCheckIn: checkInData.value.todayCheckIn ? '已打卡' : '未打卡',
-        streakDays: checkInData.value.stats?.streakDays,
-        totalCheckIns: checkInData.value.stats?.totalCheckIns
-      })
     }
   } catch (error) {
     console.error('[StudyGroupCheckIn] 加载失败:', error)
@@ -216,43 +207,24 @@ const loadCheckInData = async () => {
 
 // Submit check-in (一键打卡)
 const doCheckIn = async () => {
-  console.log('[StudyGroupCheckIn] ========== 打卡按钮被点击 ==========')
-  console.log('[StudyGroupCheckIn] groupId:', props.groupId)
-  console.log('[StudyGroupCheckIn] authStore:', authStore)
-
   try {
     isCheckingIn.value = true
-    console.log('[StudyGroupCheckIn] 开始打卡...')
-    console.log('[StudyGroupCheckIn] 使用扁平路由 API: /api/study-group-check-in')
 
     const headers = authStore.getAuthHeader()
-    console.log('[StudyGroupCheckIn] Headers:', headers)
 
     const response = await $fetch(`/api/study-group-check-in?groupId=${props.groupId}`, {
       method: 'POST',
       headers
     })
 
-    console.log('[StudyGroupCheckIn] 打卡响应 - 完整对象:', response)
-    console.log('[StudyGroupCheckIn] response.success 的值:', response.success)
-    console.log('[StudyGroupCheckIn] response.success 的类型:', typeof response.success)
-
     if (response.success) {
-      // 打卡成功，重新加载数据
-      console.log('[StudyGroupCheckIn] ✅ 打卡成功！准备重新加载数据...')
       await loadCheckInData()
-      console.log('[StudyGroupCheckIn] ✅ 数据重新加载完成！')
       alert('打卡成功！')
     } else {
-      console.error('[StudyGroupCheckIn] ❌ 打卡失败，响应:', response)
       alert(response.message || '打卡失败')
     }
   } catch (error) {
-    console.error('[StudyGroupCheckIn] ========== 打卡异常 ==========')
-    console.error('[StudyGroupCheckIn] 错误对象:', error)
-    console.error('[StudyGroupCheckIn] 错误消息:', error.message)
-    console.error('[StudyGroupCheckIn] 错误数据:', error.data)
-    console.error('[StudyGroupCheckIn] 完整错误:', JSON.stringify(error, null, 2))
+    console.error('[StudyGroupCheckIn] 打卡失败:', error)
 
     // Check if it's an authentication error
     if (error.statusCode === 401 || error.status === 401) {
@@ -271,35 +243,11 @@ const doCheckIn = async () => {
     }
   } finally {
     isCheckingIn.value = false
-    console.log('[StudyGroupCheckIn] 打卡流程结束')
-  }
-}
-
-// Test simple POST
-const testSimplePost = async () => {
-  console.log('[TEST] 测试简单 POST API...')
-  try {
-    const response = await $fetch('/api/test-checkin', {
-      method: 'POST'
-    })
-    console.log('[TEST] 响应:', response)
-    alert('测试成功！' + JSON.stringify(response))
-  } catch (error) {
-    console.error('[TEST] 错误:', error)
-    alert('测试失败: ' + error.message)
   }
 }
 
 // Load data on mount
 onMounted(() => {
-  console.log('[StudyGroupCheckIn] ========== 组件已挂载 ==========')
-  console.log('[StudyGroupCheckIn] groupId:', props.groupId)
-  console.log('[StudyGroupCheckIn] hideCard:', props.hideCard)
-  console.log('[StudyGroupCheckIn] authStore存在:', !!authStore)
   loadCheckInData()
 })
-
-// 组件创建时就输出日志
-console.log('[StudyGroupCheckIn] ========== 组件脚本已加载 ==========')
-console.log('[StudyGroupCheckIn] Props:', props)
 </script>

@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 export default defineEventHandler(async (event) => {
   try {
     // 获取当前用户
-    const user = requireAuth(event)
+    const user = await requireAuth(event)
 
     // 增加 tokenVersion，使所有现有 token 失效
     await prisma.user.update({

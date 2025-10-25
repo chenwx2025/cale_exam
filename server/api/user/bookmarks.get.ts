@@ -4,7 +4,7 @@ import { requireAuth } from '~/server/utils/auth-helpers'
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
-  const user = requireAuth(event)
+  const user = await requireAuth(event)
 
   try {
     console.log('[Get Bookmarks] 获取用户收藏, userId:', user.userId)

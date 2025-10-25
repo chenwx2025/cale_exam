@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 export default defineEventHandler(async (event) => {
   console.log('[Check-in POST] ========== 开始处理打卡请求 ==========')
 
-  const user = requireAuth(event)
+  const user = await requireAuth(event)
   console.log('[Check-in POST] 用户认证成功:', user.userId)
 
   const groupId = getRouterParam(event, 'id')

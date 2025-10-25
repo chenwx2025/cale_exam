@@ -2,7 +2,7 @@ import { requireAuth } from '~/server/utils/auth-helpers'
 import prisma from '~/server/utils/prisma'
 
 export default defineEventHandler(async (event) => {
-  const user = requireAuth(event)
+  const user = await requireAuth(event)
 
   const query = getQuery(event)
   let examType = String(query.examType || 'cale')

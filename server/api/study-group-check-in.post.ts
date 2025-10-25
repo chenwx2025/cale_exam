@@ -5,17 +5,12 @@ import { requireAuth } from '~/server/utils/auth-helpers'
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
-  console.log('[FLAT CHECK-IN POST] ========== 请求到达 ==========')
-
-  const user = requireAuth(event)
-  console.log('[FLAT CHECK-IN POST] 用户:', user.userId)
+  const user = await requireAuth(event)
 
   // 从 query 参数或 body 获取 groupId
   const query = getQuery(event)
   const body = await readBody(event).catch(() => ({}))
   const groupId = query.groupId || body.groupId
-
-  console.log('[FLAT CHECK-IN POST] groupId:', groupId)
 
   if (!groupId) {
     throw createError({
@@ -70,14 +65,10 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    console.log('[FLAT CHECK-IN POST] 打卡成功:', checkIn.id)
-
     // 格式化时间（避免 toLocaleTimeString 在 Node.js 中的问题）
     const hours = checkIn.createdAt.getHours().toString().padStart(2, '0')
     const minutes = checkIn.createdAt.getMinutes().toString().padStart(2, '0')
     const checkInTime = `${hours}:${minutes}`
-
-    console.log('[FLAT CHECK-IN POST] 准备返回响应...')
 
     return {
       success: true,

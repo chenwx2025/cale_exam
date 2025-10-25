@@ -260,17 +260,21 @@ async function loadChallenge() {
   loading.value = true
   error.value = null
   try {
-    const response = await $fetch(`/api/study-groups/${groupId}/challenges/${challengeId}`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[Challenge Details] 使用扁平路由 API 加载挑战详情')
+    const response = await $fetch(`/api/challenge-detail?groupId=${groupId}&challengeId=${challengeId}`, {
       headers: authStore.getAuthHeader()
     })
+    console.log('[Challenge Details] API响应:', response)
 
     if (response && response.success) {
       challenge.value = response.data
+      console.log('[Challenge Details] 挑战详情加载成功')
     } else {
       error.value = '加载挑战详情失败'
     }
   } catch (err) {
-    console.error('加载挑战详情异常:', err)
+    console.error('[Challenge Details] 加载挑战详情异常:', err)
     error.value = err.data?.message || '加载挑战详情失败'
   } finally {
     loading.value = false
@@ -281,18 +285,26 @@ async function loadChallenge() {
 async function joinChallenge() {
   isJoining.value = true
   try {
-    const response = await $fetch(`/api/study-groups/${groupId}/challenges/${challengeId}/join`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[Challenge Details] 使用扁平路由 API 参加挑战')
+    const response = await $fetch(`/api/challenge-join`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: {
+        groupId,
+        challengeId
+      }
     })
+    console.log('[Challenge Details] 参加挑战响应:', response)
 
     if (response && response.success) {
+      console.log('[Challenge Details] 参加挑战成功，重新加载详情')
       await loadChallenge()
     } else {
       alert('加入挑战失败')
     }
   } catch (err) {
-    console.error('加入挑战异常:', err)
+    console.error('[Challenge Details] 加入挑战异常:', err)
     alert('加入挑战失败: ' + (err.data?.message || err.message))
   } finally {
     isJoining.value = false
@@ -305,18 +317,26 @@ async function leaveChallenge() {
 
   isLeaving.value = true
   try {
-    const response = await $fetch(`/api/study-groups/${groupId}/challenges/${challengeId}/leave`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[Challenge Details] 使用扁平路由 API 退出挑战')
+    const response = await $fetch(`/api/challenge-leave`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: {
+        groupId,
+        challengeId
+      }
     })
+    console.log('[Challenge Details] 退出挑战响应:', response)
 
     if (response && response.success) {
+      console.log('[Challenge Details] 退出挑战成功，重新加载详情')
       await loadChallenge()
     } else {
       alert('退出挑战失败')
     }
   } catch (err) {
-    console.error('退出挑战异常:', err)
+    console.error('[Challenge Details] 退出挑战异常:', err)
     alert('退出挑战失败: ' + (err.data?.message || err.message))
   } finally {
     isLeaving.value = false

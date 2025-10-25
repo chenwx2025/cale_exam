@@ -19,6 +19,17 @@ export default defineEventHandler(async (event) => {
       where: { id: groupId },
       include: {
         members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                avatar: true,
+                nickname: true
+              }
+            }
+          },
           orderBy: {
             joinedAt: 'asc'
           }

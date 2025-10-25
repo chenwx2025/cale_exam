@@ -140,6 +140,20 @@ onMounted(async () => {
   await loadBookmarks()
 })
 
+// Reload when navigating back to this page
+onActivated(() => {
+  loadBookmarks()
+})
+
+// Watch route to reload when coming back from post detail page
+const route = useRoute()
+watch(() => route.fullPath, (newPath, oldPath) => {
+  // Only reload if we're on the bookmarks page
+  if (newPath === '/bookmarks' && oldPath && oldPath !== newPath) {
+    loadBookmarks()
+  }
+})
+
 const loadBookmarks = async () => {
   loading.value = true
   try {

@@ -466,6 +466,16 @@ onMounted(async () => {
   await loadPosts()
 })
 
+// Reload when component is activated (for keep-alive)
+onActivated(async () => {
+  await loadPosts()
+})
+
+// Expose loadPosts method to parent component
+defineExpose({
+  loadPosts
+})
+
 // Load tags
 const loadTags = async () => {
   try {
@@ -486,20 +496,27 @@ const loadPosts = async () => {
   loadingPosts.value = true
   try {
     const params = new URLSearchParams()
+    params.append('groupId', props.groupId)
     if (selectedTagId.value) {
       params.append('tagId', selectedTagId.value)
     }
 
-    const url = `/api/study-groups/${props.groupId}/posts${params.toString() ? '?' + params.toString() : ''}`
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    const url = `/api/study-group-posts?${params.toString()}`
+    console.log('[DiscussionsTab] 使用扁平路由 API:', url)
     const response = await $fetch(url, {
       headers: authStore.getAuthHeader()
     })
+    console.log('[DiscussionsTab] API响应:', response)
 
     if (response && response.data) {
       posts.value = response.data
+      console.log('[DiscussionsTab] 加载到帖子数量:', posts.value.length)
+    } else {
+      console.error('[DiscussionsTab] 响应格式错误:', response)
     }
   } catch (error) {
-    console.error('加载讨论失败:', error)
+    console.error('[DiscussionsTab] 加载讨论失败:', error)
   } finally {
     loadingPosts.value = false
   }
@@ -516,12 +533,17 @@ const createPost = async () => {
 
   isPostingNew.value = true
   try {
-    // 创建帖子
-    const result = await $fetch(`/api/study-groups/${props.groupId}/posts`, {
+    // 创建帖子 - 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[DiscussionsTab] 使用扁平路由 API 发布帖子')
+    const result = await $fetch(`/api/study-group-posts`, {
       method: 'POST',
       headers: authStore.getAuthHeader(),
-      body: newPost.value
+      body: {
+        ...newPost.value,
+        groupId: props.groupId
+      }
     })
+    console.log('[DiscussionsTab] 帖子发布响应:', result)
 
     // 如果有投票数据，创建投票
     if (pollData.value && result.data?.id) {

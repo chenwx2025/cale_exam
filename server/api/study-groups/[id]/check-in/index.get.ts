@@ -74,7 +74,7 @@ function getWeekDates(): { date: string, dayOfWeek: string, isToday: boolean }[]
 export default defineEventHandler(async (event) => {
   console.log('[Check-in GET] ========== GET 请求到达 ==========')
 
-  const user = requireAuth(event)
+  const user = await requireAuth(event)
   console.log('[Check-in GET] 用户:', user.userId)
 
   const groupId = getRouterParam(event, 'id')

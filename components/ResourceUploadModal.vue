@@ -50,14 +50,14 @@
 
         <!-- File Upload -->
         <div v-if="uploadType === 'file'" class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">选择文件 *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">选择文件 * (支持多选)</label>
           <div
             @click="$refs.fileInput.click()"
             @dragover.prevent
             @drop.prevent="handleDrop"
             :class="[
               'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all',
-              selectedFile
+              selectedFiles.length > 0
                 ? 'border-green-500 bg-green-50'
                 : 'border-gray-300 hover:border-orange-500 hover:bg-orange-50'
             ]"
@@ -65,18 +65,19 @@
             <input
               ref="fileInput"
               type="file"
+              multiple
               class="hidden"
               @change="handleFileSelect"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.zip,.rar,.7z"
             />
-            <div v-if="selectedFile">
+            <div v-if="selectedFiles.length > 0">
               <svg class="w-16 h-16 mx-auto mb-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
-              <p class="font-medium text-gray-900 mb-1">{{ selectedFile.name }}</p>
-              <p class="text-sm text-gray-500">{{ formatFileSize(selectedFile.size) }}</p>
+              <p class="font-medium text-gray-900 mb-1">已选择 {{ selectedFiles.length }} 个文件</p>
+              <p class="text-sm text-gray-500">总大小: {{ formatFileSize(totalFileSize) }}</p>
               <button
-                @click.stop="selectedFile = null"
+                @click.stop="selectedFiles = []"
                 class="mt-3 text-sm text-red-600 hover:text-red-700"
               >
                 移除文件
@@ -88,6 +89,33 @@
               </svg>
               <p class="text-gray-700 mb-1">点击或拖拽文件到此处</p>
               <p class="text-sm text-gray-500">支持 PDF, Word, Excel, PPT, 图片, 视频, 压缩包 (最大100MB)</p>
+            </div>
+          </div>
+
+          <!-- File List -->
+          <div v-if="selectedFiles.length > 0" class="mt-4 space-y-2">
+            <div
+              v-for="(file, index) in selectedFiles"
+              :key="index"
+              class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+            >
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+                <svg class="w-8 h-8 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                </svg>
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium text-gray-900 truncate">{{ file.name }}</p>
+                  <p class="text-sm text-gray-500">{{ formatFileSize(file.size) }}</p>
+                </div>
+              </div>
+              <button
+                @click="removeFile(index)"
+                class="ml-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -207,7 +235,7 @@ const emit = defineEmits(['close', 'uploaded'])
 const authStore = useAuthStore()
 
 const uploadType = ref('file')
-const selectedFile = ref(null)
+const selectedFiles = ref([])
 const uploading = ref(false)
 const tagsInput = ref('')
 
@@ -220,10 +248,15 @@ const formData = ref({
   visibility: 'members'
 })
 
+// Total file size
+const totalFileSize = computed(() => {
+  return selectedFiles.value.reduce((sum, file) => sum + file.size, 0)
+})
+
 // Can upload
 const canUpload = computed(() => {
   if (uploadType.value === 'file') {
-    return selectedFile.value && formData.value.title
+    return selectedFiles.value.length > 0 && formData.value.title
   } else {
     return formData.value.externalUrl && formData.value.title
   }
@@ -240,31 +273,42 @@ watch(tagsInput, (value) => {
 
 // Handle file select
 const handleFileSelect = (event) => {
-  const file = event.target.files[0]
-  if (file) {
+  const files = Array.from(event.target.files)
+
+  for (const file of files) {
     if (file.size > 100 * 1024 * 1024) {
-      alert('文件大小不能超过100MB')
-      return
+      alert(`文件 ${file.name} 大小超过100MB，已跳过`)
+      continue
     }
-    selectedFile.value = file
-    if (!formData.value.title) {
-      formData.value.title = file.name
-    }
+    selectedFiles.value.push(file)
   }
+
+  // Auto-fill title with first file name if empty
+  if (selectedFiles.value.length > 0 && !formData.value.title) {
+    formData.value.title = selectedFiles.value[0].name
+  }
+}
+
+// Remove individual file
+const removeFile = (index) => {
+  selectedFiles.value.splice(index, 1)
 }
 
 // Handle drop
 const handleDrop = (event) => {
-  const file = event.dataTransfer.files[0]
-  if (file) {
+  const files = Array.from(event.dataTransfer.files)
+
+  for (const file of files) {
     if (file.size > 100 * 1024 * 1024) {
-      alert('文件大小不能超过100MB')
-      return
+      alert(`文件 ${file.name} 大小超过100MB，已跳过`)
+      continue
     }
-    selectedFile.value = file
-    if (!formData.value.title) {
-      formData.value.title = file.name
-    }
+    selectedFiles.value.push(file)
+  }
+
+  // Auto-fill title with first file name if empty
+  if (selectedFiles.value.length > 0 && !formData.value.title) {
+    formData.value.title = selectedFiles.value[0].name
   }
 }
 
@@ -284,31 +328,41 @@ const handleUpload = async () => {
   uploading.value = true
   try {
     if (uploadType.value === 'file') {
-      // Upload file
+      // Upload all files as one resource
       const formDataToSend = new FormData()
-      formDataToSend.append('file', selectedFile.value)
+
+      // Append all files with the same field name 'file'
+      selectedFiles.value.forEach(file => {
+        formDataToSend.append('file', file)
+      })
+
+      // Append other fields
+      formDataToSend.append('groupId', props.groupId)
       formDataToSend.append('title', formData.value.title)
       formDataToSend.append('description', formData.value.description)
       formDataToSend.append('category', formData.value.category)
       formDataToSend.append('tags', JSON.stringify(formData.value.tags))
       formDataToSend.append('visibility', formData.value.visibility)
 
-      const result = await $fetch(`/api/study-groups/${props.groupId}/resources`, {
+      console.log(`[ResourceUpload] 上传资源，包含 ${selectedFiles.value.length} 个文件`)
+      const result = await $fetch(`/api/study-resources`, {
         method: 'POST',
         headers: authStore.getAuthHeader(),
         body: formDataToSend
       })
 
       if (result.success) {
-        alert('资料上传成功！')
+        alert(result.message || '资料上传成功！')
         emit('uploaded', result.data)
       }
     } else {
       // Upload link
-      const result = await $fetch(`/api/study-groups/${props.groupId}/resources`, {
+      console.log('[ResourceUpload] 使用扁平路由 API 添加链接')
+      const result = await $fetch(`/api/study-resources`, {
         method: 'POST',
         headers: authStore.getAuthHeader(),
         body: {
+          groupId: props.groupId,
           title: formData.value.title,
           description: formData.value.description,
           category: formData.value.category,

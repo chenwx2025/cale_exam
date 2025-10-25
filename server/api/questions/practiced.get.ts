@@ -8,7 +8,7 @@ import { requireAuth } from '../../utils/auth-helpers'
  */
 export default defineEventHandler(async (event) => {
   // 验证用户身份
-  const user = requireAuth(event)
+  const user = await requireAuth(event)
 
   try {
     const query = getQuery(event)

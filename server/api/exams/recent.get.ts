@@ -5,7 +5,7 @@ import prisma from '~/server/utils/prisma'
  * 获取用户最近的考试记录
  */
 export default defineEventHandler(async (event) => {
-  const user = requireAuth(event)
+  const user = await requireAuth(event)
   const query = getQuery(event)
   const examType = String(query.examType || 'cale')
   const limit = Math.min(10, Math.max(1, parseInt(String(query.limit || '5'))))

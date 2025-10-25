@@ -159,16 +159,8 @@
                 </div>
               </div>
 
-              <!-- Poll Display -->
-              <div v-if="post.hasPoll" class="mb-6">
-                <PollDisplay
-                  :group-id="groupId"
-                  :post-id="postId"
-                  @updated="loadPost"
-                />
-              </div>
               <!-- Edit Post Form -->
-              <div v-else class="mb-6">
+              <div v-if="isEditingPost" class="mb-6">
                 <div class="mb-3">
                   <label class="block text-sm font-medium text-gray-700 mb-1">标题</label>
                   <input
@@ -183,9 +175,19 @@
                   <MarkdownEditor
                     v-model="editPostContent"
                     :rows="10"
-                    placeholder="编辑帖子内容... 支持Markdown格式编辑"
+                    :group-id="groupId"
+                    placeholder="编辑帖子内容... 支持Markdown格式编辑，输入 @ 可以提及小组成员"
                   />
                 </div>
+              </div>
+
+              <!-- Poll Display -->
+              <div v-if="post.hasPoll && !isEditingPost" class="mb-6">
+                <PollDisplay
+                  :group-id="groupId"
+                  :post-id="postId"
+                  @updated="loadPost"
+                />
               </div>
 
               <!-- Post Actions -->
@@ -320,7 +322,8 @@
                   <MarkdownEditor
                     v-model="editReplyContent"
                     :rows="8"
-                    placeholder="编辑回复内容... 支持Markdown格式编辑"
+                    :group-id="groupId"
+                    placeholder="编辑回复内容... 支持Markdown格式编辑，输入 @ 可以提及小组成员"
                   />
                 </div>
 
@@ -429,11 +432,12 @@
               ref="replyEditorRef"
               v-model="replyContent"
               :rows="8"
-              placeholder="写下你的回复... 支持Markdown格式编辑"
+              :group-id="groupId"
+              placeholder="写下你的回复... 支持Markdown格式编辑，输入 @ 可以提及小组成员"
             />
             <div class="flex items-center justify-between mt-4">
               <div class="text-sm text-gray-500">
-                <span class="mr-4">💡 支持Markdown格式 | Ctrl+B 粗体 | Ctrl+I 斜体</span>
+                <span class="mr-4">💡 支持Markdown格式 | @ 提及成员 | Ctrl+B 粗体 | Ctrl+I 斜体</span>
               </div>
               <button
                 @click="submitReply"
@@ -496,12 +500,17 @@ onMounted(async () => {
 const loadPost = async () => {
   loading.value = true
   try {
-    const data = await $fetch(`/api/study-groups/${groupId}/posts/${postId}`, {
+    console.log('[Post Detail] 使用扁平路由 API 加载帖子详情')
+    const result = await $fetch(`/api/study-group-post-detail?groupId=${groupId}&postId=${postId}`, {
       headers: authStore.getAuthHeader()
     })
 
-    post.value = data
-    replies.value = data.replies || []
+    post.value = result.data
+    // 为回复添加楼层号（从2楼开始，1楼是主帖）
+    replies.value = (result.data.replies || []).map((reply, index) => ({
+      ...reply,
+      floorNumber: index + 2
+    }))
   } catch (err) {
     error.value = err.message || '加载帖子失败'
   } finally {
@@ -511,10 +520,11 @@ const loadPost = async () => {
 
 const toggleLike = async () => {
   try {
-    console.log('[Post Like] 开始点赞操作, postId:', postId)
-    const result = await $fetch(`/api/study-groups/${groupId}/posts/${postId}/like`, {
+    console.log('[Post Like] 使用扁平路由 API 开始点赞操作, postId:', postId)
+    const result = await $fetch(`/api/study-group-post-like`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: { groupId, postId }
     })
     console.log('[Post Like] 点赞操作成功:', result)
 
@@ -535,10 +545,11 @@ const toggleLike = async () => {
 
 const toggleReplyLike = async (replyId) => {
   try {
-    console.log('[Reply Like] 开始点赞操作, replyId:', replyId)
-    const result = await $fetch(`/api/study-groups/${groupId}/posts/${postId}/replies/${replyId}/like`, {
+    console.log('[Reply Like] 使用扁平路由 API 开始点赞操作, replyId:', replyId)
+    const result = await $fetch(`/api/study-group-reply-like`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: { groupId, postId, replyId }
     })
     console.log('[Reply Like] 点赞操作成功:', result)
 
@@ -562,10 +573,13 @@ const submitReply = async () => {
 
   isPosting.value = true
   try {
-    const result = await $fetch(`/api/study-groups/${groupId}/posts/${postId}/replies`, {
+    console.log('[Post Reply] 使用扁平路由 API 发表回复')
+    const result = await $fetch(`/api/study-group-post-reply`, {
       method: 'POST',
       headers: authStore.getAuthHeader(),
       body: {
+        groupId,
+        postId,
         content: replyContent.value
       }
     })
@@ -629,12 +643,13 @@ const togglePin = async () => {
 
   isTogglingPin.value = true
   try {
-    const result = await $fetch(`/api/study-groups/${groupId}/posts/${postId}/pin`, {
+    const result = await $fetch(`/api/study-group-post-pin`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: { groupId, postId }
     })
 
-    console.log('[Toggle Pin] 操作成功:', result)
+    console.log('[Toggle Pin] 使用扁平路由 API 操作成功:', result)
 
     // Update local post state
     if (post.value) {
@@ -661,12 +676,13 @@ const toggleFeatured = async () => {
 
   isTogglingFeatured.value = true
   try {
-    const result = await $fetch(`/api/study-groups/${groupId}/posts/${postId}/featured`, {
+    const result = await $fetch(`/api/study-group-post-featured`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: { groupId, postId }
     })
 
-    console.log('[Toggle Featured] 操作成功:', result)
+    console.log('[Toggle Featured] 使用扁平路由 API 操作成功:', result)
 
     // Update local post state
     if (post.value) {
@@ -692,12 +708,13 @@ const toggleLock = async () => {
 
   isTogglingLock.value = true
   try {
-    const result = await $fetch(`/api/study-groups/${groupId}/posts/${postId}/lock`, {
+    const result = await $fetch(`/api/study-group-post-lock`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: { groupId, postId }
     })
 
-    console.log('[Toggle Lock] 操作成功:', result)
+    console.log('[Toggle Lock] 使用扁平路由 API 操作成功:', result)
 
     // Update local post state
     if (post.value) {
@@ -722,10 +739,11 @@ const toggleLock = async () => {
 // Toggle bookmark
 const toggleBookmark = async () => {
   try {
-    console.log('[Bookmark] 切换收藏状态, postId:', postId)
-    const result = await $fetch(`/api/study-groups/${groupId}/posts/${postId}/bookmark`, {
+    console.log('[Bookmark] 使用扁平路由 API 切换收藏状态, postId:', postId)
+    const result = await $fetch(`/api/study-group-post-bookmark`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: { groupId, postId }
     })
 
     console.log('[Bookmark] 操作成功:', result)
@@ -852,10 +870,11 @@ const saveReplyEdit = async (replyId) => {
 // Toggle best answer
 const toggleBestAnswer = async (replyId) => {
   try {
-    console.log('[Best Answer] 切换最佳答案, replyId:', replyId)
-    const result = await $fetch(`/api/study-groups/${groupId}/posts/${postId}/replies/${replyId}/best-answer`, {
+    console.log('[Best Answer] 使用扁平路由 API 切换最佳答案, replyId:', replyId)
+    const result = await $fetch(`/api/study-group-best-answer`, {
       method: 'POST',
-      headers: authStore.getAuthHeader()
+      headers: authStore.getAuthHeader(),
+      body: { groupId, postId, replyId }
     })
 
     console.log('[Best Answer] 操作成功:', result)

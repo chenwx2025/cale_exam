@@ -163,6 +163,7 @@ const loadNotes = async () => {
   loading.value = true
   try {
     const params = {
+      groupId: groupId,
       page: pagination.value.page,
       pageSize: pagination.value.pageSize,
       sortBy: sortBy.value,
@@ -174,16 +175,20 @@ const loadNotes = async () => {
 
     const queryString = new URLSearchParams(params).toString()
 
-    const result = await $fetch(`/api/study-groups/${groupId}/notes?${queryString}`, {
+    // 使用扁平路由以避免 Nuxt 嵌套动态路由问题
+    console.log('[NotesPage] 使用扁平路由 API 加载笔记')
+    const result = await $fetch(`/api/study-notes?${queryString}`, {
       headers: authStore.getAuthHeader()
     })
+    console.log('[NotesPage] API响应:', result)
 
     if (result.success) {
       notes.value = result.data.notes
       pagination.value = result.data.pagination
+      console.log('[NotesPage] 加载到笔记数量:', notes.value.length)
     }
   } catch (error) {
-    console.error('加载笔记失败:', error)
+    console.error('[NotesPage] 加载笔记失败:', error)
     if (error.statusCode === 403) {
       alert('需要加入小组才能查看笔记')
       router.push(`/study-groups/${groupId}`)
@@ -212,6 +217,20 @@ const goBackToGroup = () => {
 // 初始加载
 onMounted(() => {
   loadNotes()
+})
+
+// 当从创建/编辑页面返回时重新加载
+onActivated(() => {
+  loadNotes()
+})
+
+// 监听路由变化，从子路由返回时重新加载
+watch(() => route.fullPath, (newPath, oldPath) => {
+  // 只在回到笔记列表页时重新加载
+  const notesIndexPath = `/study-groups/${groupId}/notes`
+  if (newPath === notesIndexPath && oldPath && oldPath !== newPath) {
+    loadNotes()
+  }
 })
 </script>
 
