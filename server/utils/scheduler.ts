@@ -6,6 +6,12 @@ import { generateDailyQuestionsForAllGroups } from './daily-question-service'
  * 初始化定时任务
  */
 export function initScheduler() {
+  // 确保有数据库连接
+  if (!process.env.DATABASE_URL) {
+    console.warn('[Scheduler] DATABASE_URL not found, scheduler will not start')
+    return
+  }
+
   console.log('[Scheduler] Initializing notification scheduler...')
 
   // 每分钟检查一次学习提醒（用于精确匹配设定的提醒时间）
