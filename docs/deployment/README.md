@@ -66,6 +66,7 @@
 - **[CURRENT_STATUS.md](CURRENT_STATUS.md)** - 当前项目状态
 - **[BUILD_FIX.md](BUILD_FIX.md)** - 构建错误修复
 - **[DB_CONNECTION_TEST_RESULT.md](DB_CONNECTION_TEST_RESULT.md)** - 数据库连接测试
+- **[NODE_ENV_EXPLAINED.md](NODE_ENV_EXPLAINED.md)** - NODE_ENV 环境变量详解
 
 ### 混合部署
 
