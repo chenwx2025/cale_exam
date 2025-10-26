@@ -193,10 +193,15 @@ npx tsx scripts/create-admin.ts  # 创建管理员账户
 
 ## 📚 项目文档
 
-- [项目完成总结](PROJECT_FINAL_SUMMARY.md) - 完整的项目概览
-- [Phase 1: 用户认证](PHASE1_COMPLETED.md) - 认证系统实现
-- [Phase 2: 数据隔离](PHASE2_COMPLETED.md) - 数据隔离方案
-- [Phase 3: 多考试类型](PHASE3_FINAL_SUMMARY.md) - 多考试类型支持
+### 部署文档
+- 🚀 **[部署指南](docs/deployment/READY_TO_DEPLOY.md)** - Vercel + Supabase 部署（30分钟）
+- 📋 **[部署文档索引](docs/deployment/README.md)** - 所有部署相关文档
+- ✅ **[配置检查](docs/deployment/DATABASE_CONFIG_CHECK.md)** - 数据库配置验证
+
+### 功能文档
+- [项目完成总结](docs/PROJECT_FINAL_SUMMARY.md) - 完整的项目概览
+- [快速开始](docs/QUICK_START.md) - 快速上手指南
+- [部署指南](docs/DEPLOYMENT_GUIDE.md) - 详细部署说明
 - [Phase 4: 管理员系统](PHASE4_COMPLETE_100.md) - 管理后台实现（100%完成）
 
 ## 🔐 默认账户
