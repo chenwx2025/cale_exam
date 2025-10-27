@@ -112,13 +112,8 @@ export default defineNuxtConfig({
       headers: {
         'cache-control': 'no-cache, no-store, must-revalidate'
       }
-    },
-    // Static assets - cache for 1 year
-    '/_nuxt/**': {
-      headers: {
-        'cache-control': 'public, max-age=31536000, immutable'
-      }
     }
+    // Note: _nuxt/** assets are automatically served as static files by Vercel
   },
 
   nitro: {
