@@ -132,7 +132,7 @@ export default defineNuxtConfig({
     minify: true,
     // Prerender routes
     prerender: {
-      crawlLinks: true,
+      crawlLinks: false,
       routes: ['/', '/outline']
     },
     // Rollup configuration for Nitro
