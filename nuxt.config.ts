@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
   ssr: false, // 禁用SSR以避免hydration问题
 
   modules: [
@@ -89,7 +89,7 @@ export default defineNuxtConfig({
   // Experimental features for performance
   experimental: {
     payloadExtraction: false,
-    renderJsonPayloads: true,
+    renderJsonPayloads: false,
     componentIslands: false,
     viewTransition: true
   },
