@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: process.env.NODE_ENV !== 'production' },
-  ssr: false, // 禁用SSR以避免hydration问题
+  ssr: true, // 启用SSR以支持Vercel部署
 
   modules: [
     '@nuxtjs/tailwindcss',
@@ -88,8 +88,8 @@ export default defineNuxtConfig({
 
   // Experimental features for performance
   experimental: {
-    payloadExtraction: false,
-    renderJsonPayloads: false,
+    payloadExtraction: true,
+    renderJsonPayloads: true,
     componentIslands: false,
     viewTransition: true
   },
